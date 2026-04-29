@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>大发行结算平台 — IAA利润分成原型</title>
+<style>
+:root{--nav:#0f3f7f;--nav2:#0b2f60;--primary:#1d5fbf;--primary2:#eaf2ff;--bg:#f4f7fb;--card:#fff;--line:#dbe5f2;--line2:#edf2f8;--text:#17233c;--muted:#63748b;--weak:#9aacbf;--green:#0f8a4b;--greenBg:#eaf8f0;--red:#c62828;--redBg:#fff0f0;--orange:#c26a00;--orangeBg:#fff6e8;--purple:#6d4bc2;--purpleBg:#f3efff;--shadow:0 10px 24px rgba(15,63,127,.08);--r:10px;--r2:6px;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;font-size:13px;min-width:1280px}.app{display:flex;min-height:100vh}.sidebar{position:fixed;left:0;top:0;bottom:0;width:232px;background:linear-gradient(180deg,var(--nav),var(--nav2));color:#fff;display:flex;flex-direction:column;z-index:10}.brand{height:60px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.12)}.brand .name{font-weight:700;font-size:14px;letter-spacing:.02em}.brand .sub{font-size:10px;opacity:.45;margin-top:2px;letter-spacing:.08em}.nav{padding:10px 10px;overflow:auto;flex:1}.nav-group{margin:8px 0 12px}.nav-title{font-size:10px;opacity:.38;letter-spacing:.12em;padding:0 10px;margin-bottom:4px}.nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:7px;color:rgba(255,255,255,.72);cursor:pointer;transition:.15s;margin:2px 0;font-size:12.5px}.nav-item:hover{background:rgba(255,255,255,.1);color:#fff}.nav-item.active{background:rgba(255,255,255,.18);color:#fff;font-weight:700}.nav-dot{width:17px;text-align:center;opacity:.7;flex-shrink:0}.nav-item.active .nav-dot{opacity:1}.main{margin-left:232px;flex:1;min-width:0;overflow:hidden}.topbar{height:56px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:5}.crumb{color:var(--weak);font-size:13px}.crumb b{color:var(--text);font-weight:650}.top-actions{margin-left:auto;display:flex;align-items:center;gap:10px}.role-sel{border:1px solid var(--line);background:#fff;border-radius:var(--r2);padding:7px 10px;color:var(--text);font-size:13px;outline:none;cursor:pointer}.role-sel:focus{border-color:var(--primary)}.content{padding:22px 26px 48px}.page{display:none}.page.active{display:block}.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}.pt{font-size:19px;font-weight:750}.pd{color:var(--muted);margin-top:5px;font-size:12.5px}.acts{display:flex;gap:8px;align-items:center}.btn{border:0;border-radius:var(--r2);padding:8px 14px;font-weight:650;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:5px}.btn.p{background:var(--primary);color:#fff}.btn.p:hover{background:#174f9f}.btn.g{background:#fff;color:var(--primary);border:1px solid var(--line)}.btn.g:hover{border-color:var(--primary);background:var(--primary2)}.btn.d{background:var(--red);color:#fff}.btn.sm{padding:5px 10px;font-size:12px}.btn:disabled{opacity:.4;cursor:not-allowed}.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}.card-hd{padding:14px 17px;border-bottom:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between}.card-title{font-size:14px;font-weight:750}.card-sub{font-size:12px;color:var(--muted);margin-top:2px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.metric{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}.metric .lb{color:var(--muted);font-size:12px}.metric .v{font-size:22px;font-weight:800;margin-top:7px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.metric .ft{font-size:12px;color:var(--weak);margin-top:5px}.filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.input,.select,.textarea{border:1px solid var(--line);background:#fff;border-radius:var(--r2);padding:7px 10px;color:var(--text);font-family:inherit;font-size:13px;outline:none}.input:focus,.select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(29,95,191,.08)}.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}.table{width:100%;min-width:900px;border-collapse:collapse;background:#fff}.table th{background:#f8fbff;color:#53677e;font-size:12px;font-weight:700;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}.table td{padding:10px 12px;border-bottom:1px solid var(--line2);white-space:nowrap;vertical-align:middle;font-size:13px}.table tr:hover td{background:#f8fbff}.tag{display:inline-flex;align-items:center;border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:650;white-space:nowrap}.tag.blue{background:var(--primary2);color:var(--primary)}.tag.green{background:var(--greenBg);color:var(--green)}.tag.red{background:var(--redBg);color:var(--red)}.tag.orange{background:var(--orangeBg);color:var(--orange)}.tag.purple{background:var(--purpleBg);color:var(--purple)}.tag.gray{background:#f1f4f8;color:#63748b}.money{font-variant-numeric:tabular-nums}.neg{color:var(--red);font-weight:700}.pos{color:var(--text)}.link{border:0;background:transparent;color:var(--primary);cursor:pointer;font-weight:650;padding:2px 5px;font-size:13px;font-family:inherit}.link:hover{text-decoration:underline}.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 16px}.field label{display:block;color:#4e6177;font-weight:650;margin-bottom:5px;font-size:12.5px}.req{color:var(--red)}.hint{font-size:12px;color:var(--weak);margin-top:4px}.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line2);margin-bottom:14px}.tab{padding:10px 15px;border:0;background:transparent;cursor:pointer;color:var(--muted);font-weight:700;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;font-size:13px}.tab.active{color:var(--primary);border-bottom-color:var(--primary)}.notice{border:1px solid #cfe0f6;background:#f5f9ff;border-radius:var(--r2);padding:10px 12px;color:#31557d;line-height:1.7;font-size:12.5px;margin-bottom:14px}.formula{background:#f8fbff;border:1px dashed #b8cce6;border-radius:var(--r2);padding:12px;line-height:1.85;color:#31557d;font-size:12.5px}.stepper{display:flex;align-items:center;gap:6px;margin-bottom:18px}.step{display:flex;align-items:center;gap:7px;color:var(--weak);font-size:13px}.step .sc{width:24px;height:24px;border-radius:50%;background:#e8eef7;color:#7c8fa5;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}.step.done{color:var(--green)}.step.done .sc{background:var(--green);color:#fff}.step.act{color:var(--primary);font-weight:700}.step.act .sc{background:var(--primary);color:#fff}.sline{height:1px;background:var(--line);width:32px}.modal-mask{display:none;position:fixed;inset:0;background:rgba(8,22,44,.42);z-index:50;align-items:flex-start;justify-content:center;padding-top:60px}.modal-mask.open{display:flex}.modal{width:860px;max-height:82vh;overflow:auto;background:#fff;border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.22)}.mhd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}.mtitle{font-size:16px;font-weight:800}.mbd{padding:18px}.mft{padding:13px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}.close{border:0;background:transparent;font-size:22px;cursor:pointer;color:var(--weak)}.kv{display:grid;grid-template-columns:140px 1fr;gap:8px 12px;font-size:13px}.kv .k{color:var(--muted)}.kv .v{font-weight:650}.sec-title{font-size:13.5px;font-weight:800;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line2)}.hr{height:1px;background:var(--line2);margin:14px 0}.alert{background:var(--redBg);border:1px solid #f8b4b4;border-radius:var(--r2);padding:10px 12px;color:var(--red);font-size:12.5px;margin-bottom:12px}
+/* 用户中心 */
+.user-center{position:relative;display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 10px;border-radius:var(--r2);border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);transition:.15s;user-select:none;margin-left:6px}
+.user-center:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3)}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.user-name{color:#fff;font-size:13px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-arrow{color:rgba(255,255,255,.55);font-size:11px;transition:.15s}
+.user-center.open .user-arrow{transform:rotate(180deg)}
+.user-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:0 8px 24px rgba(15,63,127,.14);z-index:100}
+.user-center.open .user-dropdown{display:block}
+.ud-header{padding:10px 14px;border-bottom:1px solid var(--line2)}
+.ud-role{color:var(--muted);font-size:11.5px;margin-top:2px}
+.ud-item{display:flex;align-items:center;gap:8px;padding:9px 14px;color:var(--text);font-size:13px;cursor:pointer;transition:.1s}
+.ud-item:hover{background:var(--primary2);color:var(--primary)}
+.ud-item.danger:hover{background:var(--redBg);color:var(--red)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="name">大发行结算平台</div><div class="sub">IAA PROFIT SHARING · V1 PROTOTYPE</div></div>
+    <div class="nav" id="navEl"></div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <div class="crumb">大发行结算平台 / <b id="crumbEl">—</b></div>
+      <div class="top-actions">
+        <div id="gameFilterWrap" style="display:none;align-items:center;gap:6px">
+          <span style="color:var(--muted);font-size:12px">筛选游戏</span>
+          <select class="role-sel" id="gameFilter" onchange="changeGameFilter()" style="min-width:120px"></select>
+        </div>
+        <div id="entityFilterWrap" style="display:none;align-items:center;gap:6px">
+          <span style="color:var(--muted);font-size:12px">筛选主体</span>
+          <select class="role-sel" id="entityFilter" onchange="changeEntityFilter()" style="min-width:140px"></select>
+        </div>
+        <span class="tag orange">Mock 数据模式</span>
+        <span style="color:var(--muted);font-size:12px">当前角色</span>
+        <select class="role-sel" id="roleEl" onchange="changeRole()"></select>
+        <div class="user-center" id="userCenter" onclick="toggleUserMenu(event)">
+          <div class="user-avatar" id="userAvatar">张</div>
+          <span class="user-name" id="userNameEl">admin_zhang</span>
+          <span class="user-arrow">▾</span>
+          <div class="user-dropdown">
+            <div class="ud-header">
+              <div id="udFullName" style="font-weight:700;font-size:13px">admin_zhang</div>
+              <div class="ud-role" id="udRole">系统管理员</div>
+            </div>
+            <div class="ud-item danger" onclick="doLogout()">⎋ 退出登录</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="content" id="contentEl"></div>
+  </main>
+</div>
+<div class="modal-mask" id="mask" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="mhd"><div class="mtitle" id="mTitle">详情</div><button class="close" onclick="closeModal()">×</button></div>
+    <div class="mbd" id="mBody"></div>
+    <div class="mft" id="mFoot"></div>
+  </div>
+</div>
+<script>
+/* ──────────── CONFIG ──────────── */
+const ROLES=['系统管理员','业务负责人','业务运营','财务人员','财务负责人/审批人','发行商','CP'];
+const ROLE_USERS={
+  '系统管理员':{user:'admin_zhang',display:'张三'},
+  '业务负责人':{user:'biz_wang',display:'王五'},
+  '业务运营':{user:'ops_liu',display:'刘洋'},
+  '财务人员':{user:'finance_li',display:'李四'},
+  '财务负责人/审批人':{user:'fin_mgr_chen',display:'陈总'},
+  '发行商':{user:'pub_xingchen',display:'星辰运营'},
+  'CP':{user:'cp_dream',display:'梦工厂'}
+};
+const ROLE_PAGES={
+  '系统管理员':['games','publishers','cps','pubMapping','cpMapping','rules','settlePub','settleCp','balance','payments','paymentNew','sync'],
+  '业务负责人':['games','publishers','cps','pubMapping','cpMapping','rules','settlePub','settleCp','balance','payments','sync'],
+  '业务运营':['games','pubMapping','cpMapping','settlePub','settleCp','balance','sync'],
+  '财务人员':['publishers','cps','pubMapping','cpMapping','rules','settlePub','settleCp','balance','payments','sync'],
+  '财务负责人/审批人':['pubMapping','cpMapping','rules','settlePub','settleCp','balance','payments','sync'],
+  '发行商':['pubMapping','cpMapping','settlePub','balance','paymentNew','payments'],
+  'CP':['cpMapping','settleCp']
+};
+const NAV=[
+  {title:'主数据',items:[['games','▦','游戏管理'],['publishers','◉','发行商主体'],['cps','◎','CP主体']]},
+  {title:'合作关系',items:[['pubMapping','⇌','游戏-发行商关系'],['cpMapping','◈','游戏-CP关系']]},
+  {title:'结算配置',items:[['rules','⊛','分成规则配置'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细'],['balance','▣','账户余额池']]},
+  {title:'打款闭环',items:[['paymentNew','→','发起打款申请'],['payments','☑','打款申请单']]},
+  {title:'系统运维',items:[['sync','↻','数据同步状态']]}
+];
+let ROLE='财务人员', PAGE='rules';
+// 游戏筛选（非游戏管理页面共用）
+let FILTER_GAME='all';
+// 主体筛选：值格式为 "pub:P-2001" 或 "cp:CP-3001"，'all' 为全部
+let FILTER_ENTITY='all';
+
+/* ──────────── MOCK DATA ──────────── */
+const games=[
+  {id:'G-1001',name:'幻境传说',platforms:['微信小游戏','抖音小游戏'],remark:'微信/抖音双平台投放',created:'2026-04-01 10:22',creator:'系统管理员'},
+  {id:'G-1002',name:'星际争霸',platforms:['抖音小游戏'],remark:'抖音小游戏重点项目',created:'2026-04-03 14:05',creator:'系统管理员'},
+  {id:'G-1003',name:'萌宠大陆',platforms:['微信小游戏'],remark:'微信小游戏自然量较高',created:'2026-04-08 09:11',creator:'系统管理员'},
+  {id:'G-1004',name:'弹球传奇',platforms:['微信小游戏'],remark:'多发行商分渠道运营，每个渠道独立AppID',created:'2026-04-15 10:30',creator:'系统管理员'}
+];
+// 平台-发行商-ID 映射子表（REQ-R-101）
+// 微信：必填 wxAppId（可多条）；抖音：必填 dyAppId + 多选 jlIds（一游戏一发行商）
+const pubMappings=[
+  {id:'M-001',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',pub:'星辰网络',pubId:'P-2001',wxAppId:'wx-hjcs-001',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-02'},
+  {id:'M-002',game:'幻境传说',gameId:'G-1001',platform:'抖音小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'',dyAppId:'tt-hjcs-009',jlIds:['881002','881003'],jlNames:['巨量-光速传媒-主账户','巨量-光速传媒-子账户A'],creator:'业务运营',created:'2026-04-02'},
+  {id:'M-003',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'',dyAppId:'tt-xjzb-007',jlIds:['992011'],jlNames:['巨量-光速传媒-星际'],creator:'业务运营',created:'2026-04-04'},
+  {id:'M-004',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',pub:'星辰网络',pubId:'P-2001',wxAppId:'wx-mcdl-003',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-09'},
+  {id:'M-005',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',pub:'星辰网络',pubId:'P-2001',wxAppId:'wx-tqcq-011',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-16'},
+  {id:'M-006',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'wx-tqcq-028',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-16'},
+  {id:'M-007',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',pub:'灵犀互娱',pubId:'P-2003',wxAppId:'wx-tqcq-045',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-17'}
+];
+// 游戏-CP关系子表（REQ-R-104：一个游戏只能配置一条）
+const cpMappings=[
+  {id:'CPR-001',game:'幻境传说',gameId:'G-1001',cp:'梦工厂',cpId:'CP-3001',creator:'业务负责人',created:'2026-04-02'},
+  {id:'CPR-002',game:'星际争霸',gameId:'G-1002',cp:'梦工厂',cpId:'CP-3001',creator:'业务负责人',created:'2026-04-04'},
+  {id:'CPR-003',game:'萌宠大陆',gameId:'G-1003',cp:'梦工厂',cpId:'CP-3001',creator:'业务负责人',created:'2026-04-09'}
+];
+const publishers=[
+  {id:'P-2001',name:'星辰网络',credit:'91440300MA5XCHEN01',contact:'李明',phone:'138****1208',email:'li.ming@xc.com',status:'合作中',bank:'招商银行深圳科技园支行',accName:'深圳星辰网络有限公司',acc:'****8126',bankNo:'308584000013'},
+  {id:'P-2002',name:'光速传媒',credit:'91310115MA1GSPD02',contact:'王璐',phone:'136****7789',email:'wanglu@gsmedia.com',status:'合作中',bank:'中国银行上海浦东支行',accName:'上海光速传媒有限公司',acc:'****4392',bankNo:'104290003456'},
+  {id:'P-2003',name:'灵犀互娱',credit:'91440101MA9QLXI003',contact:'赵磊',phone:'137****5566',email:'zhaolei@lingxi.com',status:'合作中',bank:'平安银行广州天河支行',accName:'广州灵犀互娱科技有限公司',acc:'****7731',bankNo:'307584000027'}
+];
+const cps=[{id:'CP-3001',name:'梦工厂',legal:'周启',idNo:'4403**********6218',contact:'陈晓',phone:'139****2201',email:'chenxiao@dream.com',status:'合作中'}];
+const rules=[
+  {id:'RU-202604-001',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:60,cpRate:20,status:'生效中',bpm:'BPM-IAA-00021',approved:'2026-04-02 15:22'},
+  {id:'RU-202604-002',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:55,cpRate:25,status:'审批中',bpm:'BPM-IAA-00026',approved:'—'},
+  {id:'RU-202603-008',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',start:'2026-03-01',end:'2026-03-31',pubRate:60,cpRate:20,status:'已到期',bpm:'BPM-IAA-00013',approved:'2026-03-01 10:10'},
+  {id:'RU-202604-004',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:65,cpRate:15,status:'草稿',bpm:'—',approved:'—'}
+];
+const settle=[
+  {period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:320000,vRev:68000,cost:185000,cashCost:152577,vCost:32423,cashP:167423,vP:35577,pubRate:60,cpRate:20},
+  {period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:210000,vRev:92000,cost:345000,cashCost:239901,vCost:105099,cashP:-29901,vP:-13099,pubRate:55,cpRate:25},
+  {period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:480000,vRev:120000,cost:260000,cashCost:208000,vCost:52000,cashP:272000,vP:68000,pubRate:60,cpRate:20},
+  {period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:155000,vRev:36000,cost:82000,cashCost:66576,vCost:15424,cashP:88424,vP:20576,pubRate:65,cpRate:15}
+];
+const pays=[
+  {id:'PAY-202604-001',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',amount:60000,approval:'已通过',exec:'打款成功',time:'2026-04-10 11:20',bpm:'BPM-PAY-1001',flow:'YQ-20260410001',bkFlow:'BK-849201',reason:'—'},
+  {id:'PAY-202604-002',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:90000,approval:'已通过',exec:'打款中',time:'2026-04-18 14:05',bpm:'BPM-PAY-1007',flow:'YQ-20260418002',bkFlow:'—',reason:'—'},
+  {id:'PAY-202604-003',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',amount:30000,approval:'已驳回',exec:'待执行',time:'2026-04-19 09:40',bpm:'BPM-PAY-1010',flow:'—',bkFlow:'—',reason:'本期余额为负，不允许提款'},
+  {id:'PAY-202604-004',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:25000,approval:'已通过',exec:'打款失败',time:'2026-04-21 16:33',bpm:'BPM-PAY-1012',flow:'YQ-20260421009',bkFlow:'BK-851002',reason:'联行号与开户支行不匹配'}
+];
+const syncs=[
+  {game:'幻境传说',platform:'微信小游戏',date:'2026-04-27',status:'成功',reason:'—',syncTime:'2026-04-28 06:10'},
+  {game:'幻境传说',platform:'抖音小游戏',date:'2026-04-27',status:'失败',reason:'巨量接口返回账户授权过期',syncTime:'2026-04-28 06:12'},
+  {game:'星际争霸',platform:'抖音小游戏',date:'2026-04-27',status:'成功',reason:'—',syncTime:'2026-04-28 06:14'},
+  {game:'萌宠大陆',platform:'微信小游戏',date:'2026-04-27',status:'成功',reason:'—',syncTime:'2026-04-28 06:16'}
+];
+
+/* ──────────── HELPERS ──────────── */
+function fmt(n){return '¥ '+Number(n).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function mn(n){const cls=n<0?'neg':'pos';return `<span class="money ${cls}">${fmt(n)}</span>`}
+function ts(s){const m={'生效中':'green','审批中':'orange','已到期':'gray','已驳回':'red','草稿':'blue','成功':'green','失败':'red','打款成功':'green','打款中':'orange','打款失败':'red','待执行':'gray','已通过':'green','待审批':'orange','合作中':'green'};return `<span class="tag ${m[s]||'gray'}">${s}</span>`}
+function tbl(ths,rows){return `<div class="card"><div class="tw"><table class="table"><thead><tr>${ths.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`}
+function openModal(title,body,foot){document.getElementById('mTitle').innerHTML=title;document.getElementById('mBody').innerHTML=body;document.getElementById('mFoot').innerHTML=foot||'<button class="btn g" onclick="closeModal()">关闭</button>';document.getElementById('mask').classList.add('open')}
+function closeModal(){document.getElementById('mask').classList.remove('open')}
+const canEdit=()=>['系统管理员','业务负责人','业务运营'].includes(ROLE);
+const canFin=()=>['财务人员','财务负责人/审批人'].includes(ROLE);
+const isPublisher=()=>ROLE==='发行商';
+// PRD 4.1.3 权限细化
+const canAdminGame=()=>ROLE==='系统管理员';           // 新建/编辑/删除游戏基础信息
+const canBizMapping=()=>['业务负责人','业务运营'].includes(ROLE); // 新建/编辑映射关系
+
+/* ──────────── NAV ──────────── */
+function renderNav(){
+  const allowed=ROLE_PAGES[ROLE];
+  document.getElementById('roleEl').innerHTML=ROLES.map(r=>`<option ${r===ROLE?'selected':''}>${r}</option>`).join('');
+  document.getElementById('navEl').innerHTML=NAV.map(g=>{
+    const items=g.items.filter(i=>allowed.includes(i[0]));
+    if(!items.length)return '';
+    return `<div class="nav-group"><div class="nav-title">${g.title}</div>${items.map(i=>`<div class="nav-item ${PAGE===i[0]?'active':''}" onclick="go('${i[0]}')"><span class="nav-dot">${i[1]}</span>${i[2]}</div>`).join('')}</div>`;
+  }).join('');
+  if(!allowed.includes(PAGE))PAGE=allowed[0];
+}
+function changeRole(){ROLE=document.getElementById('roleEl').value;FILTER_GAME='all';FILTER_ENTITY='all';renderNav();renderPage();renderUserCenter()}
+function changeGameFilter(){FILTER_GAME=document.getElementById('gameFilter').value;renderPage()}
+function changeEntityFilter(){FILTER_ENTITY=document.getElementById('entityFilter').value;renderPage()}
+function go(p){PAGE=p;renderNav();renderPage()}
+
+/* 用户中心 */
+function renderUserCenter(){
+  const info=ROLE_USERS[ROLE]||{user:'unknown',display:'未知'};
+  const initial=info.display.slice(0,1);
+  document.getElementById('userAvatar').textContent=initial;
+  document.getElementById('userNameEl').textContent=info.user;
+  document.getElementById('udFullName').textContent=info.display+'（'+info.user+'）';
+  document.getElementById('udRole').textContent=ROLE;
+}
+function toggleUserMenu(e){
+  e.stopPropagation();
+  document.getElementById('userCenter').classList.toggle('open');
+}
+function doLogout(){
+  document.getElementById('userCenter').classList.remove('open');
+  if(confirm('确认退出登录？\n（原型模式：退出后将重置为默认角色「财务人员」）')){
+    ROLE='财务人员';FILTER_GAME='all';FILTER_ENTITY='all';
+    renderNav();renderPage();renderUserCenter();
+  }
+}
+
+/* ──────────── PAGES ──────────── */
+// 主数据管理页：不显示任何筛选
+const MASTER_PAGES=['games','publishers','cps'];
+function renderPage(){
+  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,paymentNew:pgPayNew,payments:pgPayments,sync:pgSync};
+  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',paymentNew:'发起打款申请',payments:'打款申请单',sync:'数据同步状态'};
+  document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
+  const isMaster=MASTER_PAGES.includes(PAGE);
+  // 游戏筛选
+  const gfEl=document.getElementById('gameFilterWrap');
+  if(gfEl){
+    if(isMaster){gfEl.style.display='none';}
+    else{
+      gfEl.style.display='flex';
+      document.getElementById('gameFilter').innerHTML='<option value="all">全部游戏</option>'+games.map(g=>`<option value="${g.id}" ${FILTER_GAME===g.id?'selected':''}>${g.name}</option>`).join('');
+    }
+  }
+  // 主体筛选（发行商+CP合并，格式 pub:id / cp:id）
+  const efEl=document.getElementById('entityFilterWrap');
+  if(efEl){
+    if(isMaster){efEl.style.display='none';}
+    else{
+      efEl.style.display='flex';
+      const pubOpts=publishers.map(p=>`<option value="pub:${p.id}" ${FILTER_ENTITY==='pub:'+p.id?'selected':''}>[发行商] ${p.name}</option>`).join('');
+      const cpOpts=cps.map(c=>`<option value="cp:${c.id}" ${FILTER_ENTITY==='cp:'+c.id?'selected':''}>[CP] ${c.name}</option>`).join('');
+      document.getElementById('entityFilter').innerHTML=`<option value="all">全部主体</option><optgroup label="发行商">${pubOpts}</optgroup><optgroup label="CP">${cpOpts}</optgroup>`;
+    }
+  }
+  document.getElementById('contentEl').innerHTML=(map[PAGE]||pgGames)();
+}
+
+/* PAGE: 游戏管理（仅游戏字典，合作关系已独立为菜单） */
+function pgGames(){
+  const kw=(window._gameKw||'').trim().toLowerCase();
+  const platF=window._gamePlatF||'all';
+  const cpF=window._gameCpF||'all';
+  const data=games.filter(g=>{
+    if(kw&&!g.name.toLowerCase().includes(kw)&&!g.id.toLowerCase().includes(kw))return false;
+    if(platF!=='all'&&!g.platforms.includes(platF))return false;
+    if(cpF!=='all'){const rel=cpMappings.find(c=>c.gameId===g.id);if(!rel||rel.cpId!==cpF)return false;}
+    return true;
+  });
+  const rows=data.map(g=>{
+    const cpRel=cpMappings.find(c=>c.gameId===g.id);
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${g.id}</td>
+      <td><b>《${g.name}》</b></td>
+      <td>${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</td>
+      <td style="color:var(--muted)">${g.remark||'—'}</td>
+      <td>${cpRel?cpRel.cp:'<span style="color:var(--red)">未配置</span>'}</td>
+      <td style="color:var(--muted);font-size:12px">${g.creator}</td>
+      <td style="color:var(--muted);font-size:12px">${g.created}</td>
+      <td>
+        <button class="link" onclick="openGameDetail('${g.id}')">查看</button>
+        ${canAdminGame()?`<button class="link" onclick="openGameEditForm('${g.id}')">编辑</button>`:''}
+        ${canAdminGame()?`<button class="link" style="color:var(--red)" onclick="confirmDeleteGame('${g.id}')">删除</button>`:''}
+      </td>
+    </tr>`;
+  });
+  const cpOpts=cps.map(c=>`<option value="${c.id}" ${cpF===c.id?'selected':''}>${c.name}</option>`).join('');
+  return `<div class="ph">
+    <div><div class="pt">游戏管理</div><div class="pd">游戏是结算系统的基础字典，由系统管理员统一维护。合作关系（发行商映射、CP绑定）请在左侧「合作关系」菜单中配置。</div></div>
+    <div class="acts">${canAdminGame()?`<button class="btn p" onclick="openGameForm()">＋ 新建游戏</button>`:''}</div>
+  </div>
+  <div class="filter">
+    <input class="input" id="gameKwInput" placeholder="搜索游戏名称 / ID…" style="width:200px" value="${window._gameKw||''}" oninput="window._gameKw=this.value;refreshGames()"/>
+    <select class="select" id="gamePlatInput" onchange="window._gamePlatF=this.value;refreshGames()">
+      <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
+      <option value="微信小游戏" ${platF==='微信小游戏'?'selected':''}>微信小游戏</option>
+      <option value="抖音小游戏" ${platF==='抖音小游戏'?'selected':''}>抖音小游戏</option>
+    </select>
+    <select class="select" id="gameCpInput" onchange="window._gameCpF=this.value;refreshGames()">
+      <option value="all" ${cpF==='all'?'selected':''}>全部CP</option>${cpOpts}
+    </select>
+    ${kw||platF!=='all'||cpF!=='all'?`<button class="btn g sm" onclick="window._gameKw='';window._gamePlatF='all';window._gameCpF='all';refreshGames()">清除筛选</button>`:''}
+    <span style="color:var(--muted);font-size:12px;margin-left:4px">共 ${data.length} 条</span>
+  </div>
+  ${data.length?tbl(['游戏ID','游戏名称','上架平台','备注','绑定CP','创建人','创建时间','操作'],rows):'<div class="notice">未找到匹配的游戏</div>'}`;
+}
+function refreshGames(){document.getElementById('contentEl').innerHTML=pgGames();}
+
+function openGameDetail(id){
+  const g=games.find(x=>x.id===id);
+  const pms=pubMappings.filter(m=>m.gameId===id);
+  const cpRel=cpMappings.find(c=>c.gameId===id);
+  const pmRows=pms.map(m=>`<tr>
+    <td>${m.platform==='微信小游戏'?`<span class="tag green">微信小游戏</span>`:`<span class="tag blue">抖音小游戏</span>`}</td>
+    <td>${m.pub}</td>
+    <td style="font-family:monospace">${m.wxAppId||'—'}</td>
+    <td style="font-family:monospace">${m.dyAppId||'—'}</td>
+    <td style="font-family:monospace;font-size:12px">${m.jlIds.join(', ')||'—'}</td>
+  </tr>`).join('');
+  openModal(`《${g.name}》游戏详情`,`
+    <div class="kv">
+      <span class="k">游戏ID</span><span class="v" style="font-family:monospace">${g.id}</span>
+      <span class="k">游戏名称</span><span class="v">《${g.name}》</span>
+      <span class="k">上架平台</span><span class="v">${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</span>
+      <span class="k">备注</span><span class="v">${g.remark||'—'}</span>
+      <span class="k">创建人</span><span class="v">${g.creator}</span>
+      <span class="k">创建时间</span><span class="v">${g.created}</span>
+    </div>
+    <div class="sec-title">绑定CP关系</div>
+    <div class="kv">
+      <span class="k">CP主体</span><span class="v">${cpRel?cpRel.cp:'<span style="color:var(--red)">未配置</span>'}</span>
+      <span class="k">CP主体ID</span><span class="v" style="font-family:monospace">${cpRel?cpRel.cpId:'—'}</span>
+    </div>
+    <div class="sec-title">平台-发行商-后台ID映射（${pms.length} 条）</div>
+    <div class="notice" style="margin-bottom:10px">微信小游戏以「微信小游戏应用ID」取数；抖音小游戏以「抖小应用ID」取收入，以「巨量账户ID」取投放成本。</div>
+    <div class="tw"><table class="table">
+      <thead><tr><th>平台</th><th>发行商</th><th>微信应用ID</th><th>抖音应用ID</th><th>巨量账户ID</th></tr></thead>
+      <tbody>${pmRows||'<tr><td colspan="5" style="color:var(--muted);text-align:center">暂无映射关系</td></tr>'}</tbody>
+    </table></div>`)
+}
+
+function openGameForm(){
+  openModal('新建游戏',`
+    <div class="fgrid">
+      <div class="field" style="grid-column:1/-1"><label>游戏名称 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="如：幻境传说" /></div>
+      <div class="field" style="grid-column:1/-1">
+        <label>上架平台 <span class="req">*</span></label>
+        <div style="display:flex;gap:16px;margin-top:6px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400"><input type="checkbox" style="width:14px;height:14px"/> 微信小游戏</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400"><input type="checkbox" style="width:14px;height:14px"/> 抖音小游戏</label>
+        </div>
+      </div>
+      <div class="field" style="grid-column:1/-1"><label>备注</label><textarea class="input" style="width:100%;height:60px;resize:vertical" placeholder="可选说明"></textarea></div>
+    </div>`,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：游戏已创建，可继续配置平台映射关系。');closeModal()">创建游戏</button>`)
+}
+
+function openGameEditForm(id){
+  const g=games.find(x=>x.id===id);
+  openModal(`编辑游戏：《${g.name}》`,`
+    <div class="fgrid">
+      <div class="field" style="grid-column:1/-1"><label>游戏名称 <span class="req">*</span></label><input class="input" style="width:100%" value="${g.name}" /></div>
+      <div class="field" style="grid-column:1/-1">
+        <label>上架平台 <span class="req">*</span></label>
+        <div style="display:flex;gap:16px;margin-top:6px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400"><input type="checkbox" ${g.platforms.includes('微信小游戏')?'checked':''} style="width:14px;height:14px"/> 微信小游戏</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400"><input type="checkbox" ${g.platforms.includes('抖音小游戏')?'checked':''} style="width:14px;height:14px"/> 抖音小游戏</label>
+        </div>
+      </div>
+      <div class="field" style="grid-column:1/-1"><label>备注</label><textarea class="input" style="width:100%;height:60px;resize:vertical">${g.remark||''}</textarea></div>
+    </div>`,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：游戏信息已更新。');closeModal()">保存</button>`)
+}
+
+function confirmDeleteGame(id){
+  const g=games.find(x=>x.id===id);
+  const used=pubMappings.some(m=>m.gameId===id)||cpMappings.some(c=>c.gameId===id);
+  if(used){openModal('无法删除',`<div class="alert">《${g.name}》已存在平台映射或CP关系，无法删除（REQ-G-103）。<br>请先解除所有关联关系后再删除。</div>`);}
+  else{openModal('确认删除',`<div style="padding:8px 0">确认删除游戏《${g.name}》（${g.id}）？该游戏从未被引用，可安全删除。</div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn d" onclick="alert('原型展示：游戏已删除。');closeModal()">确认删除</button>`);}
+}
+
+function openPubMappingForm(presetGameId){
+  const gameOpts=games.map(g=>`<option value="${g.id}" ${presetGameId===g.id?'selected':''}>${g.name}</option>`).join('');
+  openModal('新增游戏-发行商关系',`
+    <div class="notice">抖音小游戏：<b>一个游戏只能对应一个发行商</b>；微信小游戏不限。巨量账户ID每日从巨量同步，请从下拉选择（REQ-R-101 ~ R-103）。</div>
+    <div class="fgrid">
+      <div class="field"><label>所属游戏 <span class="req">*</span></label><select class="select" style="width:100%"><option value="">-- 选择 --</option>${gameOpts}</select></div>
+      <div class="field"><label>平台类型 <span class="req">*</span></label>
+        <select class="select" style="width:100%" id="pmPlatSel" onchange="togglePlatFields()">
+          <option value="">-- 选择 --</option><option>微信小游戏</option><option>抖音小游戏</option>
+        </select>
+      </div>
+      <div class="field"><label>发行商主体 <span class="req">*</span></label><select class="select" style="width:100%"><option value="">-- 选择 --</option>${publishers.map(p=>`<option>${p.name}</option>`).join('')}</select></div>
+    </div>
+    <div id="pmWxFields" style="display:none">
+      <div class="sec-title">微信小游戏字段</div>
+      <div class="field"><label>微信小游戏应用ID <span class="req">*</span></label><input class="input" style="width:100%;font-family:monospace" placeholder="与微信后台应用ID一致，可配置多个" /></div>
+      <div class="hint">一个游戏可对应多个微信后台应用ID（如分A/B包）。</div>
+    </div>
+    <div id="pmDyFields" style="display:none">
+      <div class="sec-title">抖音小游戏字段</div>
+      <div class="fgrid">
+        <div class="field"><label>抖音小游戏应用ID <span class="req">*</span></label><input class="input" style="width:100%;font-family:monospace" placeholder="唯一，一个游戏只允许一个" /></div>
+      </div>
+      <div class="sec-title">巨量账户ID（多选）</div>
+      <div class="notice">以下为已从巨量同步的账户，勾选后绑定为取数范围，<b>已绑定的不允许取消勾选</b>。</div>
+      ${['881002 · 巨量-光速传媒-主账户','881003 · 巨量-光速传媒-子账户A','992011 · 巨量-光速传媒-星际','776500 · 巨量-待分配账户'].map(a=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px"><input type="checkbox" style="width:15px;height:15px" /><span style="font-family:monospace">${a}</span></label>`).join('')}
+    </div>`,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：映射关系已保存，系统将以此作为取数依据。');closeModal()">保存映射</button>`)
+}
+function togglePlatFields(){
+  const v=document.getElementById('pmPlatSel').value;
+  document.getElementById('pmWxFields').style.display=v==='微信小游戏'?'':'none';
+  document.getElementById('pmDyFields').style.display=v==='抖音小游戏'?'':'none';
+}
+function openPubMappingDetail(id){
+  const m=pubMappings.find(x=>x.id===id);
+  openModal(`映射详情：${m.id}`,`
+    <div class="kv">
+      <span class="k">记录ID</span><span class="v" style="font-family:monospace">${m.id}</span>
+      <span class="k">所属游戏</span><span class="v">《${m.game}》</span>
+      <span class="k">平台类型</span><span class="v">${m.platform==='微信小游戏'?`<span class="tag green">微信小游戏</span>`:`<span class="tag blue">抖音小游戏</span>`}</span>
+      <span class="k">发行商</span><span class="v">${m.pub}（${m.pubId}）</span>
+      <span class="k">微信应用ID</span><span class="v" style="font-family:monospace">${m.wxAppId||'—'}</span>
+      <span class="k">抖音应用ID</span><span class="v" style="font-family:monospace">${m.dyAppId||'—'}</span>
+      <span class="k">巨量账户ID</span><span class="v" style="font-family:monospace">${m.jlIds.length?m.jlIds.map((id,j)=>`${id}（${m.jlNames[j]}）`).join('<br>'):'—'}</span>
+      <span class="k">创建人</span><span class="v">${m.creator}</span>
+      <span class="k">创建时间</span><span class="v">${m.created}</span>
+    </div>`)
+}
+function openPubMappingEdit(id){
+  const m=pubMappings.find(x=>x.id===id);
+  const isWx=m.platform==='微信小游戏';
+  const allJlAccounts=[
+    {id:'881002',name:'巨量-光速传媒-主账户'},
+    {id:'881003',name:'巨量-光速传媒-子账户A'},
+    {id:'881099',name:'巨量-光速传媒-子账户B'},
+    {id:'992011',name:'巨量-光速传媒-星际'},
+    {id:'776500',name:'巨量-待分配账户'}
+  ];
+  const appIdField=isWx
+    ?`<div class="field"><label>微信小游戏应用ID <span class="req">*</span></label><input id="pme_appId" class="input" style="width:100%;font-family:monospace" value="${m.wxAppId}"/></div>`
+    :`<div class="field"><label>抖音小游戏应用ID <span class="req">*</span></label><input id="pme_appId" class="input" style="width:100%;font-family:monospace" value="${m.dyAppId}"/></div>`;
+  const jlSection=!isWx?`
+    <div class="sec-title">巨量账户ID（已绑定 ${m.jlIds.length} 个）</div>
+    <div class="notice" style="margin-bottom:8px">已绑定的账户<b>不可取消</b>；可勾选新账户追加绑定。</div>
+    <div id="pme_jlList" style="display:flex;flex-direction:column;gap:4px">
+      ${allJlAccounts.map(a=>{
+        const bound=m.jlIds.includes(a.id);
+        return `<label style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:6px;background:${bound?'#f0f7ff':'#fafafa'};border:1px solid ${bound?'#c9e0f7':'#eee'};cursor:${bound?'default':'pointer'}">
+          <input type="checkbox" ${bound?'checked disabled':''} data-jl-id="${a.id}" data-jl-name="${a.name}" style="width:14px;height:14px;accent-color:var(--blue)"/>
+          <span style="font-family:monospace;font-size:13px">${a.id}</span>
+          <span style="color:var(--muted);font-size:12px">${a.name}</span>
+          ${bound?'<span style="margin-left:auto;font-size:11px;color:var(--blue);background:#e8f3ff;padding:1px 6px;border-radius:10px">已绑定</span>':''}
+        </label>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+      <input id="pme_jlNew" class="input" style="width:160px;font-family:monospace" placeholder="手动输入账户ID"/>
+      <input id="pme_jlNewName" class="input" style="width:160px" placeholder="账户名称"/>
+      <button class="btn g" style="white-space:nowrap" onclick="addJlRow('${m.id}')">＋ 追加</button>
+    </div>`:'';
+  openModal(`编辑映射：${m.id}`,`
+    <div class="notice" style="margin-bottom:12px">平台类型与发行商绑定后不可更改；巨量账户ID已绑定的<b>不允许删除</b>，只可新增。</div>
+    <div class="kv" style="margin-bottom:14px">
+      <span class="k">游戏</span><span class="v">《${m.game}》</span>
+      <span class="k">平台</span><span class="v">${m.platform}</span>
+      <span class="k">发行商</span><span class="v">${m.pub}（${m.pubId}）</span>
+    </div>
+    ${appIdField}
+    ${jlSection}`,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="savePubMappingEdit('${m.id}')">保存</button>`)
+}
+function addJlRow(mappingId){
+  const newId=document.getElementById('pme_jlNew').value.trim();
+  const newName=document.getElementById('pme_jlNewName').value.trim();
+  if(!newId){alert('请输入账户ID');return;}
+  const list=document.getElementById('pme_jlList');
+  if(list.querySelector(`[data-jl-id="${newId}"]`)){alert('该账户ID已存在');return;}
+  const row=document.createElement('label');
+  row.style.cssText='display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:6px;background:#fafafa;border:1px solid #eee;cursor:pointer';
+  row.innerHTML=`<input type="checkbox" checked data-jl-id="${newId}" data-jl-name="${newName||newId}" style="width:14px;height:14px;accent-color:var(--blue)"/>
+    <span style="font-family:monospace;font-size:13px">${newId}</span>
+    <span style="color:var(--muted);font-size:12px">${newName||'—'}</span>
+    <span style="margin-left:auto;font-size:11px;color:#888;background:#f0f0f0;padding:1px 6px;border-radius:10px">手动追加</span>`;
+  list.appendChild(row);
+  document.getElementById('pme_jlNew').value='';
+  document.getElementById('pme_jlNewName').value='';
+}
+function savePubMappingEdit(id){
+  const m=pubMappings.find(x=>x.id===id);
+  const appId=document.getElementById('pme_appId').value.trim();
+  if(!appId){alert('应用ID不能为空');return;}
+  if(m.platform==='微信小游戏'){m.wxAppId=appId;}
+  else{
+    m.dyAppId=appId;
+    const checks=document.querySelectorAll('#pme_jlList input[type=checkbox]');
+    const newIds=[],newNames=[];
+    checks.forEach(cb=>{if(cb.checked){newIds.push(cb.dataset.jlId);newNames.push(cb.dataset.jlName);}});
+    m.jlIds=newIds;
+    m.jlNames=newNames;
+  }
+  closeModal();
+  document.getElementById('contentEl').innerHTML=pgPubMapping();
+}
+function openCpMappingForm(presetGameId){
+  const gameOpts=games.map(g=>`<option value="${g.id}" ${presetGameId===g.id?'selected':''}>${g.name}</option>`).join('');
+  openModal('配置游戏-CP关系',`
+    <div class="notice">一个游戏只能绑定一个CP（REQ-R-104）。重复配置时系统提示确认覆盖。</div>
+    <div class="fgrid">
+      <div class="field"><label>所属游戏 <span class="req">*</span></label><select class="select" style="width:100%"><option value="">-- 选择 --</option>${gameOpts}</select></div>
+      <div class="field"><label>CP主体 <span class="req">*</span></label><select class="select" style="width:100%"><option value="">-- 选择 --</option>${cps.map(c=>`<option>${c.name}</option>`).join('')}</select></div>
+    </div>`,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：游戏-CP关系已配置。');closeModal()">保存</button>`)
+}
+function openCpMappingEdit(gameId){
+  const g=games.find(x=>x.id===gameId);
+  const rel=cpMappings.find(c=>c.gameId===gameId);
+  openModal(`修改游戏-CP关系：《${g.name}》`,`
+    <div class="notice">修改将覆盖现有关系，请确认后操作。</div>
+    <div class="kv" style="margin-bottom:12px">
+      <span class="k">当前CP</span><span class="v">${rel?rel.cp:'—'}</span>
+    </div>
+    <div class="field"><label>新CP主体 <span class="req">*</span></label><select class="select" style="width:100%"><option value="">-- 选择 --</option>${cps.map(c=>`<option>${c.name}</option>`).join('')}</select></div>`,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：关系已更新。');closeModal()">确认修改</button>`)
+}
+
+// 解析 FILTER_ENTITY → {type:'pub'|'cp'|'all', id, name}
+function parsedEntity(){
+  if(FILTER_ENTITY==='all')return{type:'all'};
+  const [type,id]=FILTER_ENTITY.split(':');
+  if(type==='pub'){const p=publishers.find(x=>x.id===id);return{type:'pub',id,name:p?p.name:''};}
+  if(type==='cp'){const c=cps.find(x=>x.id===id);return{type:'cp',id,name:c?c.name:''};}
+  return{type:'all'};
+}
+
+/* PAGE: 游戏-CP关系（独立模块） */
+function pgCpMapping(){
+  const ent=parsedEntity();
+  let gList=FILTER_GAME==='all'?games:games.filter(g=>g.id===FILTER_GAME);
+  // CP主体筛选：只展示绑定了该CP的游戏
+  if(ent.type==='cp')gList=gList.filter(g=>cpMappings.some(c=>c.gameId===g.id&&c.cpId===ent.id));
+  // 发行商主体筛选：只展示有该发行商映射的游戏
+  if(ent.type==='pub')gList=gList.filter(g=>pubMappings.some(m=>m.gameId===g.id&&m.pubId===ent.id));
+  const rows=gList.map(g=>{
+    const rel=cpMappings.find(c=>c.gameId===g.id);
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${g.id}</td>
+      <td><b>《${g.name}》</b></td>
+      <td>${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</td>
+      <td style="font-family:monospace;font-size:12px">${rel?rel.cpId:'—'}</td>
+      <td>${rel?rel.cp:`<span style="color:var(--red)">未配置</span>`}</td>
+      <td style="color:var(--muted);font-size:12px">${rel?rel.creator+' · '+rel.created:'—'}</td>
+      <td>${rel
+        ? (canBizMapping()?`<button class="link" onclick="openCpMappingEdit('${g.id}')">修改CP</button>`:'—')
+        : (canBizMapping()?`<button class="link" onclick="openCpMappingForm('${g.id}')">配置CP</button>`:'<span style="color:var(--red)">待配置</span>')
+      }</td>
+    </tr>`;
+  });
+  return `<div class="ph">
+    <div><div class="pt">游戏-CP关系</div><div class="pd">每个游戏只能绑定一个CP主体；一个CP可绑定多个游戏（REQ-R-104）。CP主体是结算的收益分配依据。</div></div>
+    <div class="acts">${canBizMapping()?`<button class="btn p" onclick="openCpMappingForm()">＋ 配置CP关系</button>`:''}</div>
+  </div>
+  <div class="notice">一个游戏只能绑定一个CP；重复配置时系统提示确认覆盖（REQ-R-104）。</div>
+  ${tbl(['游戏ID','游戏名称','上架平台','CP主体ID','CP名称','创建人/时间','操作'],rows)}`;
+}
+
+/* PAGE: 平台-发行商映射（独立模块） */
+function pgPubMapping(){
+  const ent=parsedEntity();
+  let gList=FILTER_GAME==='all'?games:games.filter(g=>g.id===FILTER_GAME);
+  // 发行商筛选：只展示有该发行商映射的游戏
+  if(ent.type==='pub')gList=gList.filter(g=>pubMappings.some(m=>m.gameId===g.id&&m.pubId===ent.id));
+  // CP筛选：只展示绑定了该CP的游戏
+  if(ent.type==='cp')gList=gList.filter(g=>cpMappings.some(c=>c.gameId===g.id&&c.cpId===ent.id));
+  const cards=gList.map(g=>{
+    // 一条 mapping 一行，平台标签独立显示
+    const mappingRows=g.platforms.flatMap(platform=>{
+      let list=pubMappings.filter(m=>m.gameId===g.id&&m.platform===platform);
+      // 发行商筛选：行级过滤
+      if(ent.type==='pub')list=list.filter(m=>m.pubId===ent.id);
+      const isWx=platform==='微信小游戏';
+      const tag=isWx?`<span class="tag green">微信小游戏</span>`:`<span class="tag blue">抖音小游戏</span>`;
+      if(!list.length){
+        const cfg=canBizMapping()?`<button class="link" onclick="openPubMappingForm('${g.id}')">配置</button>`:'—';
+        return [`<tr>
+          <td style="width:130px">${tag}</td>
+          <td style="color:var(--red)">未配置发行商</td>
+          <td>—</td><td>—</td>
+          <td style="width:120px">${cfg}</td>
+        </tr>`];
+      }
+      return list.map(m=>{
+        const appId=`<span style="font-family:monospace;color:#31557d">${isWx?(m.wxAppId||'—'):(m.dyAppId||'—')}</span>`;
+        const jl=!isWx&&m.jlIds.length
+          ?`<ul style="padding-left:16px;margin:0">${m.jlIds.map((id,j)=>`<li style="margin:2px 0"><span style="font-family:monospace;color:#31557d">${id}</span><span style="color:var(--muted);margin-left:6px">${m.jlNames[j]||''}</span></li>`).join('')}</ul>`
+          :'—';
+        const acts=`<button class="link" onclick="openPubMappingDetail('${m.id}')">查看</button>${canBizMapping()?`<button class="link" onclick="openPubMappingEdit('${m.id}')">编辑</button>`:''}`;
+        return `<tr>
+          <td style="width:130px">${tag}</td>
+          <td style="min-width:180px"><b>${m.pub}</b><span style="color:var(--muted);font-size:12px;margin-left:6px">${m.pubId}</span></td>
+          <td style="width:180px">${appId}</td>
+          <td style="width:280px">${jl}</td>
+          <td style="width:120px">${acts}</td>
+        </tr>`;
+      });
+    });
+    return `<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;background:#f8fafc;border-bottom:1px solid var(--line2)">
+        <div><b>《${g.name}》</b><span style="font-family:monospace;color:var(--muted);font-size:12px;margin-left:8px">${g.id}</span></div>
+        <div style="display:flex;gap:4px">${g.platforms.map(p=>p==='微信小游戏'?`<span class="tag green">微信小游戏</span>`:`<span class="tag blue">抖音小游戏</span>`).join('')}</div>
+      </div>
+      ${tbl(['平台类型','对应发行商','对应应用ID','巨量账户ID列表','操作'],mappingRows)}
+    </div>`;
+  }).join('');
+  return `<div class="ph">
+    <div><div class="pt">游戏-发行商关系</div><div class="pd">按游戏聚合展示各平台的发行商主体、微信/抖音应用ID及巨量账户ID列表，是系统取数和分账核算的唯一依据。</div></div>
+    <div class="acts">${canBizMapping()?`<button class="btn p" onclick="openPubMappingForm()">＋ 新增映射</button>`:''}
+    </div>
+  </div>
+  <div class="notice">微信小游戏：一个游戏可对应多个发行商；抖音小游戏：<b>一个游戏只能对应一个发行商</b>（REQ-R-102）。巨量账户ID每日从巨量同步，已绑定的不允许删除。</div>
+  ${gList.length?cards:'<div class="notice">暂无数据</div>'}`;
+}
+
+/* PAGE: 发行商主体管理 */
+let PUB_SEARCH='', PUB_STATUS='all';
+function pgPublishers(){
+  let data=publishers;
+  if(PUB_SEARCH){const kw=PUB_SEARCH.toLowerCase();data=data.filter(p=>p.name.toLowerCase().includes(kw)||p.id.toLowerCase().includes(kw)||p.contact.toLowerCase().includes(kw));}
+  if(PUB_STATUS!=='all')data=data.filter(p=>p.status===PUB_STATUS);
+  const rows=data.map(p=>`<tr>
+    <td><span style="color:var(--muted);font-size:12px">${p.id}</span><br><b style="font-size:13.5px">${p.name}</b><br><span style="color:var(--weak);font-size:11.5px;font-family:monospace">${p.credit}</span></td>
+    <td>${p.contact}<br><span style="color:var(--muted);font-size:11.5px">${p.phone}</span></td>
+    <td style="color:var(--muted);font-size:12.5px">${p.email}</td>
+    <td><button class="link" onclick="openPub('${p.id}')">查看</button>${canEdit()?`<button class="link" onclick="openPubEdit('${p.id}')">编辑</button>`:''}</td>
+  </tr>`);
+  const empty=data.length===0?'<div style="padding:32px;text-align:center;color:var(--weak)">无匹配结果</div>':'';
+  return `<div class="ph"><div><div class="pt">发行商主体管理</div><div class="pd">维护发行商档案与银行收款账户；打款申请提交时快照账户信息，后续变更不影响历史记录。</div></div><div class="acts">${canEdit()?'<button class="btn p" onclick="openPubForm()">＋ 新建发行商</button>':''}</div></div>
+  <div class="filter">
+    <input class="input" style="width:220px" placeholder="搜索公司名称 / ID / 联系人" value="${PUB_SEARCH}" oninput="PUB_SEARCH=this.value;document.getElementById('contentEl').innerHTML=pgPublishers()" />
+    <span style="color:var(--muted);font-size:12px">共 ${data.length} 家</span>
+  </div>
+  ${tbl(['主体ID / 公司名称','联系人','邮箱','操作'],rows)}${empty}`;
+}
+function openPub(id){
+  const p=publishers.find(x=>x.id===id);
+  openModal(`发行商档案：${p.name}`,`<div class="kv"><span class="k">主体ID</span><span class="v">${p.id}</span><span class="k">公司名称</span><span class="v">${p.name}</span><span class="k">统一社会信用代码</span><span class="v" style="font-family:monospace">${p.credit}</span><span class="k">联系人</span><span class="v">${p.contact}</span><span class="k">手机号</span><span class="v">${p.phone}</span><span class="k">邮箱</span><span class="v">${p.email}</span></div><div class="sec-title">银行账户</div><div class="kv"><span class="k">账户名称</span><span class="v">${p.accName}</span><span class="k">开户银行</span><span class="v">${p.bank}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">****${p.acc}</span><span class="k">联行号</span><span class="v" style="font-family:monospace">${p.bankNo}</span></div>`)
+}
+function openPubForm(){
+  openModal('新建发行商主体',`<div class="fgrid"><div class="field"><label>公司名称 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="与营业执照一致" /></div><div class="field"><label>统一社会信用代码 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="全局唯一" /></div><div class="field"><label>法人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>法人证件号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="加密存储，展示时脱敏" /></div><div class="field"><label>联系人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人手机号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人邮箱</label><input class="input" style="width:100%" /></div></div><div class="sec-title">银行账户</div><div class="fgrid"><div class="field"><label>账户名称 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户银行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户支行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>银行账号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联行号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="跨行转账使用" /></div></div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：提交后档案创建，账户同步至银企直联系统');closeModal()">提交</button>`)
+}
+function openPubEdit(id){
+  const p=publishers.find(x=>x.id===id);
+  openModal(`编辑发行商档案：${p.name}`,`<div class="fgrid">
+    <div class="field"><label>公司名称 <span class="req">*</span></label><input id="pe_name" class="input" style="width:100%" value="${p.name}"/></div>
+    <div class="field"><label>统一社会信用代码 <span class="req">*</span></label><input id="pe_credit" class="input" style="width:100%;font-family:monospace" value="${p.credit}"/></div>
+    <div class="field"><label>联系人姓名 <span class="req">*</span></label><input id="pe_contact" class="input" style="width:100%" value="${p.contact}"/></div>
+    <div class="field"><label>联系人手机号 <span class="req">*</span></label><input id="pe_phone" class="input" style="width:100%" value="${p.phone}"/></div>
+    <div class="field"><label>联系人邮箱</label><input id="pe_email" class="input" style="width:100%" value="${p.email}"/></div>
+  </div><div class="sec-title">银行账户</div><div class="fgrid">
+    <div class="field"><label>账户名称 <span class="req">*</span></label><input id="pe_accName" class="input" style="width:100%" value="${p.accName}"/></div>
+    <div class="field"><label>开户银行 <span class="req">*</span></label><input id="pe_bank" class="input" style="width:100%" value="${p.bank}"/></div>
+    <div class="field"><label>银行账号 <span class="req">*</span></label><input id="pe_acc" class="input" style="width:100%;font-family:monospace" value="****${p.acc}"/></div>
+    <div class="field"><label>联行号 <span class="req">*</span></label><input id="pe_bankNo" class="input" style="width:100%;font-family:monospace" value="${p.bankNo}"/></div>
+  </div>`,
+  `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="savePubEdit('${p.id}')">保存</button>`)
+}
+function savePubEdit(id){
+  const p=publishers.find(x=>x.id===id);
+  const name=document.getElementById('pe_name').value.trim();
+  if(!name){alert('公司名称不能为空');return;}
+  p.name=name;
+  p.credit=document.getElementById('pe_credit').value.trim()||p.credit;
+  p.contact=document.getElementById('pe_contact').value.trim()||p.contact;
+  p.phone=document.getElementById('pe_phone').value.trim()||p.phone;
+  p.email=document.getElementById('pe_email').value.trim()||p.email;
+  p.accName=document.getElementById('pe_accName').value.trim()||p.accName;
+  p.bank=document.getElementById('pe_bank').value.trim()||p.bank;
+  p.bankNo=document.getElementById('pe_bankNo').value.trim()||p.bankNo;
+  closeModal();
+  document.getElementById('contentEl').innerHTML=pgPublishers();
+}
+
+/* PAGE: CP主体管理 */
+function pgCPs(){
+  const kw=(window._cpKw||'').trim().toLowerCase();
+  const data=cps.filter(c=>!kw||c.name.toLowerCase().includes(kw)||c.id.toLowerCase().includes(kw)||c.legal.toLowerCase().includes(kw)||c.contact.toLowerCase().includes(kw));
+  const rows=data.map(c=>`<tr><td style="font-family:monospace;font-size:12px">${c.id}</td><td><b>${c.name}</b></td><td>${c.legal}</td><td style="font-family:monospace">${c.idNo}</td><td>${c.contact} · ${c.phone}</td><td><button class="link" onclick="openCP('${c.id}')">查看</button>${canEdit()?`<button class="link" onclick="openCPEdit('${c.id}')">编辑</button>`:''}</td></tr>`);
+  return `<div class="ph"><div><div class="pt">CP主体管理</div><div class="pd">Phase 1 中 CP 只查看现金与广告金利润，不能主动提款，由财务线下处理。</div></div><div class="acts">${canEdit()?'<button class="btn p" onclick="alert(\'新建CP主体（原型展示）\')">＋ 新建CP</button>':''}</div></div>
+  <div class="filter">
+    <input class="input" placeholder="搜索公司名称 / ID / 法人 / 联系人…" style="width:240px" value="${window._cpKw||''}" oninput="window._cpKw=this.value;refreshCPs()"/>
+    ${kw?`<button class="btn g sm" onclick="window._cpKw='';refreshCPs()">清除</button>`:''}
+    <span style="color:var(--muted);font-size:12px;margin-left:4px">共 ${data.length} 条</span>
+  </div>
+  ${data.length?tbl(['主体ID','公司名称','法人姓名','法人证件号','联系人','操作'],rows):'<div class="notice">未找到匹配的CP主体</div>'}`;
+}
+function refreshCPs(){document.getElementById('contentEl').innerHTML=pgCPs();}
+function openCP(id){
+  const c=cps.find(x=>x.id===id);
+  openModal(`CP档案：${c.name}`,`<div class="kv"><span class="k">主体ID</span><span class="v">${c.id}</span><span class="k">公司名称</span><span class="v">${c.name}</span><span class="k">法人姓名</span><span class="v">${c.legal}</span><span class="k">法人证件号</span><span class="v" style="font-family:monospace">${c.idNo}</span><span class="k">联系人</span><span class="v">${c.contact}</span><span class="k">手机号</span><span class="v">${c.phone}</span><span class="k">邮箱</span><span class="v">${c.email}</span></div>`)
+}
+function openCPEdit(id){
+  const c=cps.find(x=>x.id===id);
+  openModal(`编辑CP档案：${c.name}`,`<div class="fgrid">
+    <div class="field"><label>公司名称 <span class="req">*</span></label><input id="ce_name" class="input" style="width:100%" value="${c.name}"/></div>
+    <div class="field"><label>法人姓名 <span class="req">*</span></label><input id="ce_legal" class="input" style="width:100%" value="${c.legal}"/></div>
+    <div class="field"><label>法人证件号 <span class="req">*</span></label><input id="ce_idNo" class="input" style="width:100%;font-family:monospace" value="${c.idNo}"/></div>
+    <div class="field"><label>联系人姓名 <span class="req">*</span></label><input id="ce_contact" class="input" style="width:100%" value="${c.contact}"/></div>
+    <div class="field"><label>联系人手机号 <span class="req">*</span></label><input id="ce_phone" class="input" style="width:100%" value="${c.phone}"/></div>
+    <div class="field"><label>联系人邮箱</label><input id="ce_email" class="input" style="width:100%" value="${c.email}"/></div>
+  </div>`,
+  `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveCPEdit('${c.id}')">保存</button>`)
+}
+function saveCPEdit(id){
+  const c=cps.find(x=>x.id===id);
+  const name=document.getElementById('ce_name').value.trim();
+  if(!name){alert('公司名称不能为空');return;}
+  c.name=name;
+  c.legal=document.getElementById('ce_legal').value.trim()||c.legal;
+  c.idNo=document.getElementById('ce_idNo').value.trim()||c.idNo;
+  c.contact=document.getElementById('ce_contact').value.trim()||c.contact;
+  c.phone=document.getElementById('ce_phone').value.trim()||c.phone;
+  c.email=document.getElementById('ce_email').value.trim()||c.email;
+  closeModal();
+  refreshCPs();
+}
+
+/* PAGE: 分成规则配置 */
+function pgRules(){
+  const ent=parsedEntity();
+  let data=FILTER_GAME==='all'?rules:rules.filter(r=>games.find(g=>g.id===FILTER_GAME)?.name===r.game);
+  if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
+  if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
+  const rows=data.map(r=>`<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${r.pubRate}%</td><td>${r.cpRate}%</td><td>${ts(r.status)}</td><td><button class="link" onclick="openRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`);
+  return `<div class="ph"><div><div class="pt">分成规则配置</div><div class="pd">每条规则绑定「游戏＋平台＋发行商＋CP」；审批通过后内容不可修改，如需调整须重建规则。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openRuleForm()">＋ 新建规则</button>':''}</div></div>
+  <div class="filter"><select class="select"><option>全部平台</option><option>微信小游戏</option><option>抖音小游戏</option></select><select class="select"><option>全部状态</option><option>草稿</option><option>审批中</option><option>生效中</option><option>已到期</option><option>已驳回</option></select></div>
+  ${tbl(['规则ID','游戏','平台','发行商','CP','生效期间','发行商分成','CP分成','状态','操作'],rows)}`;
+}
+function openRuleDetail(id){
+  const r=rules.find(x=>x.id===id);
+  const idsRate=100-r.pubRate-r.cpRate;
+  openModal(`分成规则：${r.id}`,`<div class="kv"><span class="k">规则ID</span><span class="v" style="font-family:monospace">${r.id}</span><span class="k">游戏</span><span class="v">《${r.game}》</span><span class="k">平台类型</span><span class="v">${r.platform}</span><span class="k">发行商主体</span><span class="v">${r.pub}</span><span class="k">CP主体</span><span class="v">${r.cp}</span><span class="k">生效期间</span><span class="v">${r.start} ~ ${r.end}</span><span class="k">结算类型</span><span class="v">IAA利润分成</span><span class="k">结算周期</span><span class="v">按自然月</span><span class="k">发行商分成</span><span class="v" style="font-size:15px;font-weight:800;color:var(--primary)">${r.pubRate}%</span><span class="k">CP分成</span><span class="v" style="font-weight:700">${r.cpRate}%</span><span class="k">IDS留存</span><span class="v" style="font-weight:700">${idsRate}%</span><span class="k">规则状态</span><span class="v">${ts(r.status)}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${r.bpm}</span><span class="k">审批通过时间</span><span class="v">${r.approved}</span></div>
+  <div class="sec-title">分成公式说明</div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;align-items:center;gap:0;border-radius:7px;overflow:hidden;border:1px solid #c8daf4">
+      <div style="background:var(--primary);color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">发行商<br>可结算（现金）</div>
+      <div style="background:#f0f6ff;padding:10px 16px;font-size:13px;color:#1a3a6b;font-family:monospace;flex:1">= ( 现金收入 &minus; 总成本 &times; 现金收入 / 总收入 ) &times; <b style="color:var(--primary);font-size:14px">${r.pubRate}%</b></div>
+      <div style="background:#e6f0ff;padding:10px 12px;font-size:11.5px;color:var(--primary);white-space:nowrap">可提款</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0;border-radius:7px;overflow:hidden;border:1px solid #c8daf4">
+      <div style="background:#3a6dbf;color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">发行商<br>可结算（广告金）</div>
+      <div style="background:#f0f6ff;padding:10px 16px;font-size:13px;color:#1a3a6b;font-family:monospace;flex:1">= ( 广告金收入 &minus; 总成本 &times; 广告金收入 / 总收入 ) &times; <b style="color:var(--primary);font-size:14px">${r.pubRate}%</b></div>
+      <div style="background:#e6f0ff;padding:10px 12px;font-size:11.5px;color:var(--muted);white-space:nowrap">仅查看，不折现</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0;border-radius:7px;overflow:hidden;border:1px solid #c6e6d6">
+      <div style="background:var(--green);color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">CP<br>可结算（现金）</div>
+      <div style="background:#f0faf5;padding:10px 16px;font-size:13px;color:#0d4a2e;font-family:monospace;flex:1">= ( 现金收入 &minus; 总成本 &times; 现金收入 / 总收入 ) &times; <b style="color:var(--green);font-size:14px">${r.cpRate}%</b></div>
+      <div style="background:#e6f7ee;padding:10px 12px;font-size:11.5px;color:var(--muted);white-space:nowrap">Phase 1 不可提款</div>
+    </div>
+  </div>`)
+}
+function openRuleForm(){
+  openModal('新建分成规则',`<div class="notice">创建前请确认已存在对应的「发行商-游戏-平台-CP」映射关系，否则请先在游戏管理中配置。</div>
+  <div class="fgrid">
+    <div class="field"><label>游戏 <span class="req">*</span></label><select id="rf_game" class="select" style="width:100%" onchange="rfSync()"><option value="">-- 选择游戏 --</option>${games.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}</select></div>
+    <div class="field"><label>平台类型 <span class="req">*</span></label><select id="rf_plat" class="select" style="width:100%" onchange="rfSync()"><option value="">-- 选择平台 --</option><option value="微信小游戏">微信小游戏</option><option value="抖音小游戏">抖音小游戏</option></select></div>
+    <div class="field"><label>发行商主体 <span class="req">*</span></label>
+      <select id="rf_pub" class="select" style="width:100%" disabled><option value="">请先选择游戏和平台</option></select>
+      <div id="rf_pub_hint" class="hint"></div>
+    </div>
+    <div class="field"><label>CP主体 <span class="req">*</span></label>
+      <select id="rf_cp" class="select" style="width:100%" disabled><option value="">请先选择游戏</option></select>
+      <div id="rf_cp_hint" class="hint"></div>
+    </div>
+    <div class="field"><label>生效开始日期 <span class="req">*</span></label><input class="input" type="date" style="width:100%" value="2026-05-01"/></div>
+    <div class="field"><label>生效结束日期 <span class="req">*</span></label><input class="input" type="date" style="width:100%" value="2026-12-31"/></div>
+    <div class="field"><label>结算类型</label><select class="select" style="width:100%" disabled><option>IAA利润分成</option></select></div>
+    <div class="field"><label>结算周期</label><select class="select" style="width:100%" disabled><option>按自然月</option></select></div>
+    <div class="field"><label>发行商分成比例 <span class="req">*</span></label><input class="input" type="number" style="width:100%" placeholder="如 60（%）" min="0" max="100"/></div>
+    <div class="field"><label>CP分成比例 <span class="req">*</span></label><input class="input" type="number" style="width:100%" placeholder="如 20（%）" min="0" max="100"/></div>
+    <div class="field" style="grid-column:1/-1"><label>备注</label><textarea class="input" style="width:100%;height:60px;resize:vertical"></textarea></div>
+  </div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn g" onclick="alert('保存为草稿')">存草稿</button><button class="btn p" onclick="alert('提交审批 → BPM流程发起，规则状态变为「审批中」');closeModal()">提交审批</button>`)
+}
+function rfSync(){
+  const gameId=document.getElementById('rf_game')?.value;
+  const plat=document.getElementById('rf_plat')?.value;
+  const pubSel=document.getElementById('rf_pub');
+  const cpSel=document.getElementById('rf_cp');
+  const pubHint=document.getElementById('rf_pub_hint');
+  const cpHint=document.getElementById('rf_cp_hint');
+  // 联动发行商：需要游戏+平台都选了
+  if(gameId && plat){
+    const matches=pubMappings.filter(m=>m.gameId===gameId && m.platform===plat);
+    if(matches.length){
+      pubSel.innerHTML=matches.map(m=>`<option value="${m.pubId}">${m.pub}</option>`).join('');
+      pubSel.disabled=false;
+      pubHint.textContent='';
+    } else {
+      pubSel.innerHTML='<option value="">该游戏+平台暂无发行商映射</option>';
+      pubSel.disabled=true;
+      pubHint.textContent='请先在「平台-发行商映射」中配置';
+      pubHint.style.color='var(--red)';
+    }
+  } else {
+    pubSel.innerHTML='<option value="">请先选择游戏和平台</option>';
+    pubSel.disabled=true;
+    pubHint.textContent='';
+  }
+  // 联动CP：只需要游戏
+  if(gameId){
+    const cpRels=cpMappings.filter(m=>m.gameId===gameId);
+    if(cpRels.length){
+      cpSel.innerHTML=cpRels.map(m=>`<option value="${m.cpId}">${m.cp}</option>`).join('');
+      cpSel.disabled=false;
+      cpHint.textContent='';
+    } else {
+      cpSel.innerHTML='<option value="">该游戏暂无CP关系</option>';
+      cpSel.disabled=true;
+      cpHint.textContent='请先在「游戏-CP关系」中配置';
+      cpHint.style.color='var(--red)';
+    }
+  } else {
+    cpSel.innerHTML='<option value="">请先选择游戏</option>';
+    cpSel.disabled=true;
+    cpHint.textContent='';
+  }
+}
+function submitRule(id){alert(`原型展示：规则 ${id} 已提交 BPM 审批，状态更新为「审批中」。`)}
+function copyRule(id){const r=rules.find(x=>x.id===id);alert(`原型展示：复制规则 ${id}，各字段可重新编辑后提交。`)}
+
+/* PAGE: 发行商分账明细 */
+function pgSettlePub(){
+  const spTab=window._spTab||'closed';  // 'closed' | 'open'
+  if(spTab==='open') return pgSettlePubOpen();
+  return pgSettlePubClosed();
+}
+function _spTabBar(active){
+  return `<div class="tabs" style="margin-bottom:20px">
+    <button class="tab ${active==='closed'?'active':''}" onclick="window._spTab='closed';window._spPeriod=undefined;window._spPlat=undefined;document.getElementById('contentEl').innerHTML=pgSettlePub()">已出账账期</button>
+    <button class="tab ${active==='open'?'active':''}" onclick="window._spTab='open';window._spPlat=undefined;document.getElementById('contentEl').innerHTML=pgSettlePub()">未出账每日明细 <span style="font-size:11px;background:#fff3e0;color:var(--orange);border-radius:10px;padding:1px 7px;margin-left:4px">T+2 实时</span></button>
+  </div>`;
+}
+
+/* Tab A：已出账账期（月度汇总） */
+function pgSettlePubClosed(){
+  const ent=parsedEntity();
+  const periodF=window._spPeriod||'2026-04';
+  const platF=window._spPlat||'all';
+  let data=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
+  if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
+  if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
+  if(periodF!=='all')data=data.filter(r=>r.period===periodF);
+  if(platF!=='all')data=data.filter(r=>r.platform===platF);
+  const totalCashP=data.reduce((s,r)=>s+r.cashP,0);
+  const totalPubCash=data.reduce((s,r)=>s+(r.cashP*r.pubRate/100),0);
+  const totalPubV=data.reduce((s,r)=>s+(r.vP*r.pubRate/100),0);
+  const allPeriods=[...new Set(settle.map(r=>r.period))].sort().reverse();
+  const rows=data.map(r=>{
+    const pubCash=(r.cashP*r.pubRate/100);
+    const pubV=(r.vP*r.pubRate/100);
+    return `<tr ${r.cashP<0?'style="background:#fff8f8"':''}>
+      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
+      <td>${mn(r.cashRev)}</td><td>${mn(r.vRev)}</td>
+      <td>${mn(r.cost)}</td><td>${mn(r.cashCost)}</td><td>${mn(r.vCost)}</td>
+      <td ${r.cashP<0?'style="color:var(--red);font-weight:700"':''}>${mn(r.cashP)}</td>
+      <td ${r.vP<0?'style="color:var(--red)"':''}>${mn(r.vP)}</td>
+      <td style="font-weight:700">${r.pubRate}%</td>
+      <td style="font-weight:800">${mn(pubCash)}</td>
+      <td>${mn(pubV)}</td>
+      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button></td>
+    </tr>`;
+  });
+  return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）；负值标红，待后期正值冲抵后方可提款。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
+  ${_spTabBar('closed')}
+  <div class="filter" style="margin-bottom:16px">
+    <select class="select" onchange="window._spPeriod=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
+      <option value="all" ${periodF==='all'?'selected':''}>全部账期</option>
+      ${allPeriods.map(p=>`<option value="${p}" ${periodF===p?'selected':''}>${p}</option>`).join('')}
+    </select>
+    <select class="select" onchange="window._spPlat=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
+      <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
+      <option value="微信小游戏" ${platF==='微信小游戏'?'selected':''}>微信小游戏</option>
+      <option value="抖音小游戏" ${platF==='抖音小游戏'?'selected':''}>抖音小游戏</option>
+    </select>
+    <span style="color:var(--muted);font-size:12px">共 ${data.length} 条</span>
+  </div>
+  <div class="g3" style="margin-bottom:16px">
+    <div class="metric"><div class="lb">发行商可结算（现金）</div><div class="v ${totalPubCash<0?'neg':''}">${fmt(totalPubCash)}</div></div>
+    <div class="metric"><div class="lb">发行商可结算（广告金）</div><div class="v">${fmt(totalPubV)}</div></div>
+    <div class="metric"><div class="lb">当期现金利润合计</div><div class="v ${totalCashP<0?'neg':''}">${fmt(totalCashP)}</div></div>
+  </div>
+  <div class="notice">红色行表示当期分账金额为负（成本超过收入），负值已写入账户，待后期正值冲抵后方可提款。点击「每日明细」可查看日维度数据。</div>
+  ${tbl(['账期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','发行商分成%','发行商可结算（现金）','发行商可结算（广告金）',''],rows)}`;
+}
+
+/* Tab B：未出账每日明细（T+2，5月1~12日） */
+function pgSettlePubOpen(){
+  const ent=parsedEntity();
+  const platF=window._spPlat||'all';
+  // 当前日期为 2026-05-15，T+2 最新数据截至 05-13，但模拟到 05-12
+  const TODAY='2026-05-15', CUT_MONTH='2026-05';
+  const CUT_DAY=12; // T+2 截止
+  // 生成每日 × 每条规则的明细（取 settle 中 2026-04 数据等比缩放模拟 5 月）
+  // 筛选数据源
+  let baseData=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
+  if(ent.type==='pub')baseData=baseData.filter(r=>r.pub===ent.name);
+  if(ent.type==='cp')baseData=baseData.filter(r=>r.cp===ent.name);
+  if(platF!=='all')baseData=baseData.filter(r=>r.platform===platF);
+  // 为每个维度生成 CUT_DAY 天的每日数据
+  const weights=Array.from({length:CUT_DAY},(_,i)=>0.55+0.45*Math.sin(i/3.5));
+  const wSum=weights.reduce((a,b)=>a+b,0);
+  // 每日汇总行：日期 × 维度
+  const allRows=[];
+  baseData.forEach(r=>{
+    weights.forEach((w,i)=>{
+      const d=String(i+1).padStart(2,'0');
+      const date=`${CUT_MONTH}-${d}`;
+      // 按 5 月日均（假设 5 月收入约 4 月的 80%）
+      const scale=0.8/30;
+      const cashRev=Math.round(r.cashRev*scale*w/wSum*CUT_DAY);
+      const vRev=Math.round(r.vRev*scale*w/wSum*CUT_DAY);
+      const cost=Math.round(r.cost*scale*w/wSum*CUT_DAY);
+      const cashCost=Math.round(r.cashCost*scale*w/wSum*CUT_DAY);
+      const vCost=Math.round(r.vCost*scale*w/wSum*CUT_DAY);
+      const cashP=cashRev-cashCost;
+      const vP=vRev-vCost;
+      const pubCash=Math.round(cashP*r.pubRate/100);
+      allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,pubRate:r.pubRate,cashRev,vRev,cost,cashP,vP,pubCash});
+    });
+  });
+  // 汇总指标（跨所有维度）
+  const totalCashP=allRows.reduce((s,x)=>s+x.cashP,0);
+  const totalPubCash=allRows.reduce((s,x)=>s+x.pubCash,0);
+  const totalVP=allRows.reduce((s,x)=>s+x.vP,0);
+  const negCount=allRows.filter(x=>x.cashP<0).length;
+  // 表格行
+  const rows=allRows.map(x=>`<tr ${x.cashP<0?'style="background:#fff8f8"':''}>
+    <td style="color:var(--muted);font-family:monospace">${x.date}</td>
+    <td>《${x.game}》</td><td>${x.platform}</td><td>${x.pub}</td>
+    <td>${mn(x.cashRev)}</td><td>${mn(x.vRev)}</td><td>${mn(x.cost)}</td>
+    <td ${x.cashP<0?'style="color:var(--red)"':''}>${mn(x.cashP)}</td>
+    <td ${x.vP<0?'style="color:var(--red)"':''}>${mn(x.vP)}</td>
+    <td style="font-weight:700">${x.pubRate}%</td>
+    <td style="font-weight:800;color:${x.pubCash<0?'var(--red)':'var(--text)'}">${mn(x.pubCash)}</td>
+  </tr>`);
+  return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）；负值标红，待后期正值冲抵后方可提款。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
+  ${_spTabBar('open')}
+  <div class="filter" style="margin-bottom:16px">
+    <select class="select" onchange="window._spPlat=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
+      <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
+      <option value="微信小游戏" ${platF==='微信小游戏'?'selected':''}>微信小游戏</option>
+      <option value="抖音小游戏" ${platF==='抖音小游戏'?'selected':''}>抖音小游戏</option>
+    </select>
+    <span style="background:#fff3e0;color:var(--orange);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700">数据截至 ${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}（T+2）</span>
+    <span style="color:var(--muted);font-size:12px">${rows.length} 条日明细</span>
+  </div>
+  <div class="g3" style="margin-bottom:16px">
+    <div class="metric"><div class="lb">本月累计可结算（现金）</div><div class="v ${totalPubCash<0?'neg':''}">${fmt(totalPubCash)}</div></div>
+    <div class="metric"><div class="lb">本月累计现金利润</div><div class="v ${totalCashP<0?'neg':''}">${fmt(totalCashP)}</div></div>
+    <div class="metric"><div class="lb">本月累计广告金利润</div><div class="v">${fmt(totalVP)}</div></div>
+  </div>
+  <div class="notice" style="border-color:#ffe0b2;background:#fff8f0;color:#a05000">当前账期（${CUT_MONTH}）尚未出账，以下为 T+2 日维度预估数据；月末结算后将移至「已出账账期」Tab，数据以最终出账为准。</div>
+  ${tbl(['日期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金利润','广告金利润','发行商分成%','发行商可结算（现金）'],rows)}`;
+}
+function openDailyDetail(key,period,game,platform,pub){
+  // 生成模拟每日数据（基于月度汇总按天拆分）
+  const monthData=settle.find(r=>r.game===game&&r.platform===platform&&r.period===period);
+  if(!monthData)return;
+  const days=30;
+  // 按正弦曲线模拟每日波动，使合计与月度一致
+  const weights=Array.from({length:days},(_,i)=>0.6+0.4*Math.sin(i/4));
+  const wSum=weights.reduce((a,b)=>a+b,0);
+  const dailyRows=weights.map((w,i)=>{
+    const d=String(i+1).padStart(2,'0');
+    const date=`${period}-${d}`;
+    const cashRev=Math.round(monthData.cashRev*(w/wSum));
+    const vRev=Math.round(monthData.vRev*(w/wSum));
+    const cost=Math.round(monthData.cost*(w/wSum));
+    const cashCost=Math.round(monthData.cashCost*(w/wSum));
+    const vCost=Math.round(monthData.vCost*(w/wSum));
+    const cashP=cashRev-cashCost;
+    const vP=vRev-vCost;
+    const pubCash=Math.round(cashP*monthData.pubRate/100);
+    return `<tr ${cashP<0?'style="background:#fff8f8"':''}>
+      <td style="color:var(--muted)">${date}</td>
+      <td>${mn(cashRev)}</td><td>${mn(vRev)}</td>
+      <td>${mn(cost)}</td>
+      <td ${cashP<0?'style="color:var(--red)"':''}>${mn(cashP)}</td>
+      <td ${vP<0?'style="color:var(--red)"':''}>${mn(vP)}</td>
+      <td style="font-weight:700 ${pubCash<0?';color:var(--red)':''}}">${mn(pubCash)}</td>
+    </tr>`;
+  });
+  const totCash=Math.round(monthData.cashP*monthData.pubRate/100);
+  openModal(`每日分账明细 · 《${game}》${platform} · ${period}`,`
+    <div class="kv" style="margin-bottom:14px">
+      <span class="k">发行商</span><span class="v">${pub}</span>
+      <span class="k">分成比例</span><span class="v">${monthData.pubRate}%</span>
+      <span class="k">月度可结算（现金）</span><span class="v" style="color:var(--primary);font-size:15px;font-weight:800">${mn(totCash)}</span>
+    </div>
+    <div style="max-height:420px;overflow:auto">
+      ${tbl(['日期','现金收入','广告金收入','总消耗','现金利润','广告金利润','发行商可结算（现金）'],dailyRows)}
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--weak)">* 每日数据为模拟值，仅供原型演示；实际数据由巨量/微信平台每日同步。</div>`)
+}
+
+/* PAGE: CP分账明细 */
+function pgSettleCp(){
+  const ent=parsedEntity();
+  let data=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
+  if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
+  if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
+  const totalCpCash=data.reduce((s,r)=>s+(r.cashP*r.cpRate/100),0);
+  const totalCpV=data.reduce((s,r)=>s+(r.vP*r.cpRate/100),0);
+  const rows=data.map(r=>{
+    const cpCash=(r.cashP*r.cpRate/100);
+    const cpV=(r.vP*r.cpRate/100);
+    return `<tr ${r.cashP<0?'style="background:#fff8f8"':''}>
+      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.cp}</td>
+      <td>${mn(r.cashRev)}</td><td>${mn(r.vRev)}</td>
+      <td>${mn(r.cost)}</td><td>${mn(r.cashP)}</td><td>${mn(r.vP)}</td>
+      <td style="font-weight:700">${r.cpRate}%</td>
+      <td style="font-weight:700">${mn(cpCash)}</td><td>${mn(cpV)}</td>
+    </tr>`;
+  });
+  return `<div class="ph"><div><div class="pt">CP分账明细</div><div class="pd">展示各CP当期利润（现金利润 × CP分成比例）；Phase 1 中 CP 不可主动提款，需由财务线下处理。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
+  <div class="filter"><select class="select"><option>账期：2026-04</option><option>2026-03</option></select></div>
+  <div class="g2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px">
+    <div class="metric"><div class="lb">CP现金利润合计</div><div class="v ${totalCpCash<0?'neg':''}">${fmt(totalCpCash)}</div></div>
+    <div class="metric"><div class="lb">CP广告金利润</div><div class="v">${fmt(totalCpV)}</div></div>
+  </div>
+  <div class="notice">Phase 1 中 CP 现金利润与广告金利润可查看，不可主动提款，需由财务线下处理。</div>
+  ${tbl(['账期','游戏','平台','CP','现金收入','广告金收入','总消耗','现金利润','广告金利润','CP分成%','CP现金利润','CP广告金利润'],rows)}`;
+}
+
+/* PAGE: 余额池 */
+function pgBalance(){
+  const ent=parsedEntity();
+  const platF=window._balPlatF||'all';
+  let data=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
+  if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
+  if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
+  if(platF!=='all')data=data.filter(r=>r.platform===platF);
+  const rows=data.map(r=>{
+    const pubCash=(r.cashP*r.pubRate/100);
+    const pubV=(r.vP*r.pubRate/100);
+    const settled=pays.filter(p=>p.game===r.game&&p.platform===r.platform&&p.exec==='打款成功').reduce((s,p)=>s+p.amount,0);
+    const inFlight=pays.filter(p=>p.game===r.game&&p.platform===r.platform&&p.exec==='打款中').reduce((s,p)=>s+p.amount,0);
+    const bal=pubCash-settled-inFlight;
+    return {r,pubCash,pubV,settled,inFlight,bal};
+  });
+  const totalBal=rows.reduce((s,x)=>s+x.bal,0);
+  const totalPubCash=rows.reduce((s,x)=>s+x.pubCash,0);
+  const totalSettled=rows.reduce((s,x)=>s+x.settled,0);
+  const totalInFlight=rows.reduce((s,x)=>s+x.inFlight,0);
+  const totalPubV=rows.reduce((s,x)=>s+x.pubV,0);
+  const negCount=rows.filter(x=>x.bal<0).length;
+  const trows=rows.map(({r,pubCash,pubV,settled,inFlight,bal})=>
+    `<tr ${bal<0?'style="background:#fff8f8"':''}>
+      <td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
+      <td style="font-weight:800;font-size:14px;color:${bal<0?'var(--red)':'var(--text)'}">${mn(bal)}</td>
+      <td>${mn(pubCash)}</td><td>${mn(settled)}</td>
+      <td>${inFlight>0?`<span style="color:var(--orange);font-weight:700">${mn(inFlight)}</span>`:'—'}</td>
+      <td>${mn(pubV)}</td>
+      <td style="color:var(--muted);font-size:12px">2026-04-28 06:16</td>
+    </tr>`
+  );
+  return `<div class="ph"><div><div class="pt">发行商账户余额池</div><div class="pd">以「发行商＋游戏＋平台类型」为核算单元，展示当期及历史累计余额。负值账期需冲正后方可提款。</div></div></div>
+  <div class="filter" style="margin-bottom:16px">
+    <select class="select" onchange="window._balPlatF=this.value;document.getElementById('contentEl').innerHTML=pgBalance()">
+      <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
+      <option value="微信小游戏" ${platF==='微信小游戏'?'selected':''}>微信小游戏</option>
+      <option value="抖音小游戏" ${platF==='抖音小游戏'?'selected':''}>抖音小游戏</option>
+    </select>
+    <span style="color:var(--muted);font-size:12px">共 ${rows.length} 条</span>
+  </div>
+  <div class="g4" style="margin-bottom:16px">
+    <div class="metric"><div class="lb">账户总余额（现金）</div><div class="v ${totalBal<0?'neg':''}">${fmt(totalBal)}</div></div>
+    <div class="metric"><div class="lb">历史累计利润分成（现金）</div><div class="v">${fmt(totalPubCash)}</div></div>
+    <div class="metric"><div class="lb">已结算</div><div class="v">${fmt(totalSettled)}</div></div>
+    <div class="metric"><div class="lb">打款中（冻结）</div><div class="v" style="color:var(--orange)">${fmt(totalInFlight)}</div></div>
+  </div>
+  <div class="g1" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:16px">
+    <div class="metric"><div class="lb">广告金利润（仅查看）</div><div class="v">${fmt(totalPubV)}</div></div>
+  </div>
+  <div class="notice">红色行表示余额为负（成本超过收入），负值已写入账户，待后续正值冲抵后方可提款。</div>
+  ${tbl(['游戏','平台','发行商','账户余额','历史累计利润分成（现金）','历史累计已结算','打款中（冻结）','广告金利润','上次同步时间'],trows)}`;
+}
+
+/* PAGE: 发起打款 */
+function pgPayNew(){
+  if(!['发行商','财务人员','系统管理员'].includes(ROLE))return `<div class="ph"><div class="pt">发起打款申请</div></div><div class="notice">当前角色无权发起打款，请切换为「发行商」角色体验完整流程。</div>`;
+  const s=settle[0];// 幻境传说-微信 for demo
+  const pubCash=(s.cashP*s.pubRate/100);
+  return `<div class="ph"><div><div class="pt">发起打款申请</div><div class="pd">选择游戏与平台后系统自动关联余额与收款账户；打款金额不得超过可结算余额。</div></div></div>
+  <div style="max-width:680px">
+  <div class="stepper">
+    <div class="step act"><span class="sc">1</span>选择维度</div><div class="sline"></div>
+    <div class="step"><span class="sc">2</span>填写金额</div><div class="sline"></div>
+    <div class="step"><span class="sc">3</span>确认提交</div><div class="sline"></div>
+    <div class="step"><span class="sc">4</span>BPM审批</div><div class="sline"></div>
+    <div class="step"><span class="sc">5</span>银企打款</div>
+  </div>
+  <div class="card"><div class="card-hd"><div class="card-title">发起打款</div></div><div style="padding:16px 18px">
+    <div class="fgrid">
+      <div class="field"><label>选择游戏 <span class="req">*</span></label><select class="select" style="width:100%" onchange="updateBalance()"><option>幻境传说</option><option>星际争霸</option><option>萌宠大陆</option></select></div>
+      <div class="field"><label>选择平台 <span class="req">*</span></label><select class="select" style="width:100%" onchange="updateBalance()"><option>微信小游戏</option><option>抖音小游戏</option></select></div>
+    </div>
+    <div style="background:#f8fbff;border:1px solid var(--line2);border-radius:var(--r2);padding:12px;margin:10px 0">
+      <div style="color:var(--muted);font-size:12px;margin-bottom:8px">系统自动关联（只读）</div>
+      <div class="kv"><span class="k">发行商主体</span><span class="v">星辰网络</span><span class="k">收款账户名称</span><span class="v">深圳星辰网络有限公司</span><span class="k">开户银行</span><span class="v">招商银行深圳科技园支行</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">****8126</span><span class="k">联行号</span><span class="v" style="font-family:monospace">308584000013</span></div>
+      <div style="margin-top:10px;display:flex;gap:16px"><div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 14px;min-width:160px"><div style="color:var(--muted);font-size:12px">可结算余额（现金）</div><div style="font-size:18px;font-weight:800;margin-top:5px">${fmt(pubCash)}</div></div></div>
+    </div>
+    <div class="fgrid">
+      <div class="field"><label>打款金额 <span class="req">*</span></label><input class="input" type="number" style="width:100%" id="payAmt" placeholder="≤ ${fmt(pubCash)}" oninput="validateAmt(${pubCash})"/><div class="hint" id="payAmtHint">最大可打款金额：${fmt(pubCash)}</div></div>
+      <div class="field"><label>备注</label><input class="input" style="width:100%" placeholder="可填写打款原因或说明" /></div>
+    </div>
+    <div class="notice" style="margin-top:8px">⚠️ 原型说明：提交后系统将金额从「可结算现金池」转入「打款中」；BPM 审批通过后调用银企直联发起转账；银行回调后更新为「打款成功/失败」。</div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn g">取消</button><button class="btn p" onclick="submitPay()">提交申请</button></div>
+  </div></div></div>`;
+}
+function validateAmt(max){const v=parseFloat(document.getElementById('payAmt').value)||0;const h=document.getElementById('payAmtHint');if(v>max){h.style.color='var(--red)';h.textContent='⚠ 超过可结算余额 '+fmt(max);}else{h.style.color='var(--muted)';h.textContent='最大可打款金额：'+fmt(max)}}
+function submitPay(){const v=parseFloat((document.getElementById('payAmt')||{}).value)||0;if(!v){alert('请填写打款金额');return}alert(`原型展示：打款申请已提交 ¥${v.toLocaleString()}，\n系统将发起 BPM 审批流程（BPM-PAY-xxxx），\n审批通过后银企直联自动转账。`);go('payments')}
+
+/* PAGE: 打款申请单 */
+function pgPayments(){
+  const ent=parsedEntity();
+  let data=FILTER_GAME==='all'?pays:pays.filter(p=>p.game===games.find(g=>g.id===FILTER_GAME)?.name);
+  if(ent.type==='pub')data=data.filter(p=>p.pub===ent.name);
+  // CP 无直接打款记录（Phase 1 线下处理），筛选 CP 时显示空
+  if(ent.type==='cp')data=[];
+  const rows=data.map(p=>`<tr style="${p.exec==='打款失败'?'background:#fff8f8':''}"><td style="font-family:monospace;font-size:12px">${p.id}</td><td>《${p.game}》</td><td>${p.platform}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(p.exec)}</td><td style="color:var(--muted)">${p.time}</td><td><button class="link" onclick="openPayDetail('${p.id}')">查看</button>${p.exec==='打款失败'?`<button class="link" style="color:var(--red)">处理</button>`:''}</td></tr>`);
+  return `<div class="ph"><div><div class="pt">打款申请单</div><div class="pd">展示所有打款申请的审批状态与执行状态；打款失败条目标红，可查看失败原因。${ent.type==='cp'?'<b style="color:var(--orange)">（Phase 1 中CP不参与直接打款，由财务线下处理）</b>':''}</div></div><div class="acts"><button class="btn g" onclick="alert('导出申请单列表')">↓ 导出</button></div></div>
+  <div class="filter"><select class="select"><option>全部审批状态</option><option>待审批</option><option>已通过</option><option>已驳回</option></select><select class="select"><option>全部执行状态</option><option>待执行</option><option>打款中</option><option>打款成功</option><option>打款失败</option></select></div>
+  ${tbl(['申请单号','游戏','平台','发行商','打款金额','审批状态','执行状态','发起时间','操作'],rows)}`;
+}
+function openPayDetail(id){
+  const p=pays.find(x=>x.id===id);
+  const pub=publishers.find(x=>x.name===p.pub);
+  const isFail=p.exec==='打款失败';
+  openModal(`打款申请详情：${p.id}`,`${isFail?`<div class="alert">⚠ 打款失败原因：${p.reason}</div>`:''}
+  <div class="stepper">
+    ${[['提交申请','done'],['BPM审批',p.approval==='待审批'?'act':'done'],['银企打款',p.exec==='打款中'?'act':p.exec==='打款成功'?'done':p.exec==='打款失败'?'done':''],['完成',p.exec==='打款成功'?'done':'']].map((s,i)=>(i>0?'<div class="sline"></div>':'')+`<div class="step ${s[1]}"><span class="sc">${s[1]==='done'?'✓':(i+1)}</span>${s[0]}</div>`).join('')}
+  </div>
+  <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">游戏</span><span class="v">《${p.game}》</span><span class="k">平台类型</span><span class="v">${p.platform}</span><span class="k">发行商主体</span><span class="v">${p.pub}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(p.exec)}</span><span class="k">发起时间</span><span class="v">${p.time}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${p.bpm}</span><span class="k">打款流水号</span><span class="v" style="font-family:monospace">${p.flow}</span><span class="k">银行交易流水</span><span class="v" style="font-family:monospace">${p.bkFlow}</span></div>
+  <div class="sec-title">收款账户快照（提交时锁定）</div>
+  <div class="kv"><span class="k">账户名称</span><span class="v">${pub?pub.accName:'—'}</span><span class="k">开户银行</span><span class="v">${pub?pub.bank:'—'}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">${pub?'****'+pub.acc:'—'}</span><span class="k">联行号</span><span class="v" style="font-family:monospace">${pub?pub.bankNo:'—'}</span></div>
+  ${p.exec==='打款成功'?'<div style="margin-top:14px"><button class="btn g" onclick="alert(\'下载电子回单（Mock）\')">↓ 下载电子回单</button></div>':''}`)
+}
+
+/* PAGE: 数据同步状态 */
+function pgSync(){
+  const ent=parsedEntity();
+  let data=FILTER_GAME==='all'?syncs:syncs.filter(s=>s.game===games.find(g=>g.id===FILTER_GAME)?.name);
+  // 同步数据按平台筛选：发行商只看对应平台的同步记录
+  if(ent.type==='pub'){
+    const pubPlatforms=[...new Set(pubMappings.filter(m=>m.pubId===ent.id).map(m=>m.platform))];
+    const pubGames=[...new Set(pubMappings.filter(m=>m.pubId===ent.id).map(m=>m.game))];
+    data=data.filter(s=>pubGames.includes(s.game)&&pubPlatforms.includes(s.platform));
+  }
+  if(ent.type==='cp'){
+    const cpGames=cpMappings.filter(c=>c.cpId===ent.id).map(c=>c.game);
+    data=data.filter(s=>cpGames.includes(s.game));
+  }
+  const rows=data.map(s=>`<tr style="${s.status==='失败'?'background:#fff8f8':''}"><td>《${s.game}》</td><td>${s.platform}</td><td>${s.date}</td><td>${ts(s.status)}</td><td style="color:${s.status==='失败'?'var(--red)':'var(--muted)'}">${s.reason}</td><td style="color:var(--muted)">${s.syncTime}</td><td>${s.status==='失败'?`<button class="btn p sm" onclick="alert('手动同步 ${s.game}-${s.platform}')">手动同步</button>`:'—'}</td></tr>`);
+  return `<div class="ph"><div><div class="pt">数据同步状态</div><div class="pd">每日 T+1 从微小/抖小/巨量后台拉取收入与投放成本数据；同步失败时可手动重试，不触发当日结算。</div></div></div>
+  <div class="notice">⚠ 接口规范待确认（见 PRD 第八节），当前使用 Mock 数据。接口对接完成后将替换为真实取数逻辑。</div>
+  ${tbl(['游戏','平台','同步日期','状态','失败原因','同步完成时间','操作'],rows)}`;
+}
+
+/* ──────────── INIT ──────────── */
+(function init(){
+  renderNav();
+  renderPage();
+  renderUserCenter();
+  document.addEventListener('click',function(){
+    document.getElementById('userCenter').classList.remove('open');
+  });
+})();
+</script>
+</body>
+</html>
