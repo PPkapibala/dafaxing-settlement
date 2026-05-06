@@ -242,7 +242,7 @@ const syncs=[
 /* ──────────── HELPERS ──────────── */
 function fmt(n){return '¥ '+Number(n).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function mn(n){const cls=n<0?'neg':'pos';return `<span class="money ${cls}">${fmt(n)}</span>`}
-function ts(s){const m={'生效中':'green','审批中':'orange','已到期':'gray','已驳回':'red','草稿':'blue','成功':'green','失败':'red','打款成功':'green','打款中':'orange','打款失败':'red','待执行':'gray','已通过':'green','待审批':'orange','合作中':'green'};return `<span class="tag ${m[s]||'gray'}">${s}</span>`}
+function ts(s){const m={'生效中':'green','审批中':'orange','已到期':'gray','已驳回':'red','草稿':'blue','成功':'green','失败':'red','打款成功':'green','打款中':'orange','打款失败':'red','待执行':'gray','已通过':'green','待审批':'orange','合作中':'green','已授权':'green','待授权':'orange'};return `<span class="tag ${m[s]||'gray'}">${s}</span>`}
 function tbl(ths,rows){return `<div class="card"><div class="tw"><table class="table"><thead><tr>${ths.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`}
 function openModal(title,body,foot){document.getElementById('mTitle').innerHTML=title;document.getElementById('mBody').innerHTML=body;document.getElementById('mFoot').innerHTML=foot||'<button class="btn g" onclick="closeModal()">关闭</button>';document.getElementById('mask').classList.add('open')}
 function closeModal(){document.getElementById('mask').classList.remove('open')}
@@ -266,12 +266,9 @@ function renderNav(){
   if(!allowed.includes(PAGE))PAGE=allowed[0]||'';
 }
 function changeRole(){
-  // 原型调试：切换角色 = 模拟以对应用户身份登录
   ROLE=document.getElementById('roleEl').value;
   const u=USER_DB.find(u=>u.role===ROLE&&u.status==='已授权')||USER_DB[0];
-  SESSION={userId:u.id,account:u.account,display:u.display,role:u.role,dataPerms:u.dataPerms};
-  FILTER_GAME='all';FILTER_ENTITY='all';
-  renderNav();renderPage();renderUserCenter();
+  loginAs(u);
 }
 function changeGameFilter(){FILTER_GAME=document.getElementById('gameFilter').value;renderPage()}
 function changeEntityFilter(){FILTER_ENTITY=document.getElementById('entityFilter').value;renderPage()}
@@ -361,8 +358,8 @@ function loginAs(u){
   SESSION={userId:u.id,account:u.account,display:u.display,role:u.role,dataPerms:u.dataPerms};
   ROLE=u.role;
   FILTER_GAME='all';FILTER_ENTITY='all';
-  PAGE=(ROLE_PAGES[ROLE]||[])[0]||'';
-  document.getElementById('loginMask').classList.remove('show');
+  const mask=document.getElementById('loginMask');
+  if(mask.classList.contains('show')){mask.classList.remove('show');PAGE=(ROLE_PAGES[ROLE]||[])[0]||'';}
   renderNav();renderPage();renderUserCenter();
 }
 function sendSmsCode(){
@@ -1439,7 +1436,7 @@ function pgUserMgmt(){
   }).join('');
   return `<div class="ph">
     <div><div class="pt">用户管理</div><div class="pd">管理所有登录用户的角色与数据权限，首次登录的用户需在此授权后方可使用系统</div></div>
-    ${pendingCnt?`<div class="acts"><span class="tag red" style="font-size:12px">⚠ ${pendingCnt} 个用户待授权</span></div>`:''}
+    <div class="acts">${pendingCnt?`<span class="tag red" style="font-size:12px">⚠ ${pendingCnt} 个用户待授权</span>`:''}</div>
   </div>
   <div class="filter">
     <input class="input" placeholder="搜索姓名/账号/手机号" style="width:220px" value="${window._userKw||''}" oninput="window._userKw=this.value;renderPage()">
@@ -1505,10 +1502,12 @@ function confirmGrantData(uid){
 
 /* ──────────── INIT ──────────── */
 (function init(){
-  // 默认显示登录页，不自动登录
   document.addEventListener('click',function(){
     document.getElementById('userCenter').classList.remove('open');
   });
+  // 原型默认展示登录页；点击登录后进入系统
+  // 如需直接进入（调试），注释掉下一行，取消注释后一行
+  // loginAs(USER_DB.find(u=>u.role==='系统管理员'));
 })();
 </script>
 </body>
