@@ -5,7 +5,7 @@
 <title>大发行结算平台 — IAA利润分成原型</title>
 <style>
 :root{--nav:#0f3f7f;--nav2:#0b2f60;--primary:#1d5fbf;--primary2:#eaf2ff;--bg:#f4f7fb;--card:#fff;--line:#dbe5f2;--line2:#edf2f8;--text:#17233c;--muted:#63748b;--weak:#9aacbf;--green:#0f8a4b;--greenBg:#eaf8f0;--red:#c62828;--redBg:#fff0f0;--orange:#c26a00;--orangeBg:#fff6e8;--purple:#6d4bc2;--purpleBg:#f3efff;--shadow:0 10px 24px rgba(15,63,127,.08);--r:10px;--r2:6px;}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;font-size:13px;min-width:1280px}.app{display:flex;min-height:100vh}.sidebar{position:fixed;left:0;top:0;bottom:0;width:232px;background:linear-gradient(180deg,var(--nav),var(--nav2));color:#fff;display:flex;flex-direction:column;z-index:10}.brand{height:60px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.12)}.brand .name{font-weight:700;font-size:14px;letter-spacing:.02em}.brand .sub{font-size:10px;opacity:.45;margin-top:2px;letter-spacing:.08em}.nav{padding:10px 10px;overflow:auto;flex:1}.nav-group{margin:8px 0 12px}.nav-title{font-size:10px;opacity:.38;letter-spacing:.12em;padding:0 10px;margin-bottom:4px}.nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:7px;color:rgba(255,255,255,.72);cursor:pointer;transition:.15s;margin:2px 0;font-size:12.5px}.nav-item:hover{background:rgba(255,255,255,.1);color:#fff}.nav-item.active{background:rgba(255,255,255,.18);color:#fff;font-weight:700}.nav-dot{width:17px;text-align:center;opacity:.7;flex-shrink:0}.nav-item.active .nav-dot{opacity:1}.main{margin-left:232px;flex:1;min-width:0;overflow:hidden}.topbar{height:56px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:5}.crumb{color:var(--weak);font-size:13px}.crumb b{color:var(--text);font-weight:650}.top-actions{margin-left:auto;display:flex;align-items:center;gap:10px}.role-sel{border:1px solid var(--line);background:#fff;border-radius:var(--r2);padding:7px 10px;color:var(--text);font-size:13px;outline:none;cursor:pointer}.role-sel:focus{border-color:var(--primary)}.content{padding:22px 26px 48px}.page{display:none}.page.active{display:block}.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}.pt{font-size:19px;font-weight:750}.pd{color:var(--muted);margin-top:5px;font-size:12.5px}.acts{display:flex;gap:8px;align-items:center}.btn{border:0;border-radius:var(--r2);padding:8px 14px;font-weight:650;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:5px}.btn.p{background:var(--primary);color:#fff}.btn.p:hover{background:#174f9f}.btn.g{background:#fff;color:var(--primary);border:1px solid var(--line)}.btn.g:hover{border-color:var(--primary);background:var(--primary2)}.btn.d{background:var(--red);color:#fff}.btn.sm{padding:5px 10px;font-size:12px}.btn:disabled{opacity:.4;cursor:not-allowed}.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}.card-hd{padding:14px 17px;border-bottom:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between}.card-title{font-size:14px;font-weight:750}.card-sub{font-size:12px;color:var(--muted);margin-top:2px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.metric{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}.metric .lb{color:var(--muted);font-size:12px}.metric .v{font-size:22px;font-weight:800;margin-top:7px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.metric .ft{font-size:12px;color:var(--weak);margin-top:5px}.filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.input,.select,.textarea{border:1px solid var(--line);background:#fff;border-radius:var(--r2);padding:7px 10px;color:var(--text);font-family:inherit;font-size:13px;outline:none}.input:focus,.select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(29,95,191,.08)}.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}.table{width:100%;min-width:900px;border-collapse:collapse;background:#fff}.table th{background:#f8fbff;color:#53677e;font-size:12px;font-weight:700;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}.table td{padding:10px 12px;border-bottom:1px solid var(--line2);white-space:nowrap;vertical-align:middle;font-size:13px}.table tr:hover td{background:#f8fbff}.tag{display:inline-flex;align-items:center;border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:650;white-space:nowrap}.tag.blue{background:var(--primary2);color:var(--primary)}.tag.green{background:var(--greenBg);color:var(--green)}.tag.red{background:var(--redBg);color:var(--red)}.tag.orange{background:var(--orangeBg);color:var(--orange)}.tag.purple{background:var(--purpleBg);color:var(--purple)}.tag.gray{background:#f1f4f8;color:#63748b}.money{font-variant-numeric:tabular-nums}.neg{color:var(--red);font-weight:700}.pos{color:var(--text)}.link{border:0;background:transparent;color:var(--primary);cursor:pointer;font-weight:650;padding:2px 5px;font-size:13px;font-family:inherit}.link:hover{text-decoration:underline}.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 16px}.field label{display:block;color:#4e6177;font-weight:650;margin-bottom:5px;font-size:12.5px}.req{color:var(--red)}.hint{font-size:12px;color:var(--weak);margin-top:4px}.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line2);margin-bottom:14px}.tab{padding:10px 15px;border:0;background:transparent;cursor:pointer;color:var(--muted);font-weight:700;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;font-size:13px}.tab.active{color:var(--primary);border-bottom-color:var(--primary)}.notice{border:1px solid #cfe0f6;background:#f5f9ff;border-radius:var(--r2);padding:10px 12px;color:#31557d;line-height:1.7;font-size:12.5px;margin-bottom:14px}.formula{background:#f8fbff;border:1px dashed #b8cce6;border-radius:var(--r2);padding:12px;line-height:1.85;color:#31557d;font-size:12.5px}.stepper{display:flex;align-items:center;gap:6px;margin-bottom:18px}.step{display:flex;align-items:center;gap:7px;color:var(--weak);font-size:13px}.step .sc{width:24px;height:24px;border-radius:50%;background:#e8eef7;color:#7c8fa5;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}.step.done{color:var(--green)}.step.done .sc{background:var(--green);color:#fff}.step.act{color:var(--primary);font-weight:700}.step.act .sc{background:var(--primary);color:#fff}.sline{height:1px;background:var(--line);width:32px}.modal-mask{display:none;position:fixed;inset:0;background:rgba(8,22,44,.42);z-index:50;align-items:flex-start;justify-content:center;padding-top:60px}.modal-mask.open{display:flex}.modal{width:860px;max-height:82vh;overflow:auto;background:#fff;border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.22)}.mhd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}.mtitle{font-size:16px;font-weight:800}.mbd{padding:18px}.mft{padding:13px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}.close{border:0;background:transparent;font-size:22px;cursor:pointer;color:var(--weak)}.kv{display:grid;grid-template-columns:140px 1fr;gap:8px 12px;font-size:13px}.kv .k{color:var(--muted)}.kv .v{font-weight:650}.sec-title{font-size:13.5px;font-weight:800;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line2)}.hr{height:1px;background:var(--line2);margin:14px 0}.alert{background:var(--redBg);border:1px solid #f8b4b4;border-radius:var(--r2);padding:10px 12px;color:var(--red);font-size:12.5px;margin-bottom:12px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;font-size:13px;min-width:1280px}.app{display:flex;min-height:100vh}.sidebar{position:fixed;left:0;top:0;bottom:0;width:232px;background:linear-gradient(180deg,var(--nav),var(--nav2));color:#fff;display:flex;flex-direction:column;z-index:10}.brand{height:60px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.12)}.brand .name{font-weight:700;font-size:14px;letter-spacing:.02em}.brand .sub{font-size:10px;opacity:.45;margin-top:2px;letter-spacing:.08em}.nav{padding:10px 10px;overflow:auto;flex:1}.nav-group{margin:8px 0 12px}.nav-title{font-size:10px;opacity:.38;letter-spacing:.12em;padding:0 10px;margin-bottom:4px}.nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:7px;color:rgba(255,255,255,.72);cursor:pointer;transition:.15s;margin:2px 0;font-size:12.5px}.nav-item:hover{background:rgba(255,255,255,.1);color:#fff}.nav-item.active{background:rgba(255,255,255,.18);color:#fff;font-weight:700}.nav-dot{width:17px;text-align:center;opacity:.7;flex-shrink:0}.nav-item.active .nav-dot{opacity:1}.main{margin-left:232px;flex:1;min-width:0;overflow:hidden}.topbar{height:56px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:5}.crumb{color:var(--weak);font-size:13px}.crumb b{color:var(--text);font-weight:650}.top-actions{margin-left:auto;display:flex;align-items:center;gap:10px}.role-sel{border:1px solid var(--line);background:#fff;border-radius:var(--r2);padding:7px 10px;color:var(--text);font-size:13px;outline:none;cursor:pointer}.role-sel:focus{border-color:var(--primary)}.content{padding:22px 26px 48px}.page{display:none}.page.active{display:block}.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}.pt{font-size:19px;font-weight:750}.pd{color:var(--muted);margin-top:5px;font-size:12.5px}.acts{display:flex;gap:8px;align-items:center}.btn{border:0;border-radius:var(--r2);padding:8px 14px;font-weight:650;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:5px}.btn.p{background:var(--primary);color:#fff}.btn.p:hover{background:#174f9f}.btn.g{background:#fff;color:var(--primary);border:1px solid var(--line)}.btn.g:hover{border-color:var(--primary);background:var(--primary2)}.btn.d{background:var(--red);color:#fff}.btn.sm{padding:5px 10px;font-size:12px}.btn:disabled{opacity:.4;cursor:not-allowed}.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}.card-hd{padding:14px 17px;border-bottom:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between}.card-title{font-size:14px;font-weight:750}.card-sub{font-size:12px;color:var(--muted);margin-top:2px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px}.metric{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}.metric .lb{color:var(--muted);font-size:12px}.metric .v{font-size:22px;font-weight:800;margin-top:7px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.metric .ft{font-size:12px;color:var(--weak);margin-top:5px}.filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.input,.select,.textarea{border:1px solid var(--line);background:#fff;border-radius:var(--r2);padding:7px 10px;color:var(--text);font-family:inherit;font-size:13px;outline:none}.input:focus,.select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(29,95,191,.08)}.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}.table{width:100%;min-width:900px;border-collapse:collapse;background:#fff}.table th{background:#f8fbff;color:#53677e;font-size:12px;font-weight:700;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}.table td{padding:10px 12px;border-bottom:1px solid var(--line2);white-space:nowrap;vertical-align:middle;font-size:13px}.table tr:hover td{background:#f8fbff}.tag{display:inline-flex;align-items:center;border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:650;white-space:nowrap}.tag.blue{background:var(--primary2);color:var(--primary)}.tag.green{background:var(--greenBg);color:var(--green)}.tag.red{background:var(--redBg);color:var(--red)}.tag.orange{background:var(--orangeBg);color:var(--orange)}.tag.purple{background:var(--purpleBg);color:var(--purple)}.tag.gray{background:#f1f4f8;color:#63748b}.money{font-variant-numeric:tabular-nums}.neg{color:var(--red);font-weight:700}.pos{color:var(--text)}.link{border:0;background:transparent;color:var(--primary);cursor:pointer;font-weight:650;padding:2px 5px;font-size:13px;font-family:inherit}.link:hover{text-decoration:underline}.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 16px}.field label{display:block;color:#4e6177;font-weight:650;margin-bottom:5px;font-size:12.5px}.req{color:var(--red)}.hint{font-size:12px;color:var(--weak);margin-top:4px}.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line2);margin-bottom:14px}.tab{padding:10px 15px;border:0;background:transparent;cursor:pointer;color:var(--muted);font-weight:700;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;font-size:13px}.tab.active{color:var(--primary);border-bottom-color:var(--primary)}.notice{border:1px solid #cfe0f6;background:#f5f9ff;border-radius:var(--r2);padding:10px 12px;color:#31557d;line-height:1.7;font-size:12.5px;margin-bottom:14px}.formula{background:#f8fbff;border:1px dashed #b8cce6;border-radius:var(--r2);padding:12px;line-height:1.85;color:#31557d;font-size:12.5px}.stepper{display:flex;align-items:center;gap:6px;margin-bottom:18px}.step{display:flex;align-items:center;gap:7px;color:var(--weak);font-size:13px}.step .sc{width:24px;height:24px;border-radius:50%;background:#e8eef7;color:#7c8fa5;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}.step.done{color:var(--green)}.step.done .sc{background:var(--green);color:#fff}.step.act{color:var(--primary);font-weight:700}.step.act .sc{background:var(--primary);color:#fff}.sline{height:1px;background:var(--line);width:32px}.modal-mask{display:none;position:fixed;inset:0;background:rgba(8,22,44,.42);z-index:50;align-items:flex-start;justify-content:center;padding-top:60px}.modal-mask.open{display:flex}.modal{width:860px;max-height:82vh;overflow:auto;background:#fff;border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.22)}.mhd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}.mtitle{font-size:16px;font-weight:800}.mbd{padding:18px}.mft{padding:13px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}.close{border:0;background:transparent;font-size:22px;cursor:pointer;color:var(--weak)}.kv{display:grid;grid-template-columns:140px 1fr;gap:8px 12px;font-size:13px}.kv .k{color:var(--muted)}.kv .v{font-weight:650}.sec-title{font-size:13.5px;font-weight:800;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line2)}.hr{height:1px;background:var(--line2);margin:14px 0}.alert{background:var(--redBg);border:1px solid #f8b4b4;border-radius:var(--r2);padding:10px 12px;color:var(--red);font-size:12.5px;margin-bottom:12px}
 /* 登录页 */
 .login-mask{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0b2f60 0%,#1d5fbf 60%,#1a9f6b 100%);z-index:200;align-items:center;justify-content:center}
 .login-mask.show{display:flex}
@@ -78,7 +78,7 @@
           <input class="login-input" type="password" id="ssoPassword" placeholder="请输入密码" />
         </div>
         <button class="login-btn" onclick="doLoginSSO()">登 录</button>
-        <div class="login-tip">通过企业统一身份认证系统登录<br>如无账号请联系 IT 管理员开通</div>
+        <div class="login-tip">通过企业统一身份认证系统登录<br>如无账号请联系 IT 管理员开通<br><br><span style="background:#f0f6ff;border:1px solid #c8daf4;border-radius:4px;padding:4px 10px;color:#31557d;font-size:11.5px;letter-spacing:.02em">演示账号：admin_zhang &nbsp;/&nbsp; 密码：123</span></div>
       </div>
       <!-- SMS -->
       <div id="loginPanelSms" style="display:none">
@@ -147,19 +147,20 @@
 /* ──────────── CONFIG ──────────── */
 const ROLES=['系统管理员','业务负责人','业务运营','财务人员','财务负责人/审批人','发行商','CP'];
 const ROLE_PAGES={
-  '系统管理员':['games','publishers','cps','pubMapping','cpMapping','rules','settlePub','settleCp','balance','payments','paymentNew','sync','permConfig','userMgmt'],
-  '业务负责人':['games','publishers','cps','pubMapping','cpMapping','rules','settlePub','settleCp','balance','payments','sync'],
+  '系统管理员':['games','publishers','cps','pubMapping','cpMapping','rules','revDashboard','costDashboard','settlePub','settleCp','balance','payments','sync','permConfig','userMgmt'],
+  '业务负责人':['games','publishers','cps','pubMapping','cpMapping','rules','revDashboard','costDashboard','settlePub','settleCp','balance','payments','sync'],
   '业务运营':['games','pubMapping','cpMapping','settlePub','settleCp','balance','sync'],
-  '财务人员':['publishers','cps','pubMapping','cpMapping','rules','settlePub','settleCp','balance','payments','sync'],
-  '财务负责人/审批人':['pubMapping','cpMapping','rules','settlePub','settleCp','balance','payments','sync'],
-  '发行商':['pubMapping','cpMapping','settlePub','balance','paymentNew','payments'],
+  '财务人员':['publishers','cps','pubMapping','cpMapping','rules','revDashboard','costDashboard','settlePub','settleCp','balance','payments','sync'],
+  '财务负责人/审批人':['pubMapping','cpMapping','rules','revDashboard','costDashboard','settlePub','settleCp','balance','payments','sync'],
+  '发行商':['pubMapping','cpMapping','costDashboard','settlePub','balance','payments'],
   'CP':['cpMapping','settleCp']
 };
 const NAV=[
   {title:'主数据',items:[['games','▦','游戏管理'],['publishers','◉','发行商主体'],['cps','◎','CP主体']]},
   {title:'合作关系',items:[['pubMapping','⇌','游戏-发行商关系'],['cpMapping','◈','游戏-CP关系']]},
+  {title:'大盘数据',items:[['revDashboard','▤','收入看板'],['costDashboard','▥','成本看板']]},
   {title:'结算配置',items:[['rules','⊛','分成规则配置'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细'],['balance','▣','账户余额池']]},
-  {title:'打款闭环',items:[['paymentNew','→','发起打款申请'],['payments','☑','打款申请单']]},
+  {title:'打款闭环',items:[['payments','☑','打款申请单']]},
   {title:'系统运维',items:[['sync','↻','数据同步状态'],['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
 
 /* ── SESSION & 用户列表 ── */
@@ -221,10 +222,26 @@ const rules=[
   {id:'RU-202604-004',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:65,cpRate:15,status:'草稿',bpm:'—',approved:'—'}
 ];
 const settle=[
+  // 2026-04
   {period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:320000,vRev:68000,cost:185000,cashCost:152577,vCost:32423,cashP:167423,vP:35577,pubRate:60,cpRate:20},
   {period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:210000,vRev:92000,cost:345000,cashCost:239901,vCost:105099,cashP:-29901,vP:-13099,pubRate:55,cpRate:25},
   {period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:480000,vRev:120000,cost:260000,cashCost:208000,vCost:52000,cashP:272000,vP:68000,pubRate:60,cpRate:20},
-  {period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:155000,vRev:36000,cost:82000,cashCost:66576,vCost:15424,cashP:88424,vP:20576,pubRate:65,cpRate:15}
+  {period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:155000,vRev:36000,cost:82000,cashCost:66576,vCost:15424,cashP:88424,vP:20576,pubRate:65,cpRate:15},
+  // 2026-03
+  {period:'2026-03',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:298000,vRev:61000,cost:172000,cashCost:141440,vCost:30560,cashP:156560,vP:30440,pubRate:60,cpRate:20},
+  {period:'2026-03',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:245000,vRev:85000,cost:310000,cashCost:215150,vCost:94850,cashP:29850,vP:-9850,pubRate:55,cpRate:25},
+  {period:'2026-03',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:420000,vRev:105000,cost:238000,cashCost:190400,vCost:47600,cashP:229600,vP:57400,pubRate:60,cpRate:20},
+  {period:'2026-03',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:132000,vRev:28000,cost:75000,cashCost:60750,vCost:14250,cashP:71250,vP:13750,pubRate:65,cpRate:15},
+  // 2026-02
+  {period:'2026-02',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:265000,vRev:54000,cost:158000,cashCost:129960,vCost:28040,cashP:135040,vP:25960,pubRate:60,cpRate:20},
+  {period:'2026-02',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:188000,vRev:72000,cost:290000,cashCost:201550,vCost:88450,cashP:-13550,vP:-16450,pubRate:55,cpRate:25},
+  {period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:390000,vRev:96000,cost:218000,cashCost:174400,vCost:43600,cashP:215600,vP:52400,pubRate:60,cpRate:20},
+  {period:'2026-02',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:118000,vRev:24000,cost:69000,cashCost:55890,vCost:13110,cashP:62110,vP:10890,pubRate:65,cpRate:15},
+  // 2026-01
+  {period:'2026-01',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:210000,vRev:42000,cost:142000,cashCost:116760,vCost:25240,cashP:93240,vP:16760,pubRate:60,cpRate:20},
+  {period:'2026-01',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:176000,vRev:65000,cost:268000,cashCost:186260,vCost:81740,cashP:-10260,vP:-16740,pubRate:55,cpRate:25},
+  {period:'2026-01',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:340000,vRev:82000,cost:195000,cashCost:156000,vCost:39000,cashP:184000,vP:43000,pubRate:60,cpRate:20},
+  {period:'2026-01',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:98000,vRev:19000,cost:61000,cashCost:49410,vCost:11590,cashP:48590,vP:7410,pubRate:65,cpRate:15}
 ];
 const pays=[
   {id:'PAY-202604-001',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',amount:60000,approval:'已通过',exec:'打款成功',time:'2026-04-10 11:20',bpm:'BPM-PAY-1001',flow:'YQ-20260410001',bkFlow:'BK-849201',reason:'—'},
@@ -272,7 +289,7 @@ function changeRole(){
 }
 function changeGameFilter(){FILTER_GAME=document.getElementById('gameFilter').value;renderPage()}
 function changeEntityFilter(){FILTER_ENTITY=document.getElementById('entityFilter').value;renderPage()}
-function go(p){PAGE=p;renderNav();renderPage()}
+function go(p){PAGE=p;if(p==='userMgmt'){window._userKw='';window._userStF='all';}renderNav();renderPage()}
 
 /* 用户中心 */
 function renderUserCenter(){
@@ -355,9 +372,16 @@ function loginAs(u){
       </div>`;
     return;
   }
-  SESSION={userId:u.id,account:u.account,display:u.display,role:u.role,dataPerms:u.dataPerms};
+  SESSION={userId:u.id,account:u.account,display:u.display,role:u.role,dataPerms:u.dataPerms||['all']};
   ROLE=u.role;
   FILTER_GAME='all';FILTER_ENTITY='all';
+  // 单主体数据权限：自动锁定主体筛选
+  const dp=SESSION.dataPerms;
+  if(!dp.includes('all')&&dp.length===1){
+    const pid=dp[0];
+    if(publishers.find(p=>p.id===pid))FILTER_ENTITY='pub:'+pid;
+    else if(cps.find(c=>c.id===pid))FILTER_ENTITY='cp:'+pid;
+  }
   const mask=document.getElementById('loginMask');
   if(mask.classList.contains('show')){mask.classList.remove('show');PAGE=(ROLE_PAGES[ROLE]||[])[0]||'';}
   renderNav();renderPage();renderUserCenter();
@@ -378,30 +402,58 @@ function sendSmsCode(){
 
 /* ──────────── PAGES ──────────── */
 // 主数据管理页：不显示任何筛选
-const MASTER_PAGES=['games','publishers','cps','permConfig','userMgmt'];
+const MASTER_PAGES=['games','publishers','cps','permConfig','userMgmt','revDashboard'];
+
+// 根据 SESSION.dataPerms 计算当前用户可见的发行商/CP/游戏范围
+function visibleEntities(){
+  const dp=SESSION?.dataPerms||['all'];
+  const allPub=dp.includes('all');
+  const allCp=dp.includes('all');
+  const visiblePubs=allPub?publishers:publishers.filter(p=>dp.includes(p.id)||dp.includes('pub:'+p.id));
+  const visibleCps=allCp?cps:cps.filter(c=>dp.includes(c.id)||dp.includes('cp:'+c.id));
+  // 可见游戏 = 与可见发行商或CP有关联的游戏
+  const visibleGameIds=new Set();
+  if(allPub&&allCp){games.forEach(g=>visibleGameIds.add(g.id));}
+  else{
+    pubMappings.filter(m=>visiblePubs.find(p=>p.id===m.pubId)).forEach(m=>visibleGameIds.add(m.gameId));
+    cpMappings.filter(m=>visibleCps.find(c=>c.id===m.cpId)).forEach(m=>visibleGameIds.add(m.gameId));
+  }
+  const visibleGames=games.filter(g=>visibleGameIds.has(g.id));
+  return {visiblePubs,visibleCps,visibleGames};
+}
+
 function renderPage(){
-  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,paymentNew:pgPayNew,payments:pgPayments,sync:pgSync,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',paymentNew:'发起打款申请',payments:'打款申请单',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
+  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,revDashboard:pgRevDashboard,costDashboard:pgCostDashboard,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,sync:pgSync,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
+  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',revDashboard:'收入看板',costDashboard:'成本看板',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',payments:'打款申请单',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
-  // 游戏筛选
+  const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
+  // 游戏筛选（仅显示数据权限内的游戏）
   const gfEl=document.getElementById('gameFilterWrap');
   if(gfEl){
     if(isMaster){gfEl.style.display='none';}
     else{
       gfEl.style.display='flex';
-      document.getElementById('gameFilter').innerHTML='<option value="all">全部游戏</option>'+games.map(g=>`<option value="${g.id}" ${FILTER_GAME===g.id?'selected':''}>${g.name}</option>`).join('');
+      document.getElementById('gameFilter').innerHTML='<option value="all">全部游戏</option>'+visibleGames.map(g=>`<option value="${g.id}" ${FILTER_GAME===g.id?'selected':''}>${g.name}</option>`).join('');
+      // 如只有一个游戏可见且当前是全部，自动选中
+      if(visibleGames.length===1&&FILTER_GAME==='all'){FILTER_GAME=visibleGames[0].id;document.getElementById('gameFilter').value=FILTER_GAME;}
     }
   }
-  // 主体筛选（发行商+CP合并，格式 pub:id / cp:id）
+  // 主体筛选（仅显示数据权限内的主体）
   const efEl=document.getElementById('entityFilterWrap');
   if(efEl){
     if(isMaster){efEl.style.display='none';}
     else{
       efEl.style.display='flex';
-      const pubOpts=publishers.map(p=>`<option value="pub:${p.id}" ${FILTER_ENTITY==='pub:'+p.id?'selected':''}>[发行商] ${p.name}</option>`).join('');
-      const cpOpts=cps.map(c=>`<option value="cp:${c.id}" ${FILTER_ENTITY==='cp:'+c.id?'selected':''}>[CP] ${c.name}</option>`).join('');
-      document.getElementById('entityFilter').innerHTML=`<option value="all">全部主体</option><optgroup label="发行商">${pubOpts}</optgroup><optgroup label="CP">${cpOpts}</optgroup>`;
+      const pubOpts=visiblePubs.map(p=>`<option value="pub:${p.id}" ${FILTER_ENTITY==='pub:'+p.id?'selected':''}>[发行商] ${p.name}</option>`).join('');
+      const cpOpts=visibleCps.map(c=>`<option value="cp:${c.id}" ${FILTER_ENTITY==='cp:'+c.id?'selected':''}>[CP] ${c.name}</option>`).join('');
+      const allOpt=visiblePubs.length+visibleCps.length>1?'<option value="all">全部主体</option>':'';
+      document.getElementById('entityFilter').innerHTML=allOpt+(pubOpts||cpOpts?`<optgroup label="发行商">${pubOpts}</optgroup><optgroup label="CP">${cpOpts}</optgroup>`:'');
+      // 如只有一个主体可见，自动锁定
+      if(visiblePubs.length+visibleCps.length===1&&FILTER_ENTITY==='all'){
+        FILTER_ENTITY=visiblePubs.length?'pub:'+visiblePubs[0].id:'cp:'+visibleCps[0].id;
+        document.getElementById('entityFilter').value=FILTER_ENTITY;
+      }
     }
   }
   document.getElementById('contentEl').innerHTML=(map[PAGE]||pgGames)();
@@ -979,6 +1031,390 @@ function rfSync(){
 function submitRule(id){alert(`原型展示：规则 ${id} 已提交 BPM 审批，状态更新为「审批中」。`)}
 function copyRule(id){const r=rules.find(x=>x.id===id);alert(`原型展示：复制规则 ${id}，各字段可重新编辑后提交。`)}
 
+/* PAGE: 收入看板 */
+function pgRevDashboard(){
+  // 页面内自管理筛选状态（不依赖顶栏全局 FILTER）
+  const startF=window._rdStart||'2026-01';
+  const endF=window._rdEnd||'2026-04';
+  const platF=window._rdPlat||'all';
+  const gameF=window._rdGame||'all';
+  const entityF=window._rdEntity||'all';
+  const allPeriods=[...new Set(settle.map(r=>r.period))].sort();
+  const platforms=[...new Set(settle.map(r=>r.platform))].sort();
+  // 可见主体/游戏（遵守数据权限）
+  const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
+  // 解析主体筛选
+  let filterPubName=null,filterCpName=null;
+  if(entityF!=='all'){
+    const [et,eid]=entityF.split(':');
+    if(et==='pub'){const p=visiblePubs.find(x=>x.id===eid);filterPubName=p?p.name:null;}
+    if(et==='cp'){const c=visibleCps.find(x=>x.id===eid);filterCpName=c?c.name:null;}
+  }
+  const filterGameName=gameF==='all'?null:visibleGames.find(g=>g.id===gameF)?.name||null;
+  // 过滤数据
+  let data=settle.filter(r=>{
+    if(r.period<startF||r.period>endF)return false;
+    if(filterPubName&&r.pub!==filterPubName)return false;
+    if(filterCpName&&r.cp!==filterCpName)return false;
+    if(filterGameName&&r.game!==filterGameName)return false;
+    if(platF!=='all'&&r.platform!==platF)return false;
+    // 数据权限过滤：只展示可见发行商的数据
+    const pubOk=visiblePubs.length===0||visiblePubs.find(p=>p.name===r.pub);
+    if(!pubOk)return false;
+    return true;
+  });
+  // 汇总指标
+  const totalCashRev=data.reduce((s,r)=>s+r.cashRev,0);
+  const totalVRev=data.reduce((s,r)=>s+r.vRev,0);
+  const totalRev=totalCashRev+totalVRev;
+  // 按账期汇总
+  const byPeriod={};
+  data.forEach(r=>{
+    if(!byPeriod[r.period])byPeriod[r.period]={period:r.period,cashRev:0,vRev:0,cnt:0};
+    byPeriod[r.period].cashRev+=r.cashRev;
+    byPeriod[r.period].vRev+=r.vRev;
+    byPeriod[r.period].cnt++;
+  });
+  const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
+  // 明细行
+  const confirmedSet=window._revConfirmed||new Set();
+  const detailRows=data.map(r=>{
+    const syncRec=syncs.find(s=>s.game===r.game&&s.platform===r.platform);
+    const key=`${r.period}__${r.game}__${r.platform}`;
+    const confirmed=confirmedSet.has(key);
+    const confirmCell=confirmed
+      ?`<span class="tag green" style="font-size:11px">已确认</span>`
+      :`<button class="btn p sm" onclick="confirmRevenue('${key}')">财务确认收入</button>`;
+    return `<tr>
+      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
+      <td style="font-weight:700">${mn(r.cashRev)}</td>
+      <td style="font-weight:700;color:var(--purple)">${fmt(r.vRev)}</td>
+      <td style="font-weight:800">${mn(r.cashRev+r.vRev)}</td>
+      <td>${confirmCell}</td>
+      <td><button class="link" onclick="openRevDailyDetail('${r.game}','${r.platform}','${r.period}')">每日明细</button></td>
+    </tr>`;
+  });
+  // 主体/游戏下拉选项（复用于筛选面板）
+  const pubOpts=visiblePubs.map(p=>`<option value="pub:${p.id}" ${entityF==='pub:'+p.id?'selected':''}>[发行商] ${p.name}</option>`).join('');
+  const cpOpts=visibleCps.map(c=>`<option value="cp:${c.id}" ${entityF==='cp:'+c.id?'selected':''}>[CP] ${c.name}</option>`).join('');
+
+  return `<div class="ph">
+    <div><div class="pt">收入看板</div><div class="pd">展示各游戏现金收入与广告金收入，供财务对账使用。</div></div>
+    <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
+  </div>
+  <div class="g3" style="margin-bottom:20px">
+    <div class="metric">
+      <div class="lb">现金收入合计</div>
+      <div class="v" style="color:var(--primary)">${fmt(totalCashRev)}</div>
+      <div class="ft">账期 ${startF} ~ ${endF}</div>
+    </div>
+    <div class="metric">
+      <div class="lb">广告金收入合计</div>
+      <div class="v" style="color:var(--purple)">${fmt(totalVRev)}</div>
+      <div class="ft">账期 ${startF} ~ ${endF}</div>
+    </div>
+    <div class="metric">
+      <div class="lb">总收入合计（现金+广告金）</div>
+      <div class="v">${fmt(totalRev)}</div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:20px;padding:16px 20px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px 20px;align-items:end">
+      <div>
+        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">开始账期</div>
+        <select class="select" style="width:100%" onchange="window._rdStart=this.value;document.getElementById('contentEl').innerHTML=pgRevDashboard()">
+          ${allPeriods.map(p=>`<option value="${p}" ${startF===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">结束账期</div>
+        <select class="select" style="width:100%" onchange="window._rdEnd=this.value;document.getElementById('contentEl').innerHTML=pgRevDashboard()">
+          ${[...allPeriods].reverse().map(p=>`<option value="${p}" ${endF===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">游戏</div>
+        <select class="select" style="width:100%" onchange="window._rdGame=this.value;document.getElementById('contentEl').innerHTML=pgRevDashboard()">
+          <option value="all" ${gameF==='all'?'selected':''}>全部游戏</option>
+          ${visibleGames.map(g=>`<option value="${g.id}" ${gameF===g.id?'selected':''}>${g.name}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">平台</div>
+        <select class="select" style="width:100%" onchange="window._rdPlat=this.value;document.getElementById('contentEl').innerHTML=pgRevDashboard()">
+          <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
+          ${platforms.map(p=>`<option value="${p}" ${platF===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">主体</div>
+        <select class="select" style="width:100%" onchange="window._rdEntity=this.value;document.getElementById('contentEl').innerHTML=pgRevDashboard()">
+          <option value="all" ${entityF==='all'?'selected':''}>全部主体</option>
+          ${pubOpts?`<optgroup label="发行商">${pubOpts}</optgroup>`:''}
+          ${cpOpts?`<optgroup label="CP">${cpOpts}</optgroup>`:''}
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px;padding-bottom:1px">
+        <button class="btn p sm" onclick="document.getElementById('contentEl').innerHTML=pgRevDashboard()">查询</button>
+        <button class="btn g sm" onclick="window._rdStart='2026-01';window._rdEnd='2026-04';window._rdPlat='all';window._rdGame='all';window._rdEntity='all';document.getElementById('contentEl').innerHTML=pgRevDashboard()">重置</button>
+        <span style="color:var(--muted);font-size:12px;margin-left:2px">共 ${data.length} 条</span>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-hd"><div class="card-title">账期汇总</div><div class="card-sub">各账期现金与广告金收入小计</div></div>
+    <div class="tw"><table class="table" style="min-width:600px">
+      <thead><tr><th>账期</th><th>现金收入小计</th><th>广告金收入小计</th><th>合计收入</th></tr></thead>
+      <tbody>${periodSummaries.length?periodSummaries.map(p=>`<tr>
+        <td style="font-weight:800;color:var(--primary)">${p.period}</td>
+        <td style="font-weight:700">${mn(p.cashRev)}</td>
+        <td style="font-weight:700;color:var(--purple)">${fmt(p.vRev)}</td>
+        <td style="font-weight:800">${mn(p.cashRev+p.vRev)}</td>
+      </tr>`).join(''):
+      `<tr><td colspan="4" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
+    </table></div>
+  </div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>第一步 · 财务确认收入：</b>财务核对每条账期收入无误后点击「财务确认收入」。<b>仅财务已确认的账期收入会同步至「发行商分账明细」</b>；未确认账期在分账明细中收入与可结算金额显示为「—」。第二步由发行商在分账明细页确认成本与利润后，方可流转至账户余额池。
+  </div>
+  ${tbl(
+    ['账期','游戏','平台','发行商','现金收入','广告金收入','合计收入','财务确认','操作'],
+    detailRows.length?detailRows:[`<tr><td colspan="9" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
+  )}`;
+}
+function confirmRevenue(key){
+  if(!window._revConfirmed)window._revConfirmed=new Set();
+  window._revConfirmed.add(key);
+  document.getElementById('contentEl').innerHTML=pgRevDashboard();
+}
+function openRevDailyDetail(game,platform,period){
+  const monthData=settle.find(r=>r.game===game&&r.platform===platform&&r.period===period);
+  if(!monthData)return;
+  const syncRec=syncs.find(s=>s.game===game&&s.platform===platform);
+  const syncTime=syncRec?syncRec.syncTime:'—';
+  const syncStatus=syncRec?syncRec.status:'—';
+  const days=30;
+  const weights=Array.from({length:days},(_,i)=>0.6+0.4*Math.sin(i/4));
+  const wSum=weights.reduce((a,b)=>a+b,0);
+  const dailyRows=weights.map((w,i)=>{
+    const d=String(i+1).padStart(2,'0');
+    const date=`${period}-${d}`;
+    const cashRev=Math.round(monthData.cashRev*(w/wSum));
+    const vRev=Math.round(monthData.vRev*(w/wSum));
+    const total=cashRev+vRev;
+    const isLast=(i===weights.length-1);
+    return `<tr>
+      <td style="color:var(--muted);font-family:monospace">${date}</td>
+      <td style="font-weight:700">${mn(cashRev)}</td>
+      <td style="font-weight:700;color:var(--purple)">${fmt(vRev)}</td>
+      <td style="font-weight:800">${mn(total)}</td>
+      <td style="color:var(--muted);font-size:12px">${isLast?syncTime:'—'}</td>
+      <td>${isLast?ts(syncStatus):'—'}</td>
+    </tr>`;
+  });
+  const totalCash=weights.reduce((s,w)=>{const cr=Math.round(monthData.cashRev*(w/wSum));return s+cr;},0);
+  const totalV=weights.reduce((s,w)=>{const vr=Math.round(monthData.vRev*(w/wSum));return s+vr;},0);
+  const sumRow=`<tr style="background:#f8fbff;font-weight:800">
+    <td style="color:var(--primary)">合计</td>
+    <td>${mn(totalCash)}</td>
+    <td style="color:var(--purple)">${fmt(totalV)}</td>
+    <td>${mn(totalCash+totalV)}</td>
+    <td colspan="2"></td>
+  </tr>`;
+  openModal(`每日收入明细 · 《${game}》${platform} · ${period}`,`
+    <div class="kv" style="margin-bottom:14px">
+      <span class="k">发行商</span><span class="v">${monthData.pub}</span>
+      <span class="k">月度现金收入</span><span class="v" style="font-size:14px;font-weight:800">${mn(monthData.cashRev)}</span>
+      <span class="k">月度广告金收入</span><span class="v" style="color:var(--purple);font-size:14px;font-weight:800">${fmt(monthData.vRev)}</span>
+    </div>
+    <div style="max-height:460px;overflow:auto">
+      ${tbl(['日期','现金收入','广告金收入','合计收入','最新计算时间','同步状态'],dailyRows.concat([sumRow]))}
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--weak)">* 每日数据为按月度总量模拟拆分，仅供原型演示；实际数据由平台每日同步。</div>`)
+}
+
+/* PAGE: 成本看板 */
+function pgCostDashboard(){
+  const startF=window._cdStart||'2026-01';
+  const endF=window._cdEnd||'2026-04';
+  const platF=window._cdPlat||'all';
+  const gameF=window._cdGame||'all';
+  const allPeriods=[...new Set(settle.map(r=>r.period))].sort();
+  const platforms=[...new Set(settle.map(r=>r.platform))].sort();
+  const {visiblePubs,visibleGames}=visibleEntities();
+  // 数据权限：发行商角色只看自己主体下的游戏；其它角色按 visibleEntities 行为
+  const filterGameName=gameF==='all'?null:visibleGames.find(g=>g.id===gameF)?.name||null;
+  let data=settle.filter(r=>{
+    if(r.period<startF||r.period>endF)return false;
+    if(filterGameName&&r.game!==filterGameName)return false;
+    if(platF!=='all'&&r.platform!==platF)return false;
+    const pubOk=visiblePubs.length===0||visiblePubs.find(p=>p.name===r.pub);
+    if(!pubOk)return false;
+    return true;
+  });
+  // 汇总
+  const totalCost=data.reduce((s,r)=>s+r.cost,0);
+  const totalCashCost=data.reduce((s,r)=>s+r.cashCost,0);
+  const totalVCost=data.reduce((s,r)=>s+r.vCost,0);
+  // 按账期汇总
+  const byPeriod={};
+  data.forEach(r=>{
+    if(!byPeriod[r.period])byPeriod[r.period]={period:r.period,cost:0,cashCost:0,vCost:0,cnt:0};
+    byPeriod[r.period].cost+=r.cost;
+    byPeriod[r.period].cashCost+=r.cashCost;
+    byPeriod[r.period].vCost+=r.vCost;
+    byPeriod[r.period].cnt++;
+  });
+  const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
+  // 明细行
+  const costConfirmedSet=window._costConfirmed||new Set();
+  const detailRows=data.map(r=>{
+    const cashRatio=r.cost?(r.cashCost/r.cost*100):0;
+    const ckey=`${r.period}__${r.game}__${r.platform}`;
+    const ck=costConfirmedSet.has(ckey);
+    const confirmCell=ck
+      ?`<span class="tag green" style="font-size:11px">已确认</span>`
+      :`<button class="btn p sm" onclick="confirmCost('${ckey}')">确认无异议</button>`;
+    return `<tr>
+      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
+      <td style="font-weight:800">${mn(r.cost)}</td>
+      <td style="font-weight:700">${mn(r.cashCost)}</td>
+      <td style="font-weight:700;color:var(--purple)">${mn(r.vCost)}</td>
+      <td style="color:var(--muted);font-size:12px">${cashRatio.toFixed(1)}% / ${(100-cashRatio).toFixed(1)}%</td>
+      <td>${confirmCell}</td>
+      <td><button class="link" onclick="openCostDailyDetail('${r.game}','${r.platform}','${r.period}')">每日明细</button></td>
+    </tr>`;
+  });
+  return `<div class="ph">
+    <div><div class="pt">成本看板</div><div class="pd">展示各游戏现金成本与广告金成本，供发行商对账使用。${SESSION?.role==='发行商'?`<span style="color:var(--orange);font-weight:650">仅可查看本主体下的游戏数据</span>`:''}</div></div>
+    <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
+  </div>
+  <div class="g3" style="margin-bottom:20px">
+    <div class="metric">
+      <div class="lb">总成本合计</div>
+      <div class="v">${fmt(totalCost)}</div>
+      <div class="ft">账期 ${startF} ~ ${endF}</div>
+    </div>
+    <div class="metric">
+      <div class="lb">现金成本合计</div>
+      <div class="v" style="color:var(--primary)">${fmt(totalCashCost)}</div>
+      <div class="ft">${totalCost?(totalCashCost/totalCost*100).toFixed(1):0}% 占比</div>
+    </div>
+    <div class="metric">
+      <div class="lb">广告金成本合计</div>
+      <div class="v" style="color:var(--purple)">${fmt(totalVCost)}</div>
+      <div class="ft">${totalCost?(totalVCost/totalCost*100).toFixed(1):0}% 占比</div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:20px;padding:16px 20px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px 20px;align-items:end">
+      <div>
+        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">开始账期</div>
+        <select class="select" style="width:100%" onchange="window._cdStart=this.value;document.getElementById('contentEl').innerHTML=pgCostDashboard()">
+          ${allPeriods.map(p=>`<option value="${p}" ${startF===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">结束账期</div>
+        <select class="select" style="width:100%" onchange="window._cdEnd=this.value;document.getElementById('contentEl').innerHTML=pgCostDashboard()">
+          ${[...allPeriods].reverse().map(p=>`<option value="${p}" ${endF===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">游戏${SESSION?.role==='发行商'?'（仅本主体）':''}</div>
+        <select class="select" style="width:100%" onchange="window._cdGame=this.value;document.getElementById('contentEl').innerHTML=pgCostDashboard()">
+          <option value="all" ${gameF==='all'?'selected':''}>全部游戏</option>
+          ${visibleGames.map(g=>`<option value="${g.id}" ${gameF===g.id?'selected':''}>${g.name}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">平台</div>
+        <select class="select" style="width:100%" onchange="window._cdPlat=this.value;document.getElementById('contentEl').innerHTML=pgCostDashboard()">
+          <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
+          ${platforms.map(p=>`<option value="${p}" ${platF===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px;padding-bottom:1px">
+        <button class="btn p sm" onclick="document.getElementById('contentEl').innerHTML=pgCostDashboard()">查询</button>
+        <button class="btn g sm" onclick="window._cdStart='2026-01';window._cdEnd='2026-04';window._cdPlat='all';window._cdGame='all';document.getElementById('contentEl').innerHTML=pgCostDashboard()">重置</button>
+        <span style="color:var(--muted);font-size:12px;margin-left:2px">共 ${data.length} 条</span>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-hd"><div class="card-title">账期汇总</div><div class="card-sub">各账期现金成本与广告金成本小计</div></div>
+    <div class="tw"><table class="table" style="min-width:600px">
+      <thead><tr><th>账期</th><th>总成本</th><th>现金成本</th><th>广告金成本</th><th>现金/广告金占比</th></tr></thead>
+      <tbody>${periodSummaries.length?periodSummaries.map(p=>{
+        const ratio=p.cost?(p.cashCost/p.cost*100):0;
+        return `<tr>
+          <td style="font-weight:800;color:var(--primary)">${p.period}</td>
+          <td style="font-weight:800">${mn(p.cost)}</td>
+          <td style="font-weight:700">${mn(p.cashCost)}</td>
+          <td style="font-weight:700;color:var(--purple)">${mn(p.vCost)}</td>
+          <td style="color:var(--muted);font-size:12px">${ratio.toFixed(1)}% / ${(100-ratio).toFixed(1)}%</td>
+        </tr>`;}).join(''):
+      `<tr><td colspan="5" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
+    </table></div>
+  </div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>对账说明：</b>成本数据来源于巨量/微信平台投放消耗，T+1 同步。如对成本明细有异议，请在收到平台账单后 5 个工作日内联系财务核对，逾期视为确认。</div>
+  ${tbl(
+    ['账期','游戏','平台','发行商','总成本','现金成本','广告金成本','现金/广告金占比','确认状态','操作'],
+    detailRows.length?detailRows:[`<tr><td colspan="10" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
+  )}`;
+}
+function confirmCost(key){
+  if(!window._costConfirmed)window._costConfirmed=new Set();
+  window._costConfirmed.add(key);
+  document.getElementById('contentEl').innerHTML=pgCostDashboard();
+}
+function openCostDailyDetail(game,platform,period){
+  const monthData=settle.find(r=>r.game===game&&r.platform===platform&&r.period===period);
+  if(!monthData)return;
+  const syncRec=syncs.find(s=>s.game===game&&s.platform===platform);
+  const syncTime=syncRec?syncRec.syncTime:'—';
+  const syncStatus=syncRec?syncRec.status:'—';
+  const days=30;
+  const weights=Array.from({length:days},(_,i)=>0.6+0.4*Math.sin(i/4));
+  const wSum=weights.reduce((a,b)=>a+b,0);
+  const dailyRows=weights.map((w,i)=>{
+    const d=String(i+1).padStart(2,'0');
+    const date=`${period}-${d}`;
+    const cost=Math.round(monthData.cost*(w/wSum));
+    const cashCost=Math.round(monthData.cashCost*(w/wSum));
+    const vCost=Math.round(monthData.vCost*(w/wSum));
+    const isLast=(i===weights.length-1);
+    return `<tr>
+      <td style="color:var(--muted);font-family:monospace">${date}</td>
+      <td style="font-weight:800">${mn(cost)}</td>
+      <td style="font-weight:700">${mn(cashCost)}</td>
+      <td style="font-weight:700;color:var(--purple)">${mn(vCost)}</td>
+      <td style="color:var(--muted);font-size:12px">${isLast?syncTime:'—'}</td>
+      <td>${isLast?ts(syncStatus):'—'}</td>
+    </tr>`;
+  });
+  const totCost=weights.reduce((s,w)=>s+Math.round(monthData.cost*(w/wSum)),0);
+  const totCashCost=weights.reduce((s,w)=>s+Math.round(monthData.cashCost*(w/wSum)),0);
+  const totVCost=weights.reduce((s,w)=>s+Math.round(monthData.vCost*(w/wSum)),0);
+  const sumRow=`<tr style="background:#f8fbff;font-weight:800">
+    <td style="color:var(--primary)">合计</td>
+    <td>${mn(totCost)}</td>
+    <td>${mn(totCashCost)}</td>
+    <td style="color:var(--purple)">${mn(totVCost)}</td>
+    <td colspan="2"></td>
+  </tr>`;
+  openModal(`每日成本明细 · 《${game}》${platform} · ${period}`,`
+    <div class="kv" style="margin-bottom:14px">
+      <span class="k">发行商</span><span class="v">${monthData.pub}</span>
+      <span class="k">月度总成本</span><span class="v" style="font-size:14px;font-weight:800">${mn(monthData.cost)}</span>
+      <span class="k">月度现金成本</span><span class="v" style="font-size:14px;font-weight:800">${mn(monthData.cashCost)}</span>
+      <span class="k">月度广告金成本</span><span class="v" style="color:var(--purple);font-size:14px;font-weight:800">${mn(monthData.vCost)}</span>
+    </div>
+    <div style="max-height:460px;overflow:auto">
+      ${tbl(['日期','总成本','现金成本','广告金成本','最新计算时间','同步状态'],dailyRows.concat([sumRow]))}
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--weak)">* 每日数据为按月度总量模拟拆分，仅供原型演示；实际数据由平台每日同步。</div>`)
+}
+
 /* PAGE: 发行商分账明细 */
 function pgSettlePub(){
   const spTab=window._spTab||'closed';  // 'closed' | 'open'
@@ -987,7 +1423,7 @@ function pgSettlePub(){
 }
 function _spTabBar(active){
   return `<div class="tabs" style="margin-bottom:20px">
-    <button class="tab ${active==='closed'?'active':''}" onclick="window._spTab='closed';window._spPeriod=undefined;window._spPlat=undefined;document.getElementById('contentEl').innerHTML=pgSettlePub()">已出账账期</button>
+    <button class="tab ${active==='closed'?'active':''}" onclick="window._spTab='closed';window._spStart=undefined;window._spEnd=undefined;window._spPlat=undefined;document.getElementById('contentEl').innerHTML=pgSettlePub()">已出账账期</button>
     <button class="tab ${active==='open'?'active':''}" onclick="window._spTab='open';window._spPlat=undefined;document.getElementById('contentEl').innerHTML=pgSettlePub()">未出账每日明细 <span style="font-size:11px;background:#fff3e0;color:var(--orange);border-radius:10px;padding:1px 7px;margin-left:4px">T+2 实时</span></button>
   </div>`;
 }
@@ -995,38 +1431,68 @@ function _spTabBar(active){
 /* Tab A：已出账账期（月度汇总） */
 function pgSettlePubClosed(){
   const ent=parsedEntity();
-  const periodF=window._spPeriod||'2026-04';
+  const allPeriodsAsc=[...new Set(settle.map(r=>r.period))].sort();
+  const startF=window._spStart||'2026-04';
+  const endF=window._spEnd||'2026-04';
   const platF=window._spPlat||'all';
   let data=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
   if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
   if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
-  if(periodF!=='all')data=data.filter(r=>r.period===periodF);
+  data=data.filter(r=>r.period>=startF&&r.period<=endF);
   if(platF!=='all')data=data.filter(r=>r.platform===platF);
-  const totalCashP=data.reduce((s,r)=>s+r.cashP,0);
-  const totalPubCash=data.reduce((s,r)=>s+(r.cashP*r.pubRate/100),0);
-  const totalPubV=data.reduce((s,r)=>s+(r.vP*r.pubRate/100),0);
-  const allPeriods=[...new Set(settle.map(r=>r.period))].sort().reverse();
+  const revSet=window._revConfirmed||new Set();
+  const settleSet=window._settleConfirmed||new Set();
+  const totalCashP=data.reduce((s,r)=>{
+    const k=`${r.period}__${r.game}__${r.platform}`;
+    return revSet.has(k)?s+r.cashP:s;
+  },0);
+  const totalPubCash=data.reduce((s,r)=>{
+    const k=`${r.period}__${r.game}__${r.platform}`;
+    return revSet.has(k)?s+(r.cashP*r.pubRate/100):s;
+  },0);
+  const totalPubV=data.reduce((s,r)=>{
+    const k=`${r.period}__${r.game}__${r.platform}`;
+    return revSet.has(k)?s+(r.vP*r.pubRate/100):s;
+  },0);
   const rows=data.map(r=>{
     const pubCash=(r.cashP*r.pubRate/100);
     const pubV=(r.vP*r.pubRate/100);
-    return `<tr ${r.cashP<0?'style="background:#fff8f8"':''}>
+    const key=`${r.period}__${r.game}__${r.platform}`;
+    const revOk=revSet.has(key);
+    const settleOk=settleSet.has(key);
+    let confirmCell;
+    if(!revOk){
+      confirmCell=`<span class="tag" style="font-size:11px;background:#f0f0f0;color:var(--muted)">待财务确认收入</span>`;
+    }else if(!settleOk){
+      confirmCell=`<button class="btn p sm" onclick="confirmSettle('${key}')">发行商确认</button>`;
+    }else{
+      confirmCell=`<span class="tag green" style="font-size:11px">已流转余额池</span>`;
+    }
+    const dash='<span style="color:var(--weak)">—</span>';
+    const rowStyle=!revOk?'style="background:#fafafa;color:var(--muted)"':(settleOk?'style="background:#f3faf5"':(r.cashP<0?'style="background:#fff8f8"':''));
+    return `<tr ${rowStyle}>
       <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
-      <td>${mn(r.cashRev)}</td><td>${mn(r.vRev)}</td>
+      <td>${revOk?mn(r.cashRev):dash}</td><td>${revOk?mn(r.vRev):dash}</td>
       <td>${mn(r.cost)}</td><td>${mn(r.cashCost)}</td><td>${mn(r.vCost)}</td>
-      <td ${r.cashP<0?'style="color:var(--red);font-weight:700"':''}>${mn(r.cashP)}</td>
-      <td ${r.vP<0?'style="color:var(--red)"':''}>${mn(r.vP)}</td>
+      <td ${revOk&&r.cashP<0?'style="color:var(--red);font-weight:700"':''}>${revOk?mn(r.cashP):dash}</td>
+      <td ${revOk&&r.vP<0?'style="color:var(--red)"':''}>${revOk?mn(r.vP):dash}</td>
       <td style="font-weight:700">${r.pubRate}%</td>
-      <td style="font-weight:800">${mn(pubCash)}</td>
-      <td>${mn(pubV)}</td>
+      <td style="font-weight:800">${revOk?mn(pubCash):dash}</td>
+      <td>${revOk?mn(pubV):dash}</td>
+      <td>${confirmCell}</td>
       <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button></td>
     </tr>`;
   });
   return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）；负值标红，待后期正值冲抵后方可提款。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
   ${_spTabBar('closed')}
   <div class="filter" style="margin-bottom:16px">
-    <select class="select" onchange="window._spPeriod=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
-      <option value="all" ${periodF==='all'?'selected':''}>全部账期</option>
-      ${allPeriods.map(p=>`<option value="${p}" ${periodF===p?'selected':''}>${p}</option>`).join('')}
+    <span style="font-size:12px;color:var(--muted);font-weight:650">开始账期</span>
+    <select class="select" onchange="window._spStart=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
+      ${allPeriodsAsc.map(p=>`<option value="${p}" ${startF===p?'selected':''}>${p}</option>`).join('')}
+    </select>
+    <span style="font-size:12px;color:var(--muted);font-weight:650">结束账期</span>
+    <select class="select" onchange="window._spEnd=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
+      ${[...allPeriodsAsc].reverse().map(p=>`<option value="${p}" ${endF===p?'selected':''}>${p}</option>`).join('')}
     </select>
     <select class="select" onchange="window._spPlat=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
       <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
@@ -1035,13 +1501,16 @@ function pgSettlePubClosed(){
     </select>
     <span style="color:var(--muted);font-size:12px">共 ${data.length} 条</span>
   </div>
-  <div class="g3" style="margin-bottom:16px">
+  <div class="g2" style="margin-bottom:16px">
     <div class="metric"><div class="lb">发行商可结算（现金）</div><div class="v ${totalPubCash<0?'neg':''}">${fmt(totalPubCash)}</div></div>
     <div class="metric"><div class="lb">发行商可结算（广告金）</div><div class="v">${fmt(totalPubV)}</div></div>
-    <div class="metric"><div class="lb">当期现金利润合计</div><div class="v ${totalCashP<0?'neg':''}">${fmt(totalCashP)}</div></div>
   </div>
-  <div class="notice">红色行表示当期分账金额为负（成本超过收入），负值已写入账户，待后期正值冲抵后方可提款。点击「每日明细」可查看日维度数据。</div>
-  ${tbl(['账期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','发行商分成%','发行商可结算（现金）','发行商可结算（广告金）',''],rows)}`;
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>两步确认机制：</b>
+    <span style="display:inline-block;background:#fff;border:1px solid #cfe0f5;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px"><b>① 财务确认收入</b></span>在「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('revDashboard')">收入看板</button>」完成后，本页才会展示该账期的收入、利润与可结算金额；
+    <span style="display:inline-block;background:#fff;border:1px solid #cfe0f5;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px"><b>② 发行商确认</b></span>由发行商在本页核对成本与利润后点击「发行商确认」，方可流转至账户余额池并发起打款。
+    <br/><span style="font-size:12px;color:var(--muted)">·  <span style="color:var(--muted)">灰色行</span>=待财务确认收入；<span style="color:var(--text)">白色行</span>=待发行商确认；<span style="color:#1f8a4f">浅绿行</span>=已流转余额池。</span>
+  </div>
+  ${tbl(['账期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','发行商分成%','发行商可结算（现金）','发行商可结算（广告金）','确认状态','每日明细'],rows)}`;
 }
 
 /* Tab B：未出账每日明细（T+2，5月1~12日） */
@@ -1112,6 +1581,11 @@ function pgSettlePubOpen(){
   </div>
   <div class="notice" style="border-color:#ffe0b2;background:#fff8f0;color:#a05000">当前账期（${CUT_MONTH}）尚未出账，以下为 T+2 日维度预估数据；月末结算后将移至「已出账账期」Tab，数据以最终出账为准。</div>
   ${tbl(['日期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金利润','广告金利润','发行商分成%','发行商可结算（现金）'],rows)}`;
+}
+function confirmSettle(key){
+  if(!window._settleConfirmed)window._settleConfirmed=new Set();
+  window._settleConfirmed.add(key);
+  document.getElementById('contentEl').innerHTML=pgSettlePub();
 }
 function openDailyDetail(key,period,game,platform,pub){
   // 生成模拟每日数据（基于月度汇总按天拆分）
@@ -1187,90 +1661,280 @@ function pgSettleCp(){
 function pgBalance(){
   const ent=parsedEntity();
   const platF=window._balPlatF||'all';
+  const confirmed=window._settleConfirmed||new Set();
   let data=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
   if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
   if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
   if(platF!=='all')data=data.filter(r=>r.platform===platF);
-  const rows=data.map(r=>{
+  // 只有发行商确认无异议的记录才纳入余额池
+  const confirmedData=data.filter(r=>confirmed.has(`${r.period}__${r.game}__${r.platform}`));
+  const unconfirmedCnt=data.length-confirmedData.length;
+  const rows=confirmedData.map(r=>{
     const pubCash=(r.cashP*r.pubRate/100);
     const pubV=(r.vP*r.pubRate/100);
     const settled=pays.filter(p=>p.game===r.game&&p.platform===r.platform&&p.exec==='打款成功').reduce((s,p)=>s+p.amount,0);
     const inFlight=pays.filter(p=>p.game===r.game&&p.platform===r.platform&&p.exec==='打款中').reduce((s,p)=>s+p.amount,0);
     const bal=pubCash-settled-inFlight;
-    return {r,pubCash,pubV,settled,inFlight,bal};
+    const vUsed=Math.round(pubV*0.4*100)/100; // 广告金已消耗（mock：累计分成的40%）
+    const vBal=Math.round((pubV-vUsed)*100)/100;
+    return {r,pubCash,pubV,vUsed,vBal,settled,inFlight,bal};
   });
   const totalBal=rows.reduce((s,x)=>s+x.bal,0);
   const totalPubCash=rows.reduce((s,x)=>s+x.pubCash,0);
   const totalSettled=rows.reduce((s,x)=>s+x.settled,0);
   const totalInFlight=rows.reduce((s,x)=>s+x.inFlight,0);
   const totalPubV=rows.reduce((s,x)=>s+x.pubV,0);
-  const negCount=rows.filter(x=>x.bal<0).length;
-  const trows=rows.map(({r,pubCash,pubV,settled,inFlight,bal})=>
-    `<tr ${bal<0?'style="background:#fff8f8"':''}>
+  const totalVUsed=rows.reduce((s,x)=>s+x.vUsed,0);
+  const totalVBal=rows.reduce((s,x)=>s+x.vBal,0);
+  const balTab=window._balTab||'cash';
+  // 构建现金流水账（Ledger）
+  const ledgerEntries=[];
+  // 1. 确认结算 → +入金
+  confirmedData.forEach(r=>{
+    const pubCash=(r.cashP*r.pubRate/100);
+    const isLoss=pubCash<0;
+    ledgerEntries.push({
+      date:`${r.period}-28 23:59`,
+      pub:r.pub,
+      type:isLoss?'账期亏损分摊':'账期结算入金',
+      amount:Math.abs(pubCash),
+      dir:isLoss?-1:+1,
+      remark:`《${r.game}》${r.platform} ${r.period} ${isLoss?'账期亏损（成本超收入）':'账期结算入金'}`,
+      sortKey:r.period+'-28 23:59'
+    });
+  });
+  // 2. 打款记录 → 出入金
+  let lpdata=FILTER_GAME==='all'?pays:pays.filter(p=>p.game===games.find(g=>g.id===FILTER_GAME)?.name);
+  if(ent.type==='pub')lpdata=lpdata.filter(p=>p.pub===ent.name);
+  if(ent.type==='cp')lpdata=[];
+  if(platF!=='all')lpdata=lpdata.filter(p=>p.platform===platF);
+  lpdata.forEach(p=>{
+    let type,dir,style='',remark='';
+    if(p.exec==='打款成功'){type='打款成功';dir=-1;style='color:var(--red)';remark=`申请单号 ${p.id}`;}
+    else if(p.exec==='打款中'){type='打款申请（冻结）';dir=-1;style='color:var(--orange)';remark=`申请单号 ${p.id}`;}
+    else if(p.exec==='打款失败'){type='打款失败退回';dir=+1;style='color:var(--green)';remark=`申请单号 ${p.id}，原因：${p.reason}`;}
+    else return;
+    ledgerEntries.push({date:p.time,pub:p.pub,type,amount:p.amount,dir,remark,sortKey:p.time,style});
+  });
+  // 按时间正序计算滚动余额
+  ledgerEntries.sort((a,b)=>a.sortKey<b.sortKey?-1:a.sortKey>b.sortKey?1:0);
+  // 计算滚动余额（按 pub 分组）
+  const runBal={};
+  const ledgerRows=ledgerEntries.map(e=>{
+    const key=e.pub;
+    if(!runBal[key])runBal[key]=0;
+    if(e.dir!==0)runBal[key]+=e.dir*e.amount;
+    const bal=runBal[key];
+    const amtStr=`<span style="${e.style||''};font-weight:700">${e.dir>0?'+':''}${fmt(e.dir*e.amount)}</span>`;
+    const balStr=`<span style="font-weight:800;font-size:13px;color:${bal<0?'var(--red)':'var(--text)'}">${fmt(bal)}</span>`;
+    const typeTag=e.dir>0?`<span class="tag green" style="font-size:11px">${e.type}</span>`
+      :e.dir<0&&e.type==='打款申请（冻结）'?`<span class="tag orange" style="font-size:11px">${e.type}</span>`
+      :`<span class="tag red" style="font-size:11px">${e.type}</span>`;
+    return `<tr>
+      <td style="color:var(--muted);font-size:12px;font-family:monospace">${e.date}</td>
+      <td>${e.pub}</td>
+      <td>${typeTag}</td>
+      <td style="text-align:right">${amtStr}</td>
+      <td style="text-align:right">${balStr}</td>
+      <td style="color:var(--muted);font-size:12px">${e.remark||'—'}</td>
+    </tr>`;
+  });
+  const cashTable=tbl(['时间','发行商','流水类型','金额','账户余额（现金）','备注'],
+    ledgerRows.length?ledgerRows:[`<tr><td colspan="6" style="text-align:center;color:var(--weak);padding:20px">暂无流水记录</td></tr>`]);
+  const vTable=tbl(['账期','游戏','平台','发行商','广告金余额','广告金累计分成','广告金已消耗','最新计算时间'],
+    rows.map(({r,pubV,vUsed,vBal})=>`<tr>
+      <td style="color:var(--muted)">${r.period}</td>
       <td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
-      <td style="font-weight:800;font-size:14px;color:${bal<0?'var(--red)':'var(--text)'}">${mn(bal)}</td>
-      <td>${mn(pubCash)}</td><td>${mn(settled)}</td>
-      <td>${inFlight>0?`<span style="color:var(--orange);font-weight:700">${mn(inFlight)}</span>`:'—'}</td>
-      <td>${mn(pubV)}</td>
-      <td style="color:var(--muted);font-size:12px">2026-04-28 06:16</td>
-    </tr>`
-  );
-  return `<div class="ph"><div><div class="pt">发行商账户余额池</div><div class="pd">以「发行商＋游戏＋平台类型」为核算单元，展示当期及历史累计余额。负值账期需冲正后方可提款。</div></div></div>
-  <div class="filter" style="margin-bottom:16px">
-    <select class="select" onchange="window._balPlatF=this.value;document.getElementById('contentEl').innerHTML=pgBalance()">
-      <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
-      <option value="微信小游戏" ${platF==='微信小游戏'?'selected':''}>微信小游戏</option>
-      <option value="抖音小游戏" ${platF==='抖音小游戏'?'selected':''}>抖音小游戏</option>
-    </select>
-    <span style="color:var(--muted);font-size:12px">共 ${rows.length} 条</span>
+      <td style="font-weight:800;font-size:14px">${fmt(vBal)}</td>
+      <td>${fmt(pubV)}</td><td style="color:var(--muted)">${fmt(vUsed)}</td>
+      <td style="color:var(--muted);font-size:12px">2026-04-28 06:16</td></tr>`));
+  return `<div class="ph">
+    <div><div class="pt">发行商账户余额池</div><div class="pd">以发行商为账户维度，展示现金流水账单——结算入账与提款记录按时间排列，余额实时滚动。</div></div>
+    <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
   </div>
-  <div class="g4" style="margin-bottom:16px">
-    <div class="metric"><div class="lb">账户总余额（现金）</div><div class="v ${totalBal<0?'neg':''}">${fmt(totalBal)}</div></div>
-    <div class="metric"><div class="lb">历史累计利润分成（现金）</div><div class="v">${fmt(totalPubCash)}</div></div>
-    <div class="metric"><div class="lb">已结算</div><div class="v">${fmt(totalSettled)}</div></div>
-    <div class="metric"><div class="lb">打款中（冻结）</div><div class="v" style="color:var(--orange)">${fmt(totalInFlight)}</div></div>
+  <div class="tabs">
+    <button class="tab ${balTab==='cash'?'active':''}" onclick="window._balTab='cash';document.getElementById('contentEl').innerHTML=pgBalance()">现金账单</button>
+    <button class="tab ${balTab==='v'?'active':''}" onclick="window._balTab='v';document.getElementById('contentEl').innerHTML=pgBalance()">广告金余额</button>
   </div>
-  <div class="g1" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:16px">
-    <div class="metric"><div class="lb">广告金利润（仅查看）</div><div class="v">${fmt(totalPubV)}</div></div>
+  ${balTab==='cash'?`
+  ${(()=>{
+    // 发行商筛选
+    const {visiblePubs}=visibleEntities();
+    const selPubName=window._balPubName||(visiblePubs[0]?.name||'');
+    const pubOpts=visiblePubs.map(p=>`<option value="${p.name}" ${p.name===selPubName?'selected':''}>${p.name}</option>`).join('');
+    // 时间筛选（默认显示全部）
+    const allDates=ledgerEntries.filter(e=>!selPubName||e.pub===selPubName).map(e=>e.date.slice(0,10)).sort();
+    const minD=allDates[0]||'2026-01-01';
+    const maxD=allDates[allDates.length-1]||'2026-12-31';
+    const startD=window._balStart||'';
+    const endD=window._balEnd||'';
+    // 该发行商所有流水（用于计算滚动余额）
+    const allPubEntries=selPubName?ledgerEntries.filter(e=>e.pub===selPubName):ledgerEntries;
+    // 时间筛选后用于展示
+    const pubEntries=allPubEntries.filter(e=>{
+      const d=e.date.slice(0,10);
+      if(startD&&d<startD)return false;
+      if(endD&&d>endD)return false;
+      return true;
+    });
+    // 重新计算该发行商的滚动余额
+    let rb=0;
+    // 基于全量流水计算余额（保证筛选时间区间内的余额正确）
+    const enrichedEntries=allPubEntries.map(e=>{
+      if(e.dir!==0)rb+=e.dir*e.amount;
+      return {...e,bal:rb};
+    });
+    // 按时间筛选后展示
+    const visibleEntries=enrichedEntries.filter(e=>{
+      const d=e.date.slice(0,10);
+      if(startD&&d<startD)return false;
+      if(endD&&d>endD)return false;
+      return true;
+    });
+    const pubRows=visibleEntries.slice().reverse().map(e=>{
+      const isPos=e.dir>0;
+      const amtStr=`<span style="font-variant-numeric:tabular-nums;font-weight:700;color:${isPos?'var(--green)':'var(--text)'}">${isPos?'+':''}${fmt(e.dir*e.amount)}</span>`;
+      const balStr=`<span style="font-variant-numeric:tabular-nums;font-weight:700;color:${e.bal<0?'var(--red)':'var(--text)'}">${fmt(e.bal)}</span>`;
+      const typeTag=isPos
+        ?`<span class="tag green" style="font-size:11px">${e.type}</span>`
+        :e.type==='打款申请（冻结）'
+          ?`<span class="tag orange" style="font-size:11px">${e.type}</span>`
+          :e.type==='账期亏损分摊'
+            ?`<span class="tag red" style="font-size:11px">${e.type}</span>`
+            :`<span class="tag red" style="font-size:11px">${e.type}</span>`;
+      return `<tr>
+        <td style="color:var(--muted);font-size:12px;font-family:monospace;white-space:nowrap;width:160px">${e.date}</td>
+        <td style="width:160px">${typeTag}</td>
+        <td style="text-align:right;width:160px;font-family:monospace">${amtStr}</td>
+        <td style="text-align:right;width:160px;font-family:monospace">${balStr}</td>
+        <td style="color:var(--muted);font-size:12px;white-space:normal;line-height:1.6">${e.remark||'—'}</td>
+      </tr>`;
+    });
+    // 统计指标（始终基于全量数据，不受时间筛选影响）
+    const totalIn=allPubEntries.filter(e=>e.type==='账期结算入金').reduce((s,e)=>s+e.amount,0);
+    const totalLoss=allPubEntries.filter(e=>e.type==='账期亏损分摊').reduce((s,e)=>s+e.amount,0);
+    const totalOut=allPubEntries.filter(e=>e.type==='打款成功').reduce((s,e)=>s+e.amount,0);
+    const totalRefund=allPubEntries.filter(e=>e.type==='打款失败退回').reduce((s,e)=>s+e.amount,0);
+    const frozen=allPubEntries.filter(e=>e.type==='打款申请（冻结）').reduce((s,e)=>s+e.amount,0);
+    const curBal=rb;
+    const pubUnconfirmed=selPubName
+      ?data.filter(r=>r.pub===selPubName&&!(window._settleConfirmed||new Set()).has(`${r.period}__${r.game}__${r.platform}`)).length
+      :unconfirmedCnt;
+    const ledgerTbl=`<div class="card"><div class="tw"><table class="table" style="table-layout:fixed;width:100%">
+      <colgroup><col style="width:160px"><col style="width:160px"><col style="width:160px"><col style="width:160px"><col></colgroup>
+      <thead><tr><th>时间</th><th>流水类型</th><th style="text-align:right">金额</th><th style="text-align:right">账户余额</th><th>摘要</th></tr></thead>
+      <tbody>${pubRows.length?pubRows.join(''):`<tr><td colspan="5" style="text-align:center;color:var(--weak);padding:24px">暂无流水记录</td></tr>`}</tbody>
+    </table></div></div>`;
+    return `
+    <div class="filter" style="margin-bottom:16px">
+      <span style="color:var(--muted);font-size:12.5px">发行商账户</span>
+      <select class="select" style="min-width:160px" onchange="window._balPubName=this.value;document.getElementById('contentEl').innerHTML=pgBalance()">${pubOpts||'<option>—</option>'}</select>
+      <button class="btn p sm" style="margin-left:auto" ${curBal<=0?'disabled title="账户余额不足，无法发起提款"':`onclick="window._payPubId='${(visiblePubs.find(p=>p.name===selPubName)||{}).id||''}';openPayNewModal()"`}>+ 发起提款</button>
+    </div>
+    <div class="g4" style="margin-bottom:16px">
+      <div class="metric">
+        <div class="lb">当前账户余额</div>
+        <div class="v ${curBal<0?'neg':''}">${fmt(curBal)}</div>
+        <div class="ft">${curBal<0?'<span style="color:var(--red)">余额为负，不可提款</span>':curBal===0?'无可提现余额':'可提现余额'}</div>
+      </div>
+      <div class="metric">
+        <div class="lb">累计结算入账</div>
+        <div class="v">+${fmt(totalIn)}</div>
+        <div class="ft">${totalLoss>0?`含亏损分摊 <span style="color:var(--red)">-${fmt(totalLoss)}</span>`:'已确认结算'}</div>
+      </div>
+      <div class="metric">
+        <div class="lb">累计提款成功</div>
+        <div class="v">${totalOut>0?fmt(totalOut):'—'}</div>
+        <div class="ft">已到账金额</div>
+      </div>
+      <div class="metric">
+        <div class="lb">冻结中</div>
+        <div class="v" style="${frozen>0?'color:var(--orange)':''}">${frozen>0?'-'+fmt(frozen):'—'}</div>
+        <div class="ft">提款待执行</div>
+      </div>
+    </div>
+    ${pubUnconfirmed>0?`<div class="notice" style="border-color:#ffe0b2;background:#fff8f0;color:#a05000">⚠ 该发行商还有 <b>${pubUnconfirmed}</b> 条分账记录尚未确认，确认后方可入账。请前往「<button class="link" style="color:var(--orange);font-size:12.5px" onclick="go('settlePub')">发行商分账明细</button>」完成确认。</div>`:''}
+    <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>账单说明：</b>每条记录为一笔账户流水。结算确认后产生入账（绿色 +），打款申请冻结余额（橙色 −），打款成功扣减余额（黑色 −），打款失败退回余额（绿色 +）。账户余额按时间正序滚动计算，列表按倒序展示。</div>
+    <div style="display:flex;align-items:center;gap:10px;margin:18px 0 10px">
+      <div style="font-size:14px;font-weight:700">流水明细</div>
+      <span style="color:var(--muted);font-size:12.5px;margin-left:12px">时间范围</span>
+      <input type="date" class="input" style="width:150px" value="${startD}" min="${minD}" max="${maxD}" onchange="window._balStart=this.value;document.getElementById('contentEl').innerHTML=pgBalance()" />
+      <span style="color:var(--muted)">至</span>
+      <input type="date" class="input" style="width:150px" value="${endD}" min="${minD}" max="${maxD}" onchange="window._balEnd=this.value;document.getElementById('contentEl').innerHTML=pgBalance()" />
+      ${(startD||endD)?`<button class="link" style="font-size:12px" onclick="window._balStart=undefined;window._balEnd=undefined;document.getElementById('contentEl').innerHTML=pgBalance()">重置</button>`:''}
+      <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${visibleEntries.length} 条</span>
+    </div>
+    ${ledgerTbl}`;
+  })()}`:`
+  <div class="g3" style="margin-bottom:16px">
+    <div class="metric"><div class="lb">广告金余额</div><div class="v">${fmt(totalVBal)}</div></div>
+    <div class="metric"><div class="lb">广告金累计分成</div><div class="v">${fmt(totalPubV)}</div></div>
+    <div class="metric"><div class="lb">广告金已消耗</div><div class="v" style="color:var(--muted)">${fmt(totalVUsed)}</div></div>
   </div>
-  <div class="notice">红色行表示余额为负（成本超过收入），负值已写入账户，待后续正值冲抵后方可提款。</div>
-  ${tbl(['游戏','平台','发行商','账户余额','历史累计利润分成（现金）','历史累计已结算','打款中（冻结）','广告金利润','上次同步时间'],trows)}`;
+  <div class="notice">广告金余额 = 广告金累计分成 − 广告金已消耗（用于平台投放）。广告金不可提现。</div>
+  ${vTable}`}`;
 }
 
-/* PAGE: 发起打款 */
-function pgPayNew(){
-  if(!['发行商','财务人员','系统管理员'].includes(ROLE))return `<div class="ph"><div class="pt">发起打款申请</div></div><div class="notice">当前角色无权发起打款，请切换为「发行商」角色体验完整流程。</div>`;
-  const s=settle[0];// 幻境传说-微信 for demo
-  const pubCash=(s.cashP*s.pubRate/100);
-  return `<div class="ph"><div><div class="pt">发起打款申请</div><div class="pd">选择游戏与平台后系统自动关联余额与收款账户；打款金额不得超过可结算余额。</div></div></div>
-  <div style="max-width:680px">
-  <div class="stepper">
-    <div class="step act"><span class="sc">1</span>选择维度</div><div class="sline"></div>
-    <div class="step"><span class="sc">2</span>填写金额</div><div class="sline"></div>
-    <div class="step"><span class="sc">3</span>确认提交</div><div class="sline"></div>
-    <div class="step"><span class="sc">4</span>BPM审批</div><div class="sline"></div>
-    <div class="step"><span class="sc">5</span>银企打款</div>
-  </div>
-  <div class="card"><div class="card-hd"><div class="card-title">发起打款</div></div><div style="padding:16px 18px">
-    <div class="fgrid">
-      <div class="field"><label>选择游戏 <span class="req">*</span></label><select class="select" style="width:100%" onchange="updateBalance()"><option>幻境传说</option><option>星际争霸</option><option>萌宠大陆</option></select></div>
-      <div class="field"><label>选择平台 <span class="req">*</span></label><select class="select" style="width:100%" onchange="updateBalance()"><option>微信小游戏</option><option>抖音小游戏</option></select></div>
+/* MODAL: 发起打款 */
+function openPayNewModal(){
+  if(!['发行商','财务人员','系统管理员'].includes(ROLE)){alert('当前角色无权发起打款');return;}
+  const {visiblePubs}=visibleEntities();
+  const selPubId=window._payPubId||(visiblePubs[0]?.id||'');
+  const selPub=publishers.find(p=>p.id===selPubId)||visiblePubs[0];
+  const confirmed=window._settleConfirmed||new Set();
+  const pubSettleAll=selPub?settle.filter(r=>r.pub===selPub.name):[];
+  const pubSettleConfirmed=pubSettleAll.filter(r=>confirmed.has(`${r.period}__${r.game}__${r.platform}`));
+  const pubUnconfirmedCnt=pubSettleAll.length-pubSettleConfirmed.length;
+  const pubPaidOk=selPub?pays.filter(p=>p.pub===selPub.name&&p.exec==='打款成功').reduce((s,p)=>s+p.amount,0):0;
+  const pubInFlight=selPub?pays.filter(p=>p.pub===selPub.name&&p.exec==='打款中').reduce((s,p)=>s+p.amount,0):0;
+  const pubTotalCash=pubSettleConfirmed.reduce((s,r)=>s+(r.cashP*r.pubRate/100),0);
+  const availBal=pubTotalCash-pubPaidOk-pubInFlight;
+  const body=`
+    <div class="stepper" style="margin-bottom:14px">
+      <div class="step act"><span class="sc">1</span>选择发行商</div><div class="sline"></div>
+      <div class="step"><span class="sc">2</span>填写金额</div><div class="sline"></div>
+      <div class="step"><span class="sc">3</span>确认提交</div><div class="sline"></div>
+      <div class="step"><span class="sc">4</span>BPM审批</div><div class="sline"></div>
+      <div class="step"><span class="sc">5</span>银企打款</div>
     </div>
-    <div style="background:#f8fbff;border:1px solid var(--line2);border-radius:var(--r2);padding:12px;margin:10px 0">
+    <div class="field" style="max-width:320px;margin-bottom:14px">
+      <label>选择发行商 <span class="req">*</span></label>
+      <select class="select" style="width:100%" onchange="window._payPubId=this.value;openPayNewModal()">
+        ${visiblePubs.map(p=>`<option value="${p.id}" ${p.id===selPubId?'selected':''}>${p.name}</option>`).join('')}
+      </select>
+    </div>
+    ${selPub?`<div style="background:#f8fbff;border:1px solid var(--line2);border-radius:var(--r2);padding:12px;margin:10px 0">
       <div style="color:var(--muted);font-size:12px;margin-bottom:8px">系统自动关联（只读）</div>
-      <div class="kv"><span class="k">发行商主体</span><span class="v">星辰网络</span><span class="k">收款账户名称</span><span class="v">深圳星辰网络有限公司</span><span class="k">开户银行</span><span class="v">招商银行深圳科技园支行</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">****8126</span><span class="k">联行号</span><span class="v" style="font-family:monospace">308584000013</span></div>
-      <div style="margin-top:10px;display:flex;gap:16px"><div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 14px;min-width:160px"><div style="color:var(--muted);font-size:12px">可结算余额（现金）</div><div style="font-size:18px;font-weight:800;margin-top:5px">${fmt(pubCash)}</div></div></div>
+      <div class="kv">
+        <span class="k">收款账户名称</span><span class="v">${selPub.accName||selPub.name}</span>
+        <span class="k">开户银行</span><span class="v">${selPub.bank||'招商银行深圳科技园支行'}</span>
+        <span class="k">银行账号</span><span class="v" style="font-family:monospace">${selPub.acc?'****'+selPub.acc.slice(-4):'****8126'}</span>
+        <span class="k">联行号</span><span class="v" style="font-family:monospace">${selPub.bankNo||'308584000013'}</span>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:16px">
+        <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 14px;min-width:180px">
+          <div style="color:var(--muted);font-size:12px">当前账户余额</div>
+          <div style="font-size:18px;font-weight:800;margin-top:5px;color:${availBal<0?'var(--red)':'var(--text)'}">${fmt(availBal)}</div>
+          <div style="color:var(--weak);font-size:11px;margin-top:3px">可提现金额（已扣除冻结）</div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 14px;min-width:140px">
+          <div style="color:var(--muted);font-size:12px">打款中（冻结）</div>
+          <div style="font-size:18px;font-weight:800;margin-top:5px;color:${pubInFlight>0?'var(--orange)':'var(--text)'}">${pubInFlight>0?fmt(pubInFlight):'—'}</div>
+          <div style="color:var(--weak);font-size:11px;margin-top:3px">提款待执行</div>
+        </div>
+      </div>
+      ${pubUnconfirmedCnt>0?`<div style="margin-top:10px;font-size:12px;color:#a05000;background:#fff8f0;border:1px solid #ffe0b2;border-radius:var(--r2);padding:8px 10px">⚠ 该发行商还有 <b>${pubUnconfirmedCnt}</b> 条分账记录未确认，未确认部分不计入余额。</div>`:''}
     </div>
     <div class="fgrid">
-      <div class="field"><label>打款金额 <span class="req">*</span></label><input class="input" type="number" style="width:100%" id="payAmt" placeholder="≤ ${fmt(pubCash)}" oninput="validateAmt(${pubCash})"/><div class="hint" id="payAmtHint">最大可打款金额：${fmt(pubCash)}</div></div>
+      <div class="field"><label>打款金额 <span class="req">*</span></label><input class="input" type="number" style="width:100%" id="payAmt" placeholder="≤ ${fmt(availBal)}" oninput="validateAmt(${availBal})"/><div class="hint" id="payAmtHint">最大可打款金额：${fmt(availBal)}</div></div>
       <div class="field"><label>备注</label><input class="input" style="width:100%" placeholder="可填写打款原因或说明" /></div>
     </div>
-    <div class="notice" style="margin-top:8px">⚠️ 原型说明：提交后系统将金额从「可结算现金池」转入「打款中」；BPM 审批通过后调用银企直联发起转账；银行回调后更新为「打款成功/失败」。</div>
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn g">取消</button><button class="btn p" onclick="submitPay()">提交申请</button></div>
-  </div></div></div>`;
+    <div class="notice" style="margin-top:8px">⚠️ 原型说明：提交后系统将金额从「可结算现金池」转入「打款中」；BPM 审批通过后调用银企直联发起转账；银行回调后更新为「打款成功/失败」。</div>`:'<div class="notice">暂无可操作的发行商</div>'}`;
+  const foot=`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" ${availBal<=0?'disabled':''} onclick="submitPay()">提交申请</button>`;
+  openModal('发起打款申请',body,foot);
 }
 function validateAmt(max){const v=parseFloat(document.getElementById('payAmt').value)||0;const h=document.getElementById('payAmtHint');if(v>max){h.style.color='var(--red)';h.textContent='⚠ 超过可结算余额 '+fmt(max);}else{h.style.color='var(--muted)';h.textContent='最大可打款金额：'+fmt(max)}}
-function submitPay(){const v=parseFloat((document.getElementById('payAmt')||{}).value)||0;if(!v){alert('请填写打款金额');return}alert(`原型展示：打款申请已提交 ¥${v.toLocaleString()}，\n系统将发起 BPM 审批流程（BPM-PAY-xxxx），\n审批通过后银企直联自动转账。`);go('payments')}
+function submitPay(){const v=parseFloat((document.getElementById('payAmt')||{}).value)||0;if(!v){alert('请填写打款金额');return}closeModal();alert(`原型展示：打款申请已提交 ¥${v.toLocaleString()}，\n系统将发起 BPM 审批流程（BPM-PAY-xxxx），\n审批通过后银企直联自动转账。`);go('payments')}
 
 /* PAGE: 打款申请单 */
 function pgPayments(){
@@ -1413,8 +2077,9 @@ function pgUserMgmt(){
     const isPending=u.status==='待授权';
     const avatarColor=isPending?'#9aacbf':'var(--primary)';
     const roleTag=u.role?ts2(u.role):'<span class="tag gray">未分配</span>';
-    const dataTag=u.dataPerms&&u.dataPerms.includes('all')?'<span class="tag blue">全部数据</span>':
-      (u.dataPerms&&u.dataPerms.length?`<span class="tag purple">${u.dataPerms.length}个主体</span>`:'<span class="tag gray">无</span>');
+    const dataTag=!u.dataPerms||!u.dataPerms.length?'<span class="tag gray">无</span>':
+      u.dataPerms.includes('all')?'<span class="tag blue">全部数据</span>':
+      `<span class="tag purple">${u.dataPerms.length}个主体</span>`;
     return `<tr>
       <td>
         <div style="display:flex;align-items:center;gap:10px">
@@ -1433,21 +2098,23 @@ function pgUserMgmt(){
         <button class="btn g sm" onclick="openGrantData('${u.id}')" style="margin-left:4px" ${!u.role?'disabled':''}>配置数据权限</button>
       </td>
     </tr>`;
-  }).join('');
+  });
+  const tableOrEmpty=rows.length?tbl(['用户','手机号','登录方式','角色','数据权限','状态','最后登录','操作'],rows):
+    `<div class="card" style="padding:40px;text-align:center;color:var(--muted)">暂无匹配用户</div>`;
   return `<div class="ph">
     <div><div class="pt">用户管理</div><div class="pd">管理所有登录用户的角色与数据权限，首次登录的用户需在此授权后方可使用系统</div></div>
     <div class="acts">${pendingCnt?`<span class="tag red" style="font-size:12px">⚠ ${pendingCnt} 个用户待授权</span>`:''}</div>
   </div>
   <div class="filter">
-    <input class="input" placeholder="搜索姓名/账号/手机号" style="width:220px" value="${window._userKw||''}" oninput="window._userKw=this.value;renderPage()">
+    <input class="input" placeholder="搜索姓名/账号/手机号" style="width:220px" value="${kw}" oninput="window._userKw=this.value;renderPage()">
     <select class="select" onchange="window._userStF=this.value;renderPage()">
       <option value="all" ${stF==='all'?'selected':''}>全部状态</option>
       <option value="已授权" ${stF==='已授权'?'selected':''}>已授权</option>
       <option value="待授权" ${stF==='待授权'?'selected':''}>待授权</option>
     </select>
-    <span style="color:var(--muted);font-size:12px">共 ${USER_DB.length} 个用户</span>
+    <span style="color:var(--muted);font-size:12px">共 ${USER_DB.length} 个用户，筛选结果 ${data.length} 条</span>
   </div>
-  ${tbl(['用户','手机号','登录方式','角色','数据权限','状态','最后登录','操作'],rows)}`;
+  ${tableOrEmpty}`;
 }
 function ts2(role){
   const m={'系统管理员':'blue','业务负责人':'purple','业务运营':'green','财务人员':'orange','财务负责人/审批人':'orange','发行商':'green','CP':'blue'};
