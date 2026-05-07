@@ -1424,7 +1424,7 @@ function pgCostDashboard(){
       `<tr><td colspan="5" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
     </table></div>
   </div>
-  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>对账说明：</b>成本数据来源于巨量/微信平台投放消耗，T+1 同步。如对成本明细有异议，请在收到平台账单后 5 个工作日内联系财务核对，逾期视为确认。</div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>对账说明：</b>成本数据来源于巨量/微信平台投放消耗。</div>
   ${tbl(
     ['账期','游戏','平台','发行商','总成本','现金成本','广告金成本','现金/广告金占比','确认状态','操作'],
     detailRows.length?detailRows:[`<tr><td colspan="10" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
