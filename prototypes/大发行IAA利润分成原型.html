@@ -155,7 +155,7 @@ const ROLE_PAGES={
   '业务运营':['games','pubMapping','cpMapping','vRev','settlePub','settleCp','balance','sync'],
   '财务人员':['publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','settlePub','settleCp','balance','payments','sync'],
   '财务负责人/审批人':['pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','settlePub','settleCp','balance','payments','sync'],
-  '发行商':['pubMapping','cpMapping','costDashboard','settlePub','balance','payments'],
+  '发行商':['pubMapping','cpMapping','costDashboard','settlePub','balance','myPayments'],
   'CP':['cpMapping','settleCp']
 };
 const NAV=[
@@ -163,7 +163,7 @@ const NAV=[
   {title:'合作关系',items:[['pubMapping','⇌','游戏-发行商关系'],['cpMapping','◈','游戏-CP关系']]},
   {title:'大盘数据',items:[['cashRev','▤','现金收入看板'],['vRev','▤','广告金收入看板'],['costDashboard','▥','成本看板']]},
   {title:'结算配置',items:[['rules','⊛','分成规则配置'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细'],['balance','▣','账户余额池']]},
-  {title:'打款闭环',items:[['payments','☑','打款申请单']]},
+  {title:'打款闭环',items:[['payments','☑','打款申请单'],['myPayments','💰','我的打款记录']]},
   {title:'系统运维',items:[['sync','↻','数据同步状态'],['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
 
 /* ── SESSION & 用户列表 ── */
@@ -449,8 +449,8 @@ function visibleEntities(){
 }
 
 function renderPage(){
-  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,sync:pgSync,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'现金收入看板',vRev:'广告金收入看板',costDashboard:'成本看板',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',payments:'打款申请单',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
+  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,sync:pgSync,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
+  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'现金收入看板',vRev:'广告金收入看板',costDashboard:'成本看板',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',payments:'打款申请单',myPayments:'我的打款记录',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -2006,10 +2006,8 @@ function openPayNewModal(){
 function validateAmt(max){const v=parseFloat(document.getElementById('payAmt').value)||0;const h=document.getElementById('payAmtHint');if(v>max){h.style.color='var(--red)';h.textContent='⚠ 超过可结算余额 '+fmt(max);}else{h.style.color='var(--muted)';h.textContent='最大可打款金额：'+fmt(max)}}
 function submitPay(){const v=parseFloat((document.getElementById('payAmt')||{}).value)||0;if(!v){alert('请填写打款金额');return}closeModal();alert(`原型展示：打款申请已提交 ¥${v.toLocaleString()}，\n系统将发起 BPM 审批流程（BPM-PAY-xxxx），\n审批通过后银企直联自动转账。`);go('payments')}
 
-/* PAGE: 打款申请单
- * 同一份数据按角色双视图：
- *  - 发行商视图（isPublisher）：只读 + 自查询，失败单不可处理
- *  - 财务视图（canFin）：失败单可"重新打款"，可批量导出/凭证下载
+/* PAGE: 打款申请单（财务/管理员/业务角色可见 — 真实状态 + 失败处理）
+ * 注意：发行商角色不会进入此页面，发行商走 pgMyPayments（脱敏视图）。
  */
 function pgPayments(){
   const ent=parsedEntity();
@@ -2019,49 +2017,79 @@ function pgPayments(){
   if(ent.type==='cp')data=[];
 
   const finView=canFin();
-  const pubView=isPublisher();
-  const banner=pubView
-    ?`<div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">👁 <b>发行商视图（只读）：</b>仅可查看与本主体相关的打款申请单。打款失败的处理由财务团队负责，发行商无需也无权操作；如对失败原因有疑问，请联系结算财务对接人。</div>`
-    :finView
-      ?`<div class="notice" style="border-color:#ffd9b3;background:#fff7ec;color:#8a4b00">💼 <b>财务视图：</b>对打款失败的单子可发起「重新打款」，新单将引用原单号生成关联凭证；电子回单可下载留档。</div>`
-      :`<div class="notice">展示所有打款申请的审批状态与执行状态。</div>`;
+  const banner=finView
+    ?`<div class="notice" style="border-color:#ffd9b3;background:#fff7ec;color:#8a4b00">💼 <b>财务视图（内部）：</b>展示打款单的真实执行状态。失败单可发起「重新打款」生成关联新单；电子回单可下载留档。<br/><b style="color:var(--red)">⚠ 信息隔离：</b>对外（发行商视图）失败状态会被脱敏为「打款中」，避免发行商看到处理过程；新单成功后再翻转为「打款成功」。</div>`
+    :`<div class="notice">展示所有打款申请的审批状态与执行状态。</div>`;
 
   const opCol=(p)=>{
     const view=`<button class="link" onclick="openPayDetail('${p.id}')">查看</button>`;
-    if(p.exec==='打款失败'){
-      if(finView)return view+`<button class="link" style="color:var(--red);margin-left:8px" onclick="openRepay('${p.id}')">重新打款</button>`;
-      if(pubView)return view+`<span class="tag" style="margin-left:6px;font-size:11px;color:var(--muted)">财务处理中</span>`;
-    }
+    if(p.exec==='打款失败'&&finView)return view+`<button class="link" style="color:var(--red);margin-left:8px" onclick="openRepay('${p.id}')">重新打款</button>`;
     if(p.exec==='打款成功'&&finView)return view+`<button class="link" style="margin-left:8px" onclick="alert('下载电子回单（Mock）：'+'${p.id}')">回单</button>`;
     return view;
   };
-  const rows=data.map(p=>`<tr style="${p.exec==='打款失败'?'background:#fff8f8':''}"><td style="font-family:monospace;font-size:12px">${p.id}</td><td>《${p.game}》</td><td>${p.platform}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(p.exec)}</td><td style="color:var(--muted)">${p.time}</td><td>${opCol(p)}</td></tr>`);
+  const rows=data.map(p=>`<tr style="${p.exec==='打款失败'?'background:#fff8f8':''}"><td style="font-family:monospace;font-size:12px">${p.id}${p.relateId?`<div style="font-size:10px;color:var(--muted)">↻ 关联 ${p.relateId}</div>`:''}</td><td>《${p.game}》</td><td>${p.platform}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(p.exec)}</td><td style="color:var(--muted)">${p.time}</td><td>${opCol(p)}</td></tr>`);
 
-  const acts=finView
-    ?`<button class="btn g" onclick="alert('导出申请单列表（财务视图，含失败处理记录）')">↓ 导出</button>`
-    :`<button class="btn g" onclick="alert('导出我的打款记录')">↓ 导出</button>`;
-
-  return `<div class="ph"><div><div class="pt">打款申请单${pubView?'（发行商视图）':finView?'（财务视图）':''}</div><div class="pd">展示所有打款申请的审批状态与执行状态；打款失败条目标红，可查看失败原因。${ent.type==='cp'?'<b style="color:var(--orange)">（Phase 1 中CP不参与直接打款，由财务线下处理）</b>':''}</div></div><div class="acts">${acts}</div></div>
+  return `<div class="ph"><div><div class="pt">打款申请单${finView?'（财务内部视图）':''}</div><div class="pd">展示所有打款申请的真实审批状态与执行状态；打款失败条目标红，可查看失败原因。${ent.type==='cp'?'<b style="color:var(--orange)">（Phase 1 中CP不参与直接打款，由财务线下处理）</b>':''}</div></div><div class="acts"><button class="btn g" onclick="alert('导出申请单列表（含失败处理记录）')">↓ 导出</button></div></div>
   ${banner}
   <div class="filter"><select class="select"><option>全部审批状态</option><option>待审批</option><option>已通过</option><option>已驳回</option></select><select class="select"><option>全部执行状态</option><option>待执行</option><option>打款中</option><option>打款成功</option><option>打款失败</option></select></div>
   ${tbl(['申请单号','游戏','平台','发行商','打款金额','审批状态','执行状态','发起时间','操作'],rows)}`;
 }
+
+/* PAGE: 我的打款记录（发行商专用 — 失败状态对外脱敏为「打款中」）
+ * 设计意图：失败属于内部处理过程，避免发行商焦虑或重复催款；财务处理完成后再让状态翻转。
+ */
+function pgMyPayments(){
+  const ent=parsedEntity();
+  let data=pays;
+  if(ent.type==='pub')data=data.filter(p=>p.pub===ent.name);
+  if(FILTER_GAME!=='all')data=data.filter(p=>p.game===games.find(g=>g.id===FILTER_GAME)?.name);
+  // 隐藏「重新打款生成的关联新单」，避免发行商看到 R 编号疑惑；只展示原始单
+  data=data.filter(p=>!p.relateId);
+
+  // 脱敏映射：失败 → 打款中（在视图层做，不改底层数据）
+  const maskExec=(s)=>s==='打款失败'?'打款中':s;
+
+  const rows=data.map(p=>{
+    const shown=maskExec(p.exec);
+    return `<tr><td style="font-family:monospace;font-size:12px">${p.id}</td><td>《${p.game}》</td><td>${p.platform}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(shown)}</td><td style="color:var(--muted)">${p.time}</td><td><button class="link" onclick="openMyPayDetail('${p.id}')">查看</button></td></tr>`;
+  });
+
+  return `<div class="ph"><div><div class="pt">我的打款记录</div><div class="pd">查看本主体名下所有打款申请的进度。打款成功后可下载电子回单。</div></div><div class="acts"><button class="btn g" onclick="alert('导出我的打款记录')">↓ 导出</button></div></div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">👁 <b>只读视图：</b>本页面仅展示与本发行商主体相关的打款单。如对结果有疑问，请联系结算财务对接人。</div>
+  <div class="filter"><select class="select"><option>全部审批状态</option><option>待审批</option><option>已通过</option><option>已驳回</option></select><select class="select"><option>全部执行状态</option><option>待执行</option><option>打款中</option><option>打款成功</option></select></div>
+  ${tbl(['申请单号','游戏','平台','打款金额','审批状态','执行状态','发起时间','操作'],rows)}`;
+}
+
+/* 发行商：打款单详情（失败状态在 UI 层伪装为「打款中」，不暴露失败原因/银行流水等内部字段） */
+function openMyPayDetail(id){
+  const p=pays.find(x=>x.id===id);
+  const pub=publishers.find(x=>x.name===p.pub);
+  const masked=p.exec==='打款失败'?'打款中':p.exec;
+  const isProcessing=masked==='打款中';
+  openModal(`打款详情：${p.id}`,`
+  <div class="stepper">
+    ${[['提交申请','done'],['审批',p.approval==='待审批'?'act':'done'],['银企打款',isProcessing?'act':masked==='打款成功'?'done':''],['完成',masked==='打款成功'?'done':'']].map((s,i)=>(i>0?'<div class="sline"></div>':'')+`<div class="step ${s[1]}"><span class="sc">${s[1]==='done'?'✓':(i+1)}</span>${s[0]}</div>`).join('')}
+  </div>
+  ${isProcessing?'<div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">⏳ 打款处理中，到账时间以银行实际为准。如超过 3 个工作日仍未到账，请联系结算财务。</div>':''}
+  <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">游戏</span><span class="v">《${p.game}》</span><span class="k">平台类型</span><span class="v">${p.platform}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(masked)}</span><span class="k">发起时间</span><span class="v">${p.time}</span></div>
+  <div class="sec-title">收款账户</div>
+  <div class="kv"><span class="k">账户名称</span><span class="v">${pub?pub.accName:'—'}</span><span class="k">开户银行</span><span class="v">${pub?pub.bank:'—'}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">${pub?'****'+pub.acc:'—'}</span></div>
+  ${masked==='打款成功'?'<div style="margin-top:14px"><button class="btn g" onclick="alert(\'下载电子回单（Mock）\')">↓ 下载电子回单</button></div>':''}`)
+}
+
 function openPayDetail(id){
   const p=pays.find(x=>x.id===id);
   const pub=publishers.find(x=>x.name===p.pub);
   const isFail=p.exec==='打款失败';
   const finView=canFin();
-  const pubView=isPublisher();
   const failBanner=isFail
-    ?(pubView
-        ?`<div class="alert">⚠ 打款失败原因：${p.reason}<div style="margin-top:6px;font-size:12px;color:var(--muted)">该单子由财务统一处理，发行商无需操作。如需跟进，请联系财务对接人。</div></div>`
-        :`<div class="alert">⚠ 打款失败原因：${p.reason}<div style="margin-top:6px;font-size:12px;color:var(--muted)">财务可发起「重新打款」生成新单（自动关联本单号）。</div></div>`)
+    ?`<div class="alert">⚠ 打款失败原因：${p.reason}<div style="margin-top:6px;font-size:12px;color:var(--muted)">⚠ 此状态对发行商<b>不可见</b>（脱敏为「打款中」）。财务可发起「重新打款」生成新单（自动关联本单号），新单成功后发行商视图自动翻转为「打款成功」。</div></div>`
     :'';
   const footActs=[];
   if(p.exec==='打款成功')footActs.push(`<button class="btn g" onclick="alert('下载电子回单（Mock）')">↓ 下载电子回单</button>`);
   if(isFail&&finView)footActs.push(`<button class="btn p" onclick="closeModal();openRepay('${p.id}')">↻ 重新打款</button>`);
 
-  openModal(`打款申请详情：${p.id}${pubView?' · 发行商视图':finView?' · 财务视图':''}`,`${failBanner}
+  openModal(`打款申请详情：${p.id}（财务内部视图）`,`${failBanner}
   <div class="stepper">
     ${[['提交申请','done'],['BPM审批',p.approval==='待审批'?'act':'done'],['银企打款',p.exec==='打款中'?'act':p.exec==='打款成功'?'done':p.exec==='打款失败'?'done':''],['完成',p.exec==='打款成功'?'done':'']].map((s,i)=>(i>0?'<div class="sline"></div>':'')+`<div class="step ${s[1]}"><span class="sc">${s[1]==='done'?'✓':(i+1)}</span>${s[0]}</div>`).join('')}
   </div>
@@ -2133,20 +2161,20 @@ const PERM_MODULES=[
   {group:'合作关系',items:[{key:'pubMapping',label:'游戏-发行商关系'},{key:'cpMapping',label:'游戏-CP关系'}]},
   {group:'大盘数据',items:[{key:'cashRev',label:'现金收入看板'},{key:'vRev',label:'广告金收入看板'},{key:'costDashboard',label:'成本看板'}]},
   {group:'结算配置',items:[{key:'rules',label:'分成规则配置'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'账户余额池'}]},
-  {group:'打款闭环',items:[{key:'payments',label:'打款申请单'}]},
+  {group:'打款闭环',items:[{key:'payments',label:'打款申请单（财务）'},{key:'myPayments',label:'我的打款记录（发行商）'}]},
   {group:'系统运维',items:[{key:'sync',label:'数据同步状态'}]}
 ];
 const OPS=['查看','新增/编辑','删除','审批/确认','导出'];
 const OP_KEYS=['view','edit','delete','approve','export'];
 // 初始操作权限配置（只对有页面访问权限的角色有意义）
 const PERM_OPS={
-  '系统管理员':{games:{view:1,edit:1,delete:1,approve:0,export:1},publishers:{view:1,edit:1,delete:1,approve:0,export:1},cps:{view:1,edit:1,delete:1,approve:0,export:1},pubMapping:{view:1,edit:1,delete:1,approve:0,export:1},cpMapping:{view:1,edit:1,delete:1,approve:0,export:1},rules:{view:1,edit:1,delete:1,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:1,edit:1,delete:1,approve:1,export:0},payments:{view:1,edit:0,delete:0,approve:1,export:1},sync:{view:1,edit:1,delete:0,approve:0,export:0}},
-  '业务负责人':{games:{view:1,edit:1,delete:0,approve:0,export:1},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},rules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
-  '业务运营':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
-  '财务人员':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},rules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
-  '财务负责人/审批人':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},rules:{view:1,edit:0,delete:0,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:1,export:1},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
-  '发行商':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:0,edit:0,delete:0,approve:0,export:0},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:1,edit:1,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:0,edit:0,delete:0,approve:0,export:0}},
-  'CP':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:0,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:0,edit:0,delete:0,approve:0,export:0},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:0,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:0,edit:0,delete:0,approve:0,export:0}}
+  '系统管理员':{games:{view:1,edit:1,delete:1,approve:0,export:1},publishers:{view:1,edit:1,delete:1,approve:0,export:1},cps:{view:1,edit:1,delete:1,approve:0,export:1},pubMapping:{view:1,edit:1,delete:1,approve:0,export:1},cpMapping:{view:1,edit:1,delete:1,approve:0,export:1},rules:{view:1,edit:1,delete:1,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:1,edit:1,delete:1,approve:1,export:0},payments:{view:1,edit:0,delete:0,approve:1,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:1,edit:1,delete:0,approve:0,export:0}},
+  '业务负责人':{games:{view:1,edit:1,delete:0,approve:0,export:1},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},rules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:0,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
+  '业务运营':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
+  '财务人员':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},rules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:1,delete:0,approve:0,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
+  '财务负责人/审批人':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},rules:{view:1,edit:0,delete:0,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:1,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
+  '发行商':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:0,edit:0,delete:0,approve:0,export:0},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:1,edit:1,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:0,edit:0,delete:0,approve:0,export:0}},
+  'CP':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:0,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:0,edit:0,delete:0,approve:0,export:0},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:0,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:0,edit:0,delete:0,approve:0,export:0}}
 };
 let _permEditRole=null;
 function pgPermConfig(){
