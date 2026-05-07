@@ -69,16 +69,19 @@
       <div id="loginErr" class="login-err"></div>
       <!-- SSO -->
       <div id="loginPanelSso">
-        <div class="login-field">
-          <label>企业账号</label>
-          <input class="login-input" id="ssoAccount" placeholder="请输入企业账号（如 zhang.san）" />
+        <div id="ssoIdentityCard" style="background:linear-gradient(135deg,#f0f6ff 0%,#e6f0ff 100%);border:1px solid #c8daf4;border-radius:8px;padding:18px 18px 16px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div id="ssoAvatar" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0">—</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:11px;color:#5871a0;letter-spacing:.04em;margin-bottom:3px">已识别企业身份</div>
+              <div id="ssoIdentityName" style="font-size:15px;font-weight:800;color:#1a3666;line-height:1.3">检测中…</div>
+              <div id="ssoIdentityAcc" style="font-size:12px;color:#5871a0;font-family:monospace;margin-top:2px">—</div>
+            </div>
+            <span style="background:#dcfce7;border:1px solid #86efac;color:#166534;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">●&nbsp;在线</span>
+          </div>
         </div>
-        <div class="login-field">
-          <label>密码</label>
-          <input class="login-input" type="password" id="ssoPassword" placeholder="请输入密码" />
-        </div>
-        <button class="login-btn" onclick="doLoginSSO()">登 录</button>
-        <div class="login-tip">通过企业统一身份认证系统登录<br>如无账号请联系 IT 管理员开通<br><br><span style="background:#f0f6ff;border:1px solid #c8daf4;border-radius:4px;padding:4px 10px;color:#31557d;font-size:11.5px;letter-spacing:.02em">演示账号：admin_zhang &nbsp;/&nbsp; 密码：123</span></div>
+        <button class="login-btn" onclick="doLoginSSO()">一键登录</button>
+        <div class="login-tip">系统已自动识别当前 Windows / 企业目录账号<br>无需输入账号密码<br><span style="display:inline-block;margin-top:6px;color:#7b8aad;font-size:11.5px">非本人？<a href="javascript:void(0)" onclick="switchSsoIdentity()" style="color:var(--primary);text-decoration:underline">切换账号</a></span></div>
       </div>
       <!-- SMS -->
       <div id="loginPanelSms" style="display:none">
@@ -317,6 +320,32 @@ function doLogout(){
 /* ──────────── LOGIN ──────────── */
 let _loginTab='sso';
 let _smsTimer=null;
+let _ssoIdentity=null; // 模拟当前操作系统/企业目录已识别的用户
+function detectSsoIdentity(){
+  // 默认识别为系统管理员；可通过 ?sso=xxx URL 参数切换
+  const q=new URLSearchParams(location.search);
+  const acc=q.get('sso')||'admin_zhang';
+  _ssoIdentity=USER_DB.find(u=>u.account===acc&&u.loginType==='sso')
+    ||USER_DB.find(u=>u.account===acc)
+    ||USER_DB.find(u=>u.loginType==='sso');
+  renderSsoIdentity();
+}
+function renderSsoIdentity(){
+  if(!_ssoIdentity)return;
+  const u=_ssoIdentity;
+  const av=document.getElementById('ssoAvatar');
+  const nm=document.getElementById('ssoIdentityName');
+  const ac=document.getElementById('ssoIdentityAcc');
+  if(av)av.textContent=(u.display||u.account||'?').slice(0,1);
+  if(nm)nm.textContent=`${u.display||u.account}${u.role?`　·　${u.role}`:''}`;
+  if(ac)ac.textContent=`${u.account}　|　${u.phone||''}`;
+}
+function switchSsoIdentity(){
+  const ssoUsers=USER_DB.filter(u=>u.loginType==='sso');
+  const cur=_ssoIdentity?ssoUsers.findIndex(u=>u.account===_ssoIdentity.account):-1;
+  _ssoIdentity=ssoUsers[(cur+1)%ssoUsers.length];
+  renderSsoIdentity();
+}
 function switchLoginTab(tab,btn){
   _loginTab=tab;
   document.querySelectorAll('.login-tab').forEach(b=>b.classList.remove('active'));
@@ -324,15 +353,12 @@ function switchLoginTab(tab,btn){
   document.getElementById('loginPanelSso').style.display=tab==='sso'?'block':'none';
   document.getElementById('loginPanelSms').style.display=tab==='sms'?'block':'none';
   document.getElementById('loginErr').style.display='none';
+  if(tab==='sso')renderSsoIdentity();
 }
 function showLoginErr(msg){const el=document.getElementById('loginErr');el.textContent=msg;el.style.display='block';}
 function doLoginSSO(){
-  const acc=document.getElementById('ssoAccount').value.trim();
-  const pwd=document.getElementById('ssoPassword').value;
-  if(!acc||!pwd){showLoginErr('请填写企业账号和密码');return;}
-  const u=USER_DB.find(u=>u.account===acc&&u.loginType==='sso')||USER_DB.find(u=>u.account===acc);
-  if(!u){showLoginErr('账号不存在，请确认后重试');return;}
-  loginAs(u);
+  if(!_ssoIdentity){showLoginErr('未识别到企业账号，请联系 IT 管理员');return;}
+  loginAs(_ssoIdentity);
 }
 function doLoginSMS(){
   const phone=document.getElementById('smsPhone').value.trim();
@@ -2172,6 +2198,7 @@ function confirmGrantData(uid){
   document.addEventListener('click',function(){
     document.getElementById('userCenter').classList.remove('open');
   });
+  detectSsoIdentity();
   // 原型默认展示登录页；点击登录后进入系统
   // 如需直接进入（调试），注释掉下一行，取消注释后一行
   // loginAs(USER_DB.find(u=>u.role==='系统管理员'));
