@@ -150,18 +150,18 @@
 /* ──────────── CONFIG ──────────── */
 const ROLES=['系统管理员','业务负责人','业务运营','财务人员','财务负责人/审批人','发行商','CP'];
 const ROLE_PAGES={
-  '系统管理员':['games','publishers','cps','pubMapping','cpMapping','rules','revDashboard','costDashboard','settlePub','settleCp','balance','payments','sync','permConfig','userMgmt'],
-  '业务负责人':['games','publishers','cps','pubMapping','cpMapping','rules','revDashboard','costDashboard','settlePub','settleCp','balance','payments','sync'],
-  '业务运营':['games','pubMapping','cpMapping','settlePub','settleCp','balance','sync'],
-  '财务人员':['publishers','cps','pubMapping','cpMapping','rules','revDashboard','costDashboard','settlePub','settleCp','balance','payments','sync'],
-  '财务负责人/审批人':['pubMapping','cpMapping','rules','revDashboard','costDashboard','settlePub','settleCp','balance','payments','sync'],
+  '系统管理员':['games','publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','settlePub','settleCp','balance','payments','sync','permConfig','userMgmt'],
+  '业务负责人':['games','publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','settlePub','settleCp','balance','payments','sync'],
+  '业务运营':['games','pubMapping','cpMapping','vRev','settlePub','settleCp','balance','sync'],
+  '财务人员':['publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','settlePub','settleCp','balance','payments','sync'],
+  '财务负责人/审批人':['pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','settlePub','settleCp','balance','payments','sync'],
   '发行商':['pubMapping','cpMapping','costDashboard','settlePub','balance','payments'],
   'CP':['cpMapping','settleCp']
 };
 const NAV=[
   {title:'主数据',items:[['games','▦','游戏管理'],['publishers','◉','发行商主体'],['cps','◎','CP主体']]},
   {title:'合作关系',items:[['pubMapping','⇌','游戏-发行商关系'],['cpMapping','◈','游戏-CP关系']]},
-  {title:'大盘数据',items:[['revDashboard','▤','收入看板'],['costDashboard','▥','成本看板']]},
+  {title:'大盘数据',items:[['cashRev','▤','现金收入看板'],['vRev','▤','广告金收入看板'],['costDashboard','▥','成本看板']]},
   {title:'结算配置',items:[['rules','⊛','分成规则配置'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细'],['balance','▣','账户余额池']]},
   {title:'打款闭环',items:[['payments','☑','打款申请单']]},
   {title:'系统运维',items:[['sync','↻','数据同步状态'],['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
@@ -428,7 +428,7 @@ function sendSmsCode(){
 
 /* ──────────── PAGES ──────────── */
 // 主数据管理页：不显示任何筛选
-const MASTER_PAGES=['games','publishers','cps','permConfig','userMgmt','revDashboard'];
+const MASTER_PAGES=['games','publishers','cps','permConfig','userMgmt','cashRev','vRev'];
 
 // 根据 SESSION.dataPerms 计算当前用户可见的发行商/CP/游戏范围
 function visibleEntities(){
@@ -449,8 +449,8 @@ function visibleEntities(){
 }
 
 function renderPage(){
-  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,revDashboard:pgRevDashboard,costDashboard:pgCostDashboard,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,sync:pgSync,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',revDashboard:'收入看板',costDashboard:'成本看板',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',payments:'打款申请单',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
+  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,sync:pgSync,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
+  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'现金收入看板',vRev:'广告金收入看板',costDashboard:'成本看板',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',payments:'打款申请单',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -1057,19 +1057,21 @@ function rfSync(){
 function submitRule(id){alert(`原型展示：规则 ${id} 已提交 BPM 审批，状态更新为「审批中」。`)}
 function copyRule(id){const r=rules.find(x=>x.id===id);alert(`原型展示：复制规则 ${id}，各字段可重新编辑后提交。`)}
 
-/* PAGE: 收入看板 */
-function pgRevDashboard(){
-  // 页面内自管理筛选状态（不依赖顶栏全局 FILTER）
-  const startF=window._rdStart||'2026-01';
-  const endF=window._rdEnd||'2026-04';
-  const platF=window._rdPlat||'all';
-  const gameF=window._rdGame||'all';
-  const entityF=window._rdEntity||'all';
+/* ── 收入双确认 helper ── */
+function syncRevConfirmed(){
+  if(!window._cashRevConfirmed)window._cashRevConfirmed=new Set();
+  if(!window._vRevConfirmed)window._vRevConfirmed=new Set();
+  window._revConfirmed=new Set([...window._cashRevConfirmed].filter(k=>window._vRevConfirmed.has(k)));
+}
+function _revBaseFilter(prefix){
+  const startF=window['_'+prefix+'Start']||'2026-01';
+  const endF=window['_'+prefix+'End']||'2026-04';
+  const platF=window['_'+prefix+'Plat']||'all';
+  const gameF=window['_'+prefix+'Game']||'all';
+  const entityF=window['_'+prefix+'Entity']||'all';
   const allPeriods=[...new Set(settle.map(r=>r.period))].sort();
   const platforms=[...new Set(settle.map(r=>r.platform))].sort();
-  // 可见主体/游戏（遵守数据权限）
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
-  // 解析主体筛选
   let filterPubName=null,filterCpName=null;
   if(entityF!=='all'){
     const [et,eid]=entityF.split(':');
@@ -1077,140 +1079,173 @@ function pgRevDashboard(){
     if(et==='cp'){const c=visibleCps.find(x=>x.id===eid);filterCpName=c?c.name:null;}
   }
   const filterGameName=gameF==='all'?null:visibleGames.find(g=>g.id===gameF)?.name||null;
-  // 过滤数据
-  let data=settle.filter(r=>{
+  const data=settle.filter(r=>{
     if(r.period<startF||r.period>endF)return false;
     if(filterPubName&&r.pub!==filterPubName)return false;
     if(filterCpName&&r.cp!==filterCpName)return false;
     if(filterGameName&&r.game!==filterGameName)return false;
     if(platF!=='all'&&r.platform!==platF)return false;
-    // 数据权限过滤：只展示可见发行商的数据
     const pubOk=visiblePubs.length===0||visiblePubs.find(p=>p.name===r.pub);
     if(!pubOk)return false;
     return true;
   });
-  // 汇总指标
-  const totalCashRev=data.reduce((s,r)=>s+r.cashRev,0);
-  const totalVRev=data.reduce((s,r)=>s+r.vRev,0);
-  const totalRev=totalCashRev+totalVRev;
-  // 按账期汇总
+  return {startF,endF,platF,gameF,entityF,allPeriods,platforms,visiblePubs,visibleCps,visibleGames,data};
+}
+function _revFilterPanel(prefix,ctx,refreshFn){
+  const {startF,endF,platF,gameF,entityF,allPeriods,platforms,visiblePubs,visibleCps,visibleGames,data}=ctx;
+  const pubOpts=visiblePubs.map(p=>`<option value="pub:${p.id}" ${entityF==='pub:'+p.id?'selected':''}>[发行商] ${p.name}</option>`).join('');
+  const cpOpts=visibleCps.map(c=>`<option value="cp:${c.id}" ${entityF==='cp:'+c.id?'selected':''}>[CP] ${c.name}</option>`).join('');
+  return `<div class="card" style="margin-bottom:20px;padding:16px 20px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px 20px;align-items:end">
+      <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">开始账期</div>
+        <select class="select" style="width:100%" onchange="window._${prefix}Start=this.value;${refreshFn}">
+          ${allPeriods.map(p=>`<option value="${p}" ${startF===p?'selected':''}>${p}</option>`).join('')}
+        </select></div>
+      <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">结束账期</div>
+        <select class="select" style="width:100%" onchange="window._${prefix}End=this.value;${refreshFn}">
+          ${[...allPeriods].reverse().map(p=>`<option value="${p}" ${endF===p?'selected':''}>${p}</option>`).join('')}
+        </select></div>
+      <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">游戏</div>
+        <select class="select" style="width:100%" onchange="window._${prefix}Game=this.value;${refreshFn}">
+          <option value="all" ${gameF==='all'?'selected':''}>全部游戏</option>
+          ${visibleGames.map(g=>`<option value="${g.id}" ${gameF===g.id?'selected':''}>${g.name}</option>`).join('')}
+        </select></div>
+      <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">平台</div>
+        <select class="select" style="width:100%" onchange="window._${prefix}Plat=this.value;${refreshFn}">
+          <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
+          ${platforms.map(p=>`<option value="${p}" ${platF===p?'selected':''}>${p}</option>`).join('')}
+        </select></div>
+      <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">主体</div>
+        <select class="select" style="width:100%" onchange="window._${prefix}Entity=this.value;${refreshFn}">
+          <option value="all" ${entityF==='all'?'selected':''}>全部主体</option>
+          ${pubOpts?`<optgroup label="发行商">${pubOpts}</optgroup>`:''}
+          ${cpOpts?`<optgroup label="CP">${cpOpts}</optgroup>`:''}
+        </select></div>
+      <div style="display:flex;align-items:flex-end;gap:8px;padding-bottom:1px">
+        <button class="btn p sm" onclick="${refreshFn}">查询</button>
+        <button class="btn g sm" onclick="window._${prefix}Start='2026-01';window._${prefix}End='2026-04';window._${prefix}Plat='all';window._${prefix}Game='all';window._${prefix}Entity='all';${refreshFn}">重置</button>
+        <span style="color:var(--muted);font-size:12px;margin-left:2px">共 ${data.length} 条</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* PAGE: 现金收入看板（财务确认） */
+function pgCashRevDashboard(){
+  syncRevConfirmed();
+  const ctx=_revBaseFilter('crd');
+  const {startF,endF,data}=ctx;
+  const total=data.reduce((s,r)=>s+r.cashRev,0);
   const byPeriod={};
-  data.forEach(r=>{
-    if(!byPeriod[r.period])byPeriod[r.period]={period:r.period,cashRev:0,vRev:0,cnt:0};
-    byPeriod[r.period].cashRev+=r.cashRev;
-    byPeriod[r.period].vRev+=r.vRev;
-    byPeriod[r.period].cnt++;
-  });
+  data.forEach(r=>{(byPeriod[r.period]=byPeriod[r.period]||{period:r.period,cashRev:0,cnt:0}).cashRev+=r.cashRev;byPeriod[r.period].cnt++;});
   const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
-  // 明细行
-  const confirmedSet=window._revConfirmed||new Set();
+  const confirmedSet=window._cashRevConfirmed;
+  const canConfirm=['财务人员','财务负责人/审批人','系统管理员'].includes(ROLE);
   const detailRows=data.map(r=>{
-    const syncRec=syncs.find(s=>s.game===r.game&&s.platform===r.platform);
     const key=`${r.period}__${r.game}__${r.platform}`;
     const confirmed=confirmedSet.has(key);
     const confirmCell=confirmed
       ?`<span class="tag green" style="font-size:11px">已确认</span>`
-      :`<button class="btn p sm" onclick="confirmRevenue('${key}')">财务确认收入</button>`;
+      :(canConfirm?`<button class="btn p sm" onclick="confirmCashRev('${key}')">财务确认</button>`
+        :`<span class="tag" style="font-size:11px;background:#fff3e0;color:var(--orange)">待财务确认</span>`);
     return `<tr>
       <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
-      <td style="font-weight:700">${mn(r.cashRev)}</td>
-      <td style="font-weight:700;color:var(--purple)">${fmt(r.vRev)}</td>
-      <td style="font-weight:800">${mn(r.cashRev+r.vRev)}</td>
+      <td style="font-weight:800;color:var(--primary)">${mn(r.cashRev)}</td>
       <td>${confirmCell}</td>
       <td><button class="link" onclick="openRevDailyDetail('${r.game}','${r.platform}','${r.period}')">每日明细</button></td>
     </tr>`;
   });
-  // 主体/游戏下拉选项（复用于筛选面板）
-  const pubOpts=visiblePubs.map(p=>`<option value="pub:${p.id}" ${entityF==='pub:'+p.id?'selected':''}>[发行商] ${p.name}</option>`).join('');
-  const cpOpts=visibleCps.map(c=>`<option value="cp:${c.id}" ${entityF==='cp:'+c.id?'selected':''}>[CP] ${c.name}</option>`).join('');
-
   return `<div class="ph">
-    <div><div class="pt">收入看板</div><div class="pd">展示各游戏现金收入与广告金收入，供财务对账使用。</div></div>
+    <div><div class="pt">现金收入看板</div><div class="pd">展示各游戏现金收入。<b style="color:var(--primary)">由财务对账后确认</b>；确认后该账期的现金收入数据流转至「发行商分账明细」。</div></div>
     <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
   </div>
   <div class="g3" style="margin-bottom:20px">
-    <div class="metric">
-      <div class="lb">现金收入合计</div>
-      <div class="v" style="color:var(--primary)">${fmt(totalCashRev)}</div>
-      <div class="ft">账期 ${startF} ~ ${endF}</div>
-    </div>
-    <div class="metric">
-      <div class="lb">广告金收入合计</div>
-      <div class="v" style="color:var(--purple)">${fmt(totalVRev)}</div>
-      <div class="ft">账期 ${startF} ~ ${endF}</div>
-    </div>
-    <div class="metric">
-      <div class="lb">总收入合计（现金+广告金）</div>
-      <div class="v">${fmt(totalRev)}</div>
-    </div>
+    <div class="metric"><div class="lb">现金收入合计</div><div class="v" style="color:var(--primary)">${fmt(total)}</div><div class="ft">账期 ${startF} ~ ${endF}</div></div>
+    <div class="metric"><div class="lb">已确认账期数</div><div class="v">${[...confirmedSet].filter(k=>{const [p]=k.split('__');return p>=startF&&p<=endF;}).length} <span style="font-size:13px;color:var(--muted)">/ ${data.length}</span></div></div>
+    <div class="metric"><div class="lb">确认率</div><div class="v">${data.length?(([...confirmedSet].filter(k=>{const [p,g,pl]=k.split('__');return data.find(r=>r.period===p&&r.game===g&&r.platform===pl);}).length/data.length)*100).toFixed(0):0}%</div></div>
   </div>
-  <div class="card" style="margin-bottom:20px;padding:16px 20px">
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px 20px;align-items:end">
-      <div>
-        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">开始账期</div>
-        <select class="select" style="width:100%" onchange="window._rdStart=this.value;document.getElementById('contentEl').innerHTML=pgRevDashboard()">
-          ${allPeriods.map(p=>`<option value="${p}" ${startF===p?'selected':''}>${p}</option>`).join('')}
-        </select>
-      </div>
-      <div>
-        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">结束账期</div>
-        <select class="select" style="width:100%" onchange="window._rdEnd=this.value;document.getElementById('contentEl').innerHTML=pgRevDashboard()">
-          ${[...allPeriods].reverse().map(p=>`<option value="${p}" ${endF===p?'selected':''}>${p}</option>`).join('')}
-        </select>
-      </div>
-      <div>
-        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">游戏</div>
-        <select class="select" style="width:100%" onchange="window._rdGame=this.value;document.getElementById('contentEl').innerHTML=pgRevDashboard()">
-          <option value="all" ${gameF==='all'?'selected':''}>全部游戏</option>
-          ${visibleGames.map(g=>`<option value="${g.id}" ${gameF===g.id?'selected':''}>${g.name}</option>`).join('')}
-        </select>
-      </div>
-      <div>
-        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">平台</div>
-        <select class="select" style="width:100%" onchange="window._rdPlat=this.value;document.getElementById('contentEl').innerHTML=pgRevDashboard()">
-          <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
-          ${platforms.map(p=>`<option value="${p}" ${platF===p?'selected':''}>${p}</option>`).join('')}
-        </select>
-      </div>
-      <div>
-        <div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">主体</div>
-        <select class="select" style="width:100%" onchange="window._rdEntity=this.value;document.getElementById('contentEl').innerHTML=pgRevDashboard()">
-          <option value="all" ${entityF==='all'?'selected':''}>全部主体</option>
-          ${pubOpts?`<optgroup label="发行商">${pubOpts}</optgroup>`:''}
-          ${cpOpts?`<optgroup label="CP">${cpOpts}</optgroup>`:''}
-        </select>
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:8px;padding-bottom:1px">
-        <button class="btn p sm" onclick="document.getElementById('contentEl').innerHTML=pgRevDashboard()">查询</button>
-        <button class="btn g sm" onclick="window._rdStart='2026-01';window._rdEnd='2026-04';window._rdPlat='all';window._rdGame='all';window._rdEntity='all';document.getElementById('contentEl').innerHTML=pgRevDashboard()">重置</button>
-        <span style="color:var(--muted);font-size:12px;margin-left:2px">共 ${data.length} 条</span>
-      </div>
-    </div>
-  </div>
+  ${_revFilterPanel('crd',ctx,"document.getElementById('contentEl').innerHTML=pgCashRevDashboard()")}
   <div class="card" style="margin-bottom:16px">
-    <div class="card-hd"><div class="card-title">账期汇总</div><div class="card-sub">各账期现金与广告金收入小计</div></div>
-    <div class="tw"><table class="table" style="min-width:600px">
-      <thead><tr><th>账期</th><th>现金收入小计</th><th>广告金收入小计</th><th>合计收入</th></tr></thead>
+    <div class="card-hd"><div class="card-title">账期汇总</div><div class="card-sub">各账期现金收入小计</div></div>
+    <div class="tw"><table class="table" style="min-width:480px">
+      <thead><tr><th>账期</th><th>现金收入小计</th><th>条目数</th></tr></thead>
       <tbody>${periodSummaries.length?periodSummaries.map(p=>`<tr>
         <td style="font-weight:800;color:var(--primary)">${p.period}</td>
         <td style="font-weight:700">${mn(p.cashRev)}</td>
-        <td style="font-weight:700;color:var(--purple)">${fmt(p.vRev)}</td>
-        <td style="font-weight:800">${mn(p.cashRev+p.vRev)}</td>
-      </tr>`).join(''):
-      `<tr><td colspan="4" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
+        <td style="color:var(--muted)">${p.cnt}</td>
+      </tr>`).join(''):`<tr><td colspan="3" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
     </table></div>
   </div>
-  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>第一步 · 财务确认收入：</b>财务核对每条账期收入无误后点击「财务确认收入」。<b>仅财务已确认的账期收入会同步至「发行商分账明细」</b>；未确认账期在分账明细中收入与可结算金额显示为「—」。第二步由发行商在分账明细页确认成本与利润后，方可流转至账户余额池。
-  </div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>财务确认机制：</b>财务核对每条账期的现金收入无误后点击「财务确认」。仅已确认的账期现金收入会同步到「发行商分账明细」。<b>下游可结算金额还需广告金看板由业务运营确认 + 发行商二次确认才会流转至账户余额池。</b></div>
   ${tbl(
-    ['账期','游戏','平台','发行商','现金收入','广告金收入','合计收入','财务确认','操作'],
-    detailRows.length?detailRows:[`<tr><td colspan="9" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
+    ['账期','游戏','平台','发行商','现金收入','财务确认','操作'],
+    detailRows.length?detailRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
   )}`;
 }
-function confirmRevenue(key){
-  if(!window._revConfirmed)window._revConfirmed=new Set();
-  window._revConfirmed.add(key);
-  document.getElementById('contentEl').innerHTML=pgRevDashboard();
+function confirmCashRev(key){
+  if(!window._cashRevConfirmed)window._cashRevConfirmed=new Set();
+  window._cashRevConfirmed.add(key);
+  syncRevConfirmed();
+  document.getElementById('contentEl').innerHTML=pgCashRevDashboard();
+}
+
+/* PAGE: 广告金收入看板（业务运营确认） */
+function pgVRevDashboard(){
+  syncRevConfirmed();
+  const ctx=_revBaseFilter('vrd');
+  const {startF,endF,data}=ctx;
+  const total=data.reduce((s,r)=>s+r.vRev,0);
+  const byPeriod={};
+  data.forEach(r=>{(byPeriod[r.period]=byPeriod[r.period]||{period:r.period,vRev:0,cnt:0}).vRev+=r.vRev;byPeriod[r.period].cnt++;});
+  const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
+  const confirmedSet=window._vRevConfirmed;
+  const canConfirm=['业务运营','业务负责人','系统管理员'].includes(ROLE);
+  const detailRows=data.map(r=>{
+    const key=`${r.period}__${r.game}__${r.platform}`;
+    const confirmed=confirmedSet.has(key);
+    const confirmCell=confirmed
+      ?`<span class="tag green" style="font-size:11px">已确认</span>`
+      :(canConfirm?`<button class="btn p sm" onclick="confirmVRev('${key}')">业务运营确认</button>`
+        :`<span class="tag" style="font-size:11px;background:#fff3e0;color:var(--orange)">待业务运营确认</span>`);
+    return `<tr>
+      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
+      <td style="font-weight:800;color:var(--purple)">${fmt(r.vRev)}</td>
+      <td>${confirmCell}</td>
+      <td><button class="link" onclick="openRevDailyDetail('${r.game}','${r.platform}','${r.period}')">每日明细</button></td>
+    </tr>`;
+  });
+  return `<div class="ph">
+    <div><div class="pt">广告金收入看板</div><div class="pd">展示各游戏广告金收入（虚拟币/激励视频奖励等）。<b style="color:var(--purple)">由业务运营对账后确认</b>；确认后该账期的广告金收入数据流转至「发行商分账明细」。</div></div>
+    <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
+  </div>
+  <div class="g3" style="margin-bottom:20px">
+    <div class="metric"><div class="lb">广告金收入合计</div><div class="v" style="color:var(--purple)">${fmt(total)}</div><div class="ft">账期 ${startF} ~ ${endF}</div></div>
+    <div class="metric"><div class="lb">已确认账期数</div><div class="v">${[...confirmedSet].filter(k=>{const [p]=k.split('__');return p>=startF&&p<=endF;}).length} <span style="font-size:13px;color:var(--muted)">/ ${data.length}</span></div></div>
+    <div class="metric"><div class="lb">确认率</div><div class="v">${data.length?(([...confirmedSet].filter(k=>{const [p,g,pl]=k.split('__');return data.find(r=>r.period===p&&r.game===g&&r.platform===pl);}).length/data.length)*100).toFixed(0):0}%</div></div>
+  </div>
+  ${_revFilterPanel('vrd',ctx,"document.getElementById('contentEl').innerHTML=pgVRevDashboard()")}
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-hd"><div class="card-title">账期汇总</div><div class="card-sub">各账期广告金收入小计</div></div>
+    <div class="tw"><table class="table" style="min-width:480px">
+      <thead><tr><th>账期</th><th>广告金收入小计</th><th>条目数</th></tr></thead>
+      <tbody>${periodSummaries.length?periodSummaries.map(p=>`<tr>
+        <td style="font-weight:800;color:var(--primary)">${p.period}</td>
+        <td style="font-weight:700;color:var(--purple)">${fmt(p.vRev)}</td>
+        <td style="color:var(--muted)">${p.cnt}</td>
+      </tr>`).join(''):`<tr><td colspan="3" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
+    </table></div>
+  </div>
+  <div class="notice" style="border-color:#e9dfff;background:#f7f3ff;color:#5a3a8a">📋 <b>业务运营确认机制：</b>业务运营核对每条账期的广告金收入无误后点击「业务运营确认」。仅已确认的账期广告金收入���同步到「发行商分账明细」。<b>下游可结算金额还需现金看板由财务确认 + 发行商二次确认才会流转至账户余额池。</b></div>
+  ${tbl(
+    ['账期','游戏','平台','发行商','广告金收入','业务运营确认','操作'],
+    detailRows.length?detailRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
+  )}`;
+}
+function confirmVRev(key){
+  if(!window._vRevConfirmed)window._vRevConfirmed=new Set();
+  window._vRevConfirmed.add(key);
+  syncRevConfirmed();
+  document.getElementById('contentEl').innerHTML=pgVRevDashboard();
 }
 function openRevDailyDetail(game,platform,period){
   const monthData=settle.find(r=>r.game===game&&r.platform===platform&&r.period===period);
@@ -1532,7 +1567,7 @@ function pgSettlePubClosed(){
     <div class="metric"><div class="lb">发行商可结算（广告金）</div><div class="v">${fmt(totalPubV)}</div></div>
   </div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>两步确认机制：</b>
-    <span style="display:inline-block;background:#fff;border:1px solid #cfe0f5;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px"><b>① 财务确认收入</b></span>在「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('revDashboard')">收入看板</button>」完成后，本页才会展示该账期的收入、利润与可结算金额；
+    <span style="display:inline-block;background:#fff;border:1px solid #cfe0f5;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px"><b>① 收入双确认</b></span>「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cashRev')">现金收入看板</button>」由财务确认 + 「<button class="link" style="color:var(--purple);font-size:12.5px" onclick="go('vRev')">广告金收入看板</button>」由业务运营确认后，本页才会展示该账期的收入、利润与可结算金额；
     <span style="display:inline-block;background:#fff;border:1px solid #cfe0f5;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px"><b>② 发行商确认</b></span>由发行商在本页核对成本与利润后点击「发行商确认」，方可流转至账户余额池并发起打款。
     <br/><span style="font-size:12px;color:var(--muted)">·  <span style="color:var(--muted)">灰色行</span>=待财务确认收入；<span style="color:var(--text)">白色行</span>=待发行商确认；<span style="color:#1f8a4f">浅绿行</span>=已流转余额池。</span>
   </div>
@@ -2012,6 +2047,7 @@ function pgSync(){
 const PERM_MODULES=[
   {group:'主数据',items:[{key:'games',label:'游戏管理'},{key:'publishers',label:'发行商主体'},{key:'cps',label:'CP主体'}]},
   {group:'合作关系',items:[{key:'pubMapping',label:'游戏-发行商关系'},{key:'cpMapping',label:'游戏-CP关系'}]},
+  {group:'大盘数据',items:[{key:'cashRev',label:'现金收入看板'},{key:'vRev',label:'广告金收入看板'},{key:'costDashboard',label:'成本看板'}]},
   {group:'结算配置',items:[{key:'rules',label:'分成规则配置'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'账户余额池'}]},
   {group:'打款闭环',items:[{key:'payments',label:'打款申请单'}]},
   {group:'系统运维',items:[{key:'sync',label:'数据同步状态'}]}
