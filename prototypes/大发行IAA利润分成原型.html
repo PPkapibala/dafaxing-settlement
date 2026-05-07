@@ -1183,7 +1183,7 @@ function pgCashRevDashboard(){
       </tr>`).join(''):`<tr><td colspan="3" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
     </table></div>
   </div>
-  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>财务确认机制：</b>财务核对每条账期的现金收入无误后点击「财务确认」。仅已确认的账期现金收入会同步到「发行商分账明细」。<b>下游可结算金额还需广告金看板由业务运营确认 + 发行商二次确认才会流转至账户余额池。</b></div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>财务确认机制：</b>财务核对每条账期的现金收入无误后点击「财务确认」。仅已确认的账期现金收入会同步到「发行商分账明细」。</div>
   ${tbl(
     ['账期','游戏','平台','发行商','现金收入','财务确认','操作'],
     detailRows.length?detailRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
@@ -1242,7 +1242,7 @@ function pgVRevDashboard(){
       </tr>`).join(''):`<tr><td colspan="3" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
     </table></div>
   </div>
-  <div class="notice" style="border-color:#e9dfff;background:#f7f3ff;color:#5a3a8a">📋 <b>业务运营确认机制：</b>业务运营核对每条账期的广告金收入无误后点击「业务运营确认」。仅已确认的账期广告金收入���同步到「发行商分账明细」。<b>下游可结算金额还需现金看板由财务确认 + 发行商二次确认才会流转至账户余额池。</b></div>
+  <div class="notice" style="border-color:#e9dfff;background:#f7f3ff;color:#5a3a8a">📋 <b>业务运营确认机制：</b>业务运营核对每条账期的广告金收入无误后点击「业务运营确认」。仅已确认的账期广告金收入会同步到「发行商分账明细」。</div>
   ${tbl(
     ['账期','游戏','平台','发行商','广告金收入','业务运营确认','操作'],
     detailRows.length?detailRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
