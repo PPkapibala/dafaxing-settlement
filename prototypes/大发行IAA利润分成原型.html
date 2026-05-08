@@ -1486,41 +1486,60 @@ function openCostDailyDetail(game,platform,period){
 /* PAGE: 收入成本对账看板（每日 T+1 数据，发行商/业务运营对账用）
  * 数据来源：基于 settle 月度数据按日均拆分（mock）
  * 状态语义：
- *   - 已确认：距今 ≥ 5 天，月底统一确认锁定，作为结算依据
- *   - 预估：T+1 已同步但仍可能因平台后台延迟回吐而变动，不作为结算依据
+ *   - 已确认：历史账期已结算并确认无异议，数据锁定，作为结算依据
+ *   - 预估：当前未出账期数据（T+1 同步），可能因平台后台延迟回吐而变动，不作为结算依据
  * 信息隔离：发行商角色只看本主体的数据；CP 不可见此页面
  */
 function pgDailyRecon(){
   const ent=parsedEntity();
-  const TODAY='2026-05-15', CUT_MONTH='2026-05', CUT_DAY=12;
-  const CONFIRM_LAG=5;
+  const TODAY='2026-05-15';
+  const CUT_MONTH='2026-05'; // 当前未出账期
+  const CUT_DAY=12;          // 未出账期已同步到 T+1（5/12 数据）
+  const HIST_MONTHS=['2026-04','2026-03','2026-02','2026-01']; // 已结算账期
+  const monthDays=(p)=>{const [y,m]=p.split('-').map(Number);return new Date(y,m,0).getDate();};
 
   if(!window._drStatus)window._drStatus='all';
-  if(!window._drStart)window._drStart=`${CUT_MONTH}-01`;
+  if(!window._drStart)window._drStart=`2026-04-01`;
   if(!window._drEnd)window._drEnd=`${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}`;
   if(!window._drPlat)window._drPlat='all';
 
-  let baseData=settle.filter(r=>r.period==='2026-04');
+  let baseData=settle;
   if(FILTER_GAME!=='all')baseData=baseData.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
   if(ent.type==='pub')baseData=baseData.filter(r=>r.pub===ent.name);
   if(ent.type==='cp')baseData=[];
 
-  const weights=Array.from({length:CUT_DAY},(_,i)=>0.55+0.45*Math.sin(i/3.5));
-  const wSum=weights.reduce((a,b)=>a+b,0);
+  // 生成日级数据：历史账期 → 全月 confirmed；当前账期 → 1~CUT_DAY estimated
   const allRows=[];
   baseData.forEach(r=>{
-    weights.forEach((w,i)=>{
-      const dayNum=i+1;
-      const d=String(dayNum).padStart(2,'0');
-      const date=`${CUT_MONTH}-${d}`;
-      const scale=0.8/30;
-      const cashRev=Math.round(r.cashRev*scale*w/wSum*CUT_DAY);
-      const vRev=Math.round(r.vRev*scale*w/wSum*CUT_DAY);
-      const cost=Math.round(r.cost*scale*w/wSum*CUT_DAY);
-      const todayDay=parseInt(TODAY.split('-')[2],10);
-      const status=(todayDay-dayNum)>=CONFIRM_LAG?'confirmed':'estimated';
-      allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,profit:cashRev+vRev-cost,status});
-    });
+    const isHist=HIST_MONTHS.includes(r.period);
+    const isCur=r.period==='2026-04'; // 用 4 月数据按 80% 缩放模拟当前 5 月数据
+    if(isHist){
+      const days=monthDays(r.period);
+      const weights=Array.from({length:days},(_,i)=>0.55+0.45*Math.sin(i/3.5));
+      const wSum=weights.reduce((a,b)=>a+b,0);
+      weights.forEach((w,i)=>{
+        const d=String(i+1).padStart(2,'0');
+        const date=`${r.period}-${d}`;
+        const cashRev=Math.round(r.cashRev*w/wSum);
+        const vRev=Math.round(r.vRev*w/wSum);
+        const cost=Math.round(r.cost*w/wSum);
+        allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,profit:cashRev+vRev-cost,status:'confirmed',period:r.period});
+      });
+    }
+    if(isCur){
+      // 同一条 4 月 settle 行也用来作为 5 月日级 mock 的基线
+      const weights=Array.from({length:CUT_DAY},(_,i)=>0.55+0.45*Math.sin(i/3.5));
+      const wSum=weights.reduce((a,b)=>a+b,0);
+      weights.forEach((w,i)=>{
+        const d=String(i+1).padStart(2,'0');
+        const date=`${CUT_MONTH}-${d}`;
+        const scale=0.8/30;
+        const cashRev=Math.round(r.cashRev*scale*w/wSum*CUT_DAY);
+        const vRev=Math.round(r.vRev*scale*w/wSum*CUT_DAY);
+        const cost=Math.round(r.cost*scale*w/wSum*CUT_DAY);
+        allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,profit:cashRev+vRev-cost,status:'estimated',period:CUT_MONTH});
+      });
+    }
   });
 
   let rows=allRows.filter(r=>r.date>=window._drStart&&r.date<=window._drEnd);
@@ -1529,8 +1548,9 @@ function pgDailyRecon(){
   rows.sort((a,b)=>a.date===b.date?(a.game+a.platform).localeCompare(b.game+b.platform):b.date.localeCompare(a.date));
 
   const sum=rows.reduce((s,r)=>{s.cashRev+=r.cashRev;s.vRev+=r.vRev;s.cost+=r.cost;s.profit+=r.profit;return s},{cashRev:0,vRev:0,cost:0,profit:0});
-  const confirmedCnt=allRows.filter(r=>r.status==='confirmed'&&r.date>=window._drStart&&r.date<=window._drEnd).length;
-  const estimatedCnt=allRows.filter(r=>r.status==='estimated'&&r.date>=window._drStart&&r.date<=window._drEnd).length;
+  const inRange=(r)=>r.date>=window._drStart&&r.date<=window._drEnd&&(window._drPlat==='all'||r.platform===window._drPlat);
+  const confirmedCnt=allRows.filter(r=>r.status==='confirmed'&&inRange(r)).length;
+  const estimatedCnt=allRows.filter(r=>r.status==='estimated'&&inRange(r)).length;
 
   const tag=(s)=>s==='confirmed'
     ?'<span class="tag" style="background:#e8f7ee;color:var(--green);font-size:11px">✓ 已确认</span>'
@@ -1539,10 +1559,14 @@ function pgDailyRecon(){
   const tableRows=rows.map(r=>`<tr style="${r.status==='estimated'?'background:#fffbf5':''}"><td style="font-family:monospace">${r.date}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td style="font-weight:700">${fmt(r.cashRev)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="color:var(--purple);font-weight:700">${fmt(r.vRev)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="color:var(--red);font-weight:700">${fmt(r.cost)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="font-weight:700;color:${r.profit>=0?'var(--green)':'var(--red)'}">${fmt(r.profit)}</td><td>${tag(r.status)}</td></tr>`);
   const sumRow=`<tr style="background:#f5f7fa;font-weight:800"><td colspan="4">合计（${rows.length} 行）</td><td>${fmt(sum.cashRev)}</td><td style="color:var(--purple)">${fmt(sum.vRev)}</td><td style="color:var(--red)">${fmt(sum.cost)}</td><td style="color:${sum.profit>=0?'var(--green)':'var(--red)'}">${fmt(sum.profit)}</td><td>—</td></tr>`;
 
-  const dateOpts=(selected)=>Array.from({length:CUT_DAY},(_,i)=>{const d=String(i+1).padStart(2,'0');const v=`${CUT_MONTH}-${d}`;return `<option value="${v}" ${v===selected?'selected':''}>${v}</option>`}).join('');
+  // 日期下拉：覆盖历史账期 + 当前账期 1~CUT_DAY
+  const dateList=[];
+  HIST_MONTHS.slice().reverse().forEach(p=>{const days=monthDays(p);for(let i=1;i<=days;i++)dateList.push(`${p}-${String(i).padStart(2,'0')}`)});
+  for(let i=1;i<=CUT_DAY;i++)dateList.push(`${CUT_MONTH}-${String(i).padStart(2,'0')}`);
+  const dateOpts=(selected)=>dateList.map(v=>`<option value="${v}" ${v===selected?'selected':''}>${v}</option>`).join('');
 
-  return `<div class="ph"><div><div class="pt">收入成本对账看板</div><div class="pd">每日 T+1 同步收入与投放成本数据，方便发行商和业务运营每日对账。距今 ≥ ${CONFIRM_LAG} 天的数据已锁定为「已确认」，近 ${CONFIRM_LAG} 天数据为「预估」，可能因平台后台延迟回吐而变动。</div></div><div class="acts"><button class="btn g" onclick="alert('导出当前对账数据')">↓ 导出</button></div></div>
-  <div class="notice" style="border-color:#ffd9b3;background:#fff7ec;color:#8a4b00">⚠ <b>预估数据说明：</b>近 ${CONFIRM_LAG} 天为 T+1 同步的预估数据（表中以 <span style="color:var(--orange)">*</span> 标记），受平台延迟回吐影响可能存在变动；月度结算后以「发行商分账明细」中的最终数据为准。如发现数据与投放后台差异较大，请联系业务运营线下反馈核查。</div>
+  return `<div class="ph"><div><div class="pt">收入成本对账看板</div><div class="pd">每日 T+1 同步收入与投放成本数据，方便发行商和业务运营每日对账。历史账期已确认无异议的数据已锁定为「已确认」，未出账期的数据为「预估」，可能因平台后台延迟回吐而变动。</div></div><div class="acts"><button class="btn g" onclick="alert('导出当前对账数据')">↓ 导出</button></div></div>
+  <div class="notice" style="border-color:#ffd9b3;background:#fff7ec;color:#8a4b00">⚠ <b>预估数据说明：</b>当前账期（${CUT_MONTH}）尚未出账，T+1 同步的日级数据为预估值（表中以 <span style="color:var(--orange)">*</span> 标记），受平台延迟回吐影响可能存在变动；月度结算后以「发行商分账明细」中的最终数据为准。如发现数据与投放后台差异较大，请联系业务运营线下反馈核查。</div>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0">
     <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">现金收入合计</div><div style="font-size:20px;font-weight:800;margin-top:4px">${fmt(sum.cashRev)}</div></div>
     <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">广告金收入合计</div><div style="font-size:20px;font-weight:800;margin-top:4px;color:var(--purple)">${fmt(sum.vRev)}</div></div>
@@ -1565,7 +1589,7 @@ function pgDailyRecon(){
       <option value="confirmed" ${window._drStatus==='confirmed'?'selected':''}>仅已确认</option>
       <option value="estimated" ${window._drStatus==='estimated'?'selected':''}>仅预估</option>
     </select>
-    <button class="btn g sm" onclick="window._drStart='${CUT_MONTH}-01';window._drEnd='${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}';window._drStatus='all';window._drPlat='all';document.getElementById('contentEl').innerHTML=pgDailyRecon()">重置</button>
+    <button class="btn g sm" onclick="window._drStart='2026-04-01';window._drEnd='${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}';window._drStatus='all';window._drPlat='all';document.getElementById('contentEl').innerHTML=pgDailyRecon()">重置</button>
   </div>
   <div style="max-height:520px;overflow:auto;margin-top:10px">
     ${tbl(['日期','游戏','平台','发行商','现金收入','广告金收入','投放成本','毛利','状态'],tableRows.concat([sumRow]))}
