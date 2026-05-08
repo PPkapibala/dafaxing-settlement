@@ -1042,14 +1042,6 @@ function openRuleForm(){
     <div class="field"><label>结算类型</label><select class="select" style="width:100%" disabled><option>IAA利润分成</option></select></div>
     <div class="field"><label>结算周期</label><select class="select" style="width:100%" disabled><option>按自然月</option></select></div>
     <div class="field"><label>发行商基础分成比例 <span class="req">*</span></label><input class="input" type="number" style="width:100%" placeholder="如 60（%）" min="0" max="100"/></div>
-    <div class="field" style="grid-column:1/-1;background:#fafdf7;border:1px solid #c6e6d6;border-radius:6px;padding:10px 12px">
-      <label style="margin-bottom:6px;display:block"><b style="color:var(--green)">CP 分成占比</b> <span class="req">*</span><span style="color:var(--muted);font-size:12px;margin-left:8px">CP 在「扣除发行商后剩余池」中的占比（按阶梯切档时自动同步）</span></label>
-      <div style="display:flex;align-items:center;gap:8px;font-family:monospace;font-size:13.5px;color:#0d4a2e">
-        <span>CP 实际占比 = ( 1 − 发行商% ) ×</span>
-        <input class="input" type="number" style="width:90px;text-align:center;font-weight:700" placeholder="50" min="0" max="100" /><span>%</span>
-        <span style="color:var(--muted);font-size:12px;margin-left:6px">例：发行 60% × CP 剩余池 50% → CP 拿 (1−60%) × 50% = 20%</span>
-      </div>
-    </div>
     <div class="field" style="grid-column:1/-1;background:#fafdff;border:1px solid #cfe0f5;border-radius:6px;padding:10px 12px">
       <label style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
         <input type="checkbox" id="rf_tier_enabled" onchange="document.getElementById('rf_tier_box').style.display=this.checked?'grid':'none'" />
@@ -1059,6 +1051,14 @@ function openRuleForm(){
       <div id="rf_tier_box" style="display:none;grid-template-columns:1fr 1fr;gap:10px 14px">
         <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">月流水阈值（万元）</div><input class="input" type="number" style="width:100%" placeholder="如 3000" min="0"/></div>
         <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">超阈值后发行商比例（%）</div><input class="input" type="number" style="width:100%" placeholder="如 70" min="0" max="100"/></div>
+      </div>
+    </div>
+    <div class="field" style="grid-column:1/-1;background:#fafdf7;border:1px solid #c6e6d6;border-radius:6px;padding:10px 12px">
+      <label style="margin-bottom:6px;display:block"><b style="color:var(--green)">CP 分成占比</b> <span class="req">*</span><span style="color:var(--muted);font-size:12px;margin-left:8px">CP 在「扣除发行商后剩余池」中的占比（按阶梯切档时自动同步）</span></label>
+      <div style="display:flex;align-items:center;gap:8px;font-family:monospace;font-size:13.5px;color:#0d4a2e">
+        <span>CP 实际占比 = ( 1 − 发行商% ) ×</span>
+        <input class="input" type="number" style="width:90px;text-align:center;font-weight:700" placeholder="50" min="0" max="100" /><span>%</span>
+        <span style="color:var(--muted);font-size:12px;margin-left:6px">例：发行 60% × CP 剩余池 50% → CP 拿 (1−60%) × 50% = 20%</span>
       </div>
     </div>
     <div class="field" style="grid-column:1/-1;background:#fafafd;border:1px solid #e9dfff;border-radius:6px;padding:10px 12px">
