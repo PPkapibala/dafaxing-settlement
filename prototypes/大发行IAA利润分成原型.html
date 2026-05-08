@@ -219,10 +219,10 @@ const publishers=[
 ];
 const cps=[{id:'CP-3001',name:'梦工厂',legal:'周启',idNo:'4403**********6218',contact:'陈晓',phone:'139****2201',email:'chenxiao@dream.com',status:'合作中'}];
 const rules=[
-  {id:'RU-202604-001',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:60,cpRate:20,status:'生效中',bpm:'BPM-IAA-00021',approved:'2026-04-02 15:22'},
-  {id:'RU-202604-002',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:55,cpRate:25,status:'审批中',bpm:'BPM-IAA-00026',approved:'—'},
-  {id:'RU-202603-008',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',start:'2026-03-01',end:'2026-03-31',pubRate:60,cpRate:20,status:'已到期',bpm:'BPM-IAA-00013',approved:'2026-03-01 10:10'},
-  {id:'RU-202604-004',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:65,cpRate:15,status:'草稿',bpm:'—',approved:'—'}
+  {id:'RU-202604-001',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:60,cpRate:20,tierEnabled:true,tierThreshold:250000,tierHighRate:70,cpServerCostShare:true,status:'生效中',bpm:'BPM-IAA-00021',approved:'2026-04-02 15:22'},
+  {id:'RU-202604-002',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:55,cpRate:25,tierEnabled:false,tierThreshold:0,tierHighRate:0,cpServerCostShare:true,status:'审批中',bpm:'BPM-IAA-00026',approved:'—'},
+  {id:'RU-202603-008',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',start:'2026-03-01',end:'2026-03-31',pubRate:60,cpRate:20,tierEnabled:true,tierThreshold:300000,tierHighRate:65,cpServerCostShare:false,status:'已到期',bpm:'BPM-IAA-00013',approved:'2026-03-01 10:10'},
+  {id:'RU-202604-004',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:65,cpRate:15,tierEnabled:false,tierThreshold:0,tierHighRate:0,cpServerCostShare:true,status:'草稿',bpm:'—',approved:'—'}
 ];
 const settle=[
   // 2026-04
@@ -960,40 +960,32 @@ function pgRules(){
   let data=FILTER_GAME==='all'?rules:rules.filter(r=>games.find(g=>g.id===FILTER_GAME)?.name===r.game);
   if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
   if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
-  const rows=data.map(r=>`<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${r.pubRate}%</td><td>${r.cpRate}%</td><td>${ts(r.status)}</td><td><button class="link" onclick="openRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`);
-  return `<div class="ph"><div><div class="pt">分成规则配置</div><div class="pd">每条规则绑定「游戏＋平台＋发行商＋CP」；审批通过后内容不可修改，如需调整须重建规则。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openRuleForm()">＋ 新建规则</button>':''}</div></div>
-  <div class="card" style="margin-bottom:14px;padding:14px 18px;border-color:#cfe0f5;background:#fafdff">
-    <div style="font-weight:800;color:#1a4a80;margin-bottom:8px">📐 分账计算规则（v2 · 全局生效）</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;font-size:12.5px;color:#1a3a6b;line-height:1.7">
-      <div>
-        <b style="color:var(--primary)">发行商：阶梯分润</b>
-        <div>· 单款·单平台·单发行商月流水 (cashRev) <b>≤ ${(TIER_THRESHOLD/10000).toFixed(0)}w</b> → 发行商 <b>${TIER_LOW_RATE}%</b>（阶梯Ⅰ）</div>
-        <div>· <b>&gt; ${(TIER_THRESHOLD/10000).toFixed(0)}w</b> → 发行商 <b>${TIER_HIGH_RATE}%</b>（阶梯Ⅱ）</div>
-        <div style="color:var(--weak);font-size:11.5px">演示阈值；正式上线为 3000w</div>
-        <div style="margin-top:6px"><b style="color:var(--red)">利润 &lt; 0</b>：当期收入全额划转给发行商，不参与利润分成</div>
-      </div>
-      <div>
-        <b style="color:#7a52b3">CP：承担服务器成本</b>
-        <div>· CP 分账基数 = 利润 − CP分成% × 服务器成本</div>
-        <div>· 公式：CP 分账 = max(0, 基数) × CP 分成%</div>
-        <div>· 服务器成本按现金/广告金收入比例分摊</div>
-        <div style="margin-top:6px"><b style="color:var(--red)">利润 &lt; 0</b>：CP 不分账，亏损由发行商承担</div>
-      </div>
-    </div>
-  </div>
+  const rows=data.map(r=>{
+    const tierTxt=r.tierEnabled?`<span style="color:var(--orange);font-weight:700">${r.pubRate}% / ${r.tierHighRate}%</span><div style="font-size:10.5px;color:var(--muted);margin-top:2px">≤${(r.tierThreshold/10000).toFixed(0)}w / &gt;${(r.tierThreshold/10000).toFixed(0)}w</div>`
+      :`<span>${r.pubRate}%</span><div style="font-size:10.5px;color:var(--muted);margin-top:2px">未启用阶梯</div>`;
+    const cpServer=r.cpServerCostShare?'<span style="background:#e9dfff;color:#5a3a8a;border-radius:8px;padding:1px 6px;font-size:10.5px;font-weight:700">承担服务器</span>':'<span style="background:#f0f0f0;color:var(--muted);border-radius:8px;padding:1px 6px;font-size:10.5px">不承担</span>';
+    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td style="font-weight:700">${r.cpRate}%<div style="margin-top:2px">${cpServer}</div></td><td>${ts(r.status)}</td><td><button class="link" onclick="openRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
+  });
+  return `<div class="ph"><div><div class="pt">分成规则配置</div><div class="pd">每条规则绑定「游戏＋平台＋发行商＋CP」，并配置阶梯分润 / CP 服务器成本承担等规则参数；审批通过后内容不可修改，如需调整须重建规则。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="filter"><select class="select"><option>全部平台</option><option>微信小游戏</option><option>抖音小游戏</option></select><select class="select"><option>全部状态</option><option>草稿</option><option>审批中</option><option>生效中</option><option>已到期</option><option>已驳回</option></select></div>
-  ${tbl(['规则ID','游戏','平台','发行商','CP','生效期间','发行商分成','CP分成','状态','操作'],rows)}`;
+  ${tbl(['规则ID','游戏','平台','发行商','CP','生效期间','发行商分成（含阶梯）','CP分成','状态','操作'],rows)}`;
 }
 function openRuleDetail(id){
   const r=rules.find(x=>x.id===id);
   const idsRate=100-r.pubRate-r.cpRate;
-  openModal(`分成规则：${r.id}`,`<div class="kv"><span class="k">规则ID</span><span class="v" style="font-family:monospace">${r.id}</span><span class="k">游戏</span><span class="v">《${r.game}》</span><span class="k">平台类型</span><span class="v">${r.platform}</span><span class="k">发行商主体</span><span class="v">${r.pub}</span><span class="k">CP主体</span><span class="v">${r.cp}</span><span class="k">生效期间</span><span class="v">${r.start} ~ ${r.end}</span><span class="k">结算类型</span><span class="v">IAA利润分成</span><span class="k">结算周期</span><span class="v">按自然月</span><span class="k">发行商分成</span><span class="v" style="font-size:15px;font-weight:800;color:var(--primary)">${r.pubRate}%</span><span class="k">CP分成</span><span class="v" style="font-weight:700">${r.cpRate}%</span><span class="k">IDS留存</span><span class="v" style="font-weight:700">${idsRate}%</span><span class="k">规则状态</span><span class="v">${ts(r.status)}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${r.bpm}</span><span class="k">审批通过时间</span><span class="v">${r.approved}</span></div>
-  <div class="sec-title">分成公式说明（v2）</div>
+  const tierBlock=r.tierEnabled
+    ?`<span class="v" style="font-weight:700">已启用 · 月流水 <b style="color:var(--orange)">> ${(r.tierThreshold/10000).toFixed(0)}w</b> 时切换为 <b style="color:var(--orange)">${r.tierHighRate}%</b></span>`
+    :`<span class="v" style="color:var(--muted)">未启用（按基础比例 ${r.pubRate}% 计算）</span>`;
+  const cpServerBlock=r.cpServerCostShare
+    ?`<span class="v" style="color:#5a3a8a;font-weight:700">CP 按 ${r.cpRate}% 比例承担服务器成本（参与 CP 分账基数扣减）</span>`
+    :`<span class="v" style="color:var(--muted)">CP 不承担服务器成本（直接按利润 × CP分成%）</span>`;
+  openModal(`分成规则：${r.id}`,`<div class="kv"><span class="k">规则ID</span><span class="v" style="font-family:monospace">${r.id}</span><span class="k">游戏</span><span class="v">《${r.game}》</span><span class="k">平台类型</span><span class="v">${r.platform}</span><span class="k">发行商主体</span><span class="v">${r.pub}</span><span class="k">CP主体</span><span class="v">${r.cp}</span><span class="k">生效期间</span><span class="v">${r.start} ~ ${r.end}</span><span class="k">结算类型</span><span class="v">IAA利润分成</span><span class="k">结算周期</span><span class="v">按自然月</span><span class="k">发行商基础分成</span><span class="v" style="font-size:15px;font-weight:800;color:var(--primary)">${r.pubRate}%</span><span class="k">阶梯分润</span>${tierBlock}<span class="k">CP分成</span><span class="v" style="font-weight:700">${r.cpRate}%</span><span class="k">CP承担服务器成本</span>${cpServerBlock}<span class="k">IDS留存</span><span class="v" style="font-weight:700">${idsRate}%</span><span class="k">规则状态</span><span class="v">${ts(r.status)}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${r.bpm}</span><span class="k">审批通过时间</span><span class="v">${r.approved}</span></div>
+  <div class="sec-title">分成公式说明</div>
   <div style="display:flex;flex-direction:column;gap:8px">
     <div style="display:flex;align-items:center;gap:0;border-radius:7px;overflow:hidden;border:1px solid #c8daf4">
       <div style="background:var(--primary);color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">发行商<br>可结算（现金）</div>
       <div style="background:#f0f6ff;padding:10px 16px;font-size:13px;color:#1a3a6b;font-family:monospace;flex:1">
-        利润 ≥ 0 → 现金利润 × 阶梯比例（<b style="color:var(--primary)">${TIER_LOW_RATE}% / ${TIER_HIGH_RATE}%</b>，按月流水 ${(TIER_THRESHOLD/10000).toFixed(0)}w 切档）<br>
+        利润 ≥ 0 → 现金利润 × ${r.tierEnabled?`阶梯比例（≤${(r.tierThreshold/10000).toFixed(0)}w → <b style="color:var(--primary)">${r.pubRate}%</b> / &gt;${(r.tierThreshold/10000).toFixed(0)}w → <b style="color:var(--orange)">${r.tierHighRate}%</b>）`:`<b style="color:var(--primary)">${r.pubRate}%</b>`}<br>
         利润 &lt; 0 → <b style="color:var(--red)">现金收入全额划转</b>，不分成
       </div>
       <div style="background:#e6f0ff;padding:10px 12px;font-size:11.5px;color:var(--primary);white-space:nowrap">可提款</div>
@@ -1001,7 +993,7 @@ function openRuleDetail(id){
     <div style="display:flex;align-items:center;gap:0;border-radius:7px;overflow:hidden;border:1px solid #c8daf4">
       <div style="background:#3a6dbf;color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">发行商<br>可结算（广告金）</div>
       <div style="background:#f0f6ff;padding:10px 16px;font-size:13px;color:#1a3a6b;font-family:monospace;flex:1">
-        利润 ≥ 0 → 广告金利润 × 阶梯比例<br>
+        利润 ≥ 0 → 广告金利润 × ${r.tierEnabled?'阶梯比例':`<b style="color:var(--primary)">${r.pubRate}%</b>`}<br>
         利润 &lt; 0 → <b style="color:var(--red)">广告金收入全额划转</b>，不分成
       </div>
       <div style="background:#e6f0ff;padding:10px 12px;font-size:11.5px;color:var(--muted);white-space:nowrap">仅查看，不折现</div>
@@ -1009,7 +1001,7 @@ function openRuleDetail(id){
     <div style="display:flex;align-items:center;gap:0;border-radius:7px;overflow:hidden;border:1px solid #c6e6d6">
       <div style="background:var(--green);color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">CP<br>可结算</div>
       <div style="background:#f0faf5;padding:10px 16px;font-size:13px;color:#0d4a2e;font-family:monospace;flex:1">
-        利润 ≥ 0 → max(0, 利润 − 服务器成本) × <b style="color:var(--green)">${r.cpRate}%</b><br>
+        利润 ≥ 0 → max(0, 利润 ${r.cpServerCostShare?'− 服务器成本':''}) × <b style="color:var(--green)">${r.cpRate}%</b><br>
         利润 &lt; 0 → <b style="color:var(--red)">CP 不分账</b>（亏损由发行商承担）
       </div>
       <div style="background:#e6f7ee;padding:10px 12px;font-size:11.5px;color:var(--muted);white-space:nowrap">Phase 1 不可提款</div>
@@ -1033,8 +1025,26 @@ function openRuleForm(){
     <div class="field"><label>生效结束日期 <span class="req">*</span></label><input class="input" type="date" style="width:100%" value="2026-12-31"/></div>
     <div class="field"><label>结算类型</label><select class="select" style="width:100%" disabled><option>IAA利润分成</option></select></div>
     <div class="field"><label>结算周期</label><select class="select" style="width:100%" disabled><option>按自然月</option></select></div>
-    <div class="field"><label>发行商分成比例 <span class="req">*</span></label><input class="input" type="number" style="width:100%" placeholder="如 60（%）" min="0" max="100"/></div>
+    <div class="field"><label>发行商基础分成比例 <span class="req">*</span></label><input class="input" type="number" style="width:100%" placeholder="如 60（%）" min="0" max="100"/></div>
     <div class="field"><label>CP分成比例 <span class="req">*</span></label><input class="input" type="number" style="width:100%" placeholder="如 20（%）" min="0" max="100"/></div>
+    <div class="field" style="grid-column:1/-1;background:#fafdff;border:1px solid #cfe0f5;border-radius:6px;padding:10px 12px">
+      <label style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <input type="checkbox" id="rf_tier_enabled" onchange="document.getElementById('rf_tier_box').style.display=this.checked?'grid':'none'" />
+        <b style="color:var(--primary)">启用阶梯分润</b>
+        <span style="color:var(--muted);font-size:12px">单款·单平台·单发行商月流水超过阈值后切换为高档比例</span>
+      </label>
+      <div id="rf_tier_box" style="display:none;grid-template-columns:1fr 1fr;gap:10px 14px">
+        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">月流水阈值（元）</div><input class="input" type="number" style="width:100%" placeholder="如 30000000" min="0"/></div>
+        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">超阈值后发行商比例（%）</div><input class="input" type="number" style="width:100%" placeholder="如 70" min="0" max="100"/></div>
+      </div>
+    </div>
+    <div class="field" style="grid-column:1/-1;background:#fafafd;border:1px solid #e9dfff;border-radius:6px;padding:10px 12px">
+      <label style="display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="rf_cp_server" checked />
+        <b style="color:#5a3a8a">CP 承担服务器成本</b>
+        <span style="color:var(--muted);font-size:12px">勾选后 CP 按 CP 分成比例承担服务器成本，再按比例计算 CP 分账（参与基数扣减）</span>
+      </label>
+    </div>
     <div class="field" style="grid-column:1/-1"><label>备注</label><textarea class="input" style="width:100%;height:60px;resize:vertical"></textarea></div>
   </div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn g" onclick="alert('保存为草稿')">存草稿</button><button class="btn p" onclick="alert('提交审批 → BPM流程发起，规则状态变为「审批中」');closeModal()">提交审批</button>`)
 }
@@ -1099,13 +1109,17 @@ function isSettleReady(period,game,platform){
   return cash.has(k)&&v.has(k)&&cost.has(k);
 }
 
-/* ── 阶梯分润 + 服务器成本 + 亏损划转 ── */
-// 演示阈值；正式上线为 30,000,000
-const TIER_THRESHOLD=250000;
-const TIER_LOW_RATE=60;   // 流水 ≤ 阈值：发行商 60%
-const TIER_HIGH_RATE=70;  // 流水 > 阈值：发行商 70%
-function tieredPubRate(cashRev){
-  return cashRev>TIER_THRESHOLD?TIER_HIGH_RATE:TIER_LOW_RATE;
+/* ── 阶梯分润 + 服务器成本 + 亏损划转（按规则配置） ── */
+// 找到一条 settle 记录对应的规则配置（生效中的优先；否则取同主键最近一条）
+function findRuleFor(r){
+  const matched=rules.filter(x=>x.game===r.game&&x.platform===r.platform&&x.pub===r.pub&&x.cp===r.cp);
+  return matched.find(x=>x.status==='生效中')||matched.find(x=>x.status==='审批中')||matched[0]||null;
+}
+// 阶梯分润：根据规则配置返回适用比例
+function tieredPubRate(cashRev,rule){
+  if(!rule)return 0;
+  if(rule.tierEnabled&&cashRev>(rule.tierThreshold||0))return rule.tierHighRate||rule.pubRate;
+  return rule.pubRate;
 }
 // 服务器成本按 cash/v 收入比例分摊
 function splitServerCost(r){
@@ -1114,18 +1128,17 @@ function splitServerCost(r){
   const cashServer=Math.round((r.serverCost||0)*r.cashRev/total);
   return {cashServer,vServer:(r.serverCost||0)-cashServer};
 }
-// 计算单条记录的发行商可结算（支持阶梯 + 亏损全划转）
+// 计算单条 settle 记录的发行商可结算
 function calcPubSettle(r){
-  const rate=tieredPubRate(r.cashRev);
-  // 现金侧
+  const rule=findRuleFor(r);
+  const rate=tieredPubRate(r.cashRev,rule);
   let pubCash, cashIsLossTransfer=false;
   if(r.cashP>=0){
     pubCash=r.cashP*rate/100;
   }else{
-    pubCash=r.cashRev; // 亏损：当期现金收入全额划转
+    pubCash=r.cashRev;
     cashIsLossTransfer=true;
   }
-  // 广告金侧
   let pubV, vIsLossTransfer=false;
   if(r.vP>=0){
     pubV=r.vP*rate/100;
@@ -1133,18 +1146,24 @@ function calcPubSettle(r){
     pubV=r.vRev;
     vIsLossTransfer=true;
   }
-  return {rate,pubCash,pubV,cashIsLossTransfer,vIsLossTransfer};
+  return {rate,pubCash,pubV,cashIsLossTransfer,vIsLossTransfer,rule,
+    tierApplied:rule&&rule.tierEnabled&&r.cashRev>(rule.tierThreshold||0)};
 }
-// 计算单条记录的 CP 可结算（承担占比的服务器成本，亏损则 CP 不分账）
+// 计算单条 settle 记录的 CP 可结算
 function calcCpSettle(r){
+  const rule=findRuleFor(r);
+  const cpRate=rule?rule.cpRate:r.cpRate;
+  const shareServer=rule?!!rule.cpServerCostShare:true;
   const {cashServer,vServer}=splitServerCost(r);
-  const cpCashBase=r.cashP-cashServer; // CP 可分配 = 现金利润 - 服务器现金分摊
-  const cpVBase=r.vP-vServer;
+  const sCash=shareServer?cashServer:0;
+  const sV=shareServer?vServer:0;
+  const cpCashBase=r.cashP-sCash;
+  const cpVBase=r.vP-sV;
   let cpCash=0;
-  if(cpCashBase>0&&r.cashP>=0)cpCash=cpCashBase*r.cpRate/100;
+  if(cpCashBase>0&&r.cashP>=0)cpCash=cpCashBase*cpRate/100;
   let cpV=0;
-  if(cpVBase>0&&r.vP>=0)cpV=cpVBase*r.cpRate/100;
-  return {cashServer,vServer,cpCashBase,cpVBase,cpCash,cpV};
+  if(cpVBase>0&&r.vP>=0)cpV=cpVBase*cpRate/100;
+  return {cashServer:sCash,vServer:sV,cpCashBase,cpVBase,cpCash,cpV,cpRate,shareServer,rule};
 }
 function _revBaseFilter(prefix){
   const startF=window['_'+prefix+'Start']||'2026-01';
@@ -1675,15 +1694,7 @@ function pgDailyRecon(){
 
 /* PAGE: 发行商分账明细 */
 function pgSettlePub(){
-  const spTab=window._spTab||'closed';  // 'closed' | 'open'
-  if(spTab==='open') return pgSettlePubOpen();
   return pgSettlePubClosed();
-}
-function _spTabBar(active){
-  return `<div class="tabs" style="margin-bottom:20px">
-    <button class="tab ${active==='closed'?'active':''}" onclick="window._spTab='closed';window._spStart=undefined;window._spEnd=undefined;window._spPlat=undefined;document.getElementById('contentEl').innerHTML=pgSettlePub()">已出账账期</button>
-    <button class="tab ${active==='open'?'active':''}" onclick="window._spTab='open';window._spPlat=undefined;document.getElementById('contentEl').innerHTML=pgSettlePub()">未出账每日明细 <span style="font-size:11px;background:#fff3e0;color:var(--orange);border-radius:10px;padding:1px 7px;margin-left:4px">T+2 实时</span></button>
-  </div>`;
 }
 
 /* Tab A：已出账账期（月度汇总） */
@@ -1730,9 +1741,11 @@ function pgSettlePubClosed(){
     const dash='<span style="color:var(--weak)">—</span>';
     const rowStyle=ready?'style="background:#f3faf5"':'style="background:#fafafa;color:var(--muted)"';
     const showRev=cashOk&&vOk;
-    const tierBadge=ps.rate===TIER_HIGH_RATE
+    const tierBadge=ps.tierApplied
       ?`<span style="display:inline-block;background:#fff3e0;color:var(--orange);border-radius:8px;padding:0 6px;font-size:10px;margin-left:4px;font-weight:700">阶梯Ⅱ</span>`
-      :`<span style="display:inline-block;background:#eef4fb;color:var(--primary);border-radius:8px;padding:0 6px;font-size:10px;margin-left:4px;font-weight:700">阶梯Ⅰ</span>`;
+      :(ps.rule&&ps.rule.tierEnabled
+        ?`<span style="display:inline-block;background:#eef4fb;color:var(--primary);border-radius:8px;padding:0 6px;font-size:10px;margin-left:4px;font-weight:700">阶梯Ⅰ</span>`
+        :'');
     const lossTag=(flag)=>flag?`<span style="display:inline-block;background:#ffe9e9;color:var(--red);border-radius:8px;padding:0 6px;font-size:10px;margin-left:4px;font-weight:700">亏损·全划转</span>`:'';
     return `<tr ${rowStyle}>
       <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
@@ -1748,7 +1761,6 @@ function pgSettlePubClosed(){
     </tr>`;
   });
   return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）；负值标红，待后期正值冲抵后方可提款。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
-  ${_spTabBar('closed')}
   <div class="filter" style="margin-bottom:16px">
     <span style="font-size:12px;color:var(--muted);font-weight:650">开始账期</span>
     <select class="select" onchange="window._spStart=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
@@ -1787,80 +1799,6 @@ function pgSettlePubClosed(){
   ${tbl(['账期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','发行商分成%','发行商可结算（现金）','发行商可结算（广告金）','确认状态','每日明细'],rows)}`;
 }
 
-/* Tab B：未出账每日明细（T+2，5月1~12日） */
-function pgSettlePubOpen(){
-  const ent=parsedEntity();
-  const platF=window._spPlat||'all';
-  // 当前日期为 2026-05-15，T+2 最新数据截至 05-13，但模拟到 05-12
-  const TODAY='2026-05-15', CUT_MONTH='2026-05';
-  const CUT_DAY=12; // T+2 截止
-  // 生成每日 × 每条规则的明细（取 settle 中 2026-04 数据等比缩放模拟 5 月）
-  // 筛选数据源
-  let baseData=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
-  if(ent.type==='pub')baseData=baseData.filter(r=>r.pub===ent.name);
-  if(ent.type==='cp')baseData=baseData.filter(r=>r.cp===ent.name);
-  if(platF!=='all')baseData=baseData.filter(r=>r.platform===platF);
-  // 为每个维度生成 CUT_DAY 天的每日数据
-  const weights=Array.from({length:CUT_DAY},(_,i)=>0.55+0.45*Math.sin(i/3.5));
-  const wSum=weights.reduce((a,b)=>a+b,0);
-  // 每日汇总行：日期 × 维度
-  const allRows=[];
-  baseData.forEach(r=>{
-    weights.forEach((w,i)=>{
-      const d=String(i+1).padStart(2,'0');
-      const date=`${CUT_MONTH}-${d}`;
-      // 按 5 月日均（假设 5 月收入约 4 月的 80%）
-      const scale=0.8/30;
-      const cashRev=Math.round(r.cashRev*scale*w/wSum*CUT_DAY);
-      const vRev=Math.round(r.vRev*scale*w/wSum*CUT_DAY);
-      const cost=Math.round(r.cost*scale*w/wSum*CUT_DAY);
-      const cashCost=Math.round(r.cashCost*scale*w/wSum*CUT_DAY);
-      const vCost=Math.round(r.vCost*scale*w/wSum*CUT_DAY);
-      const cashP=cashRev-cashCost;
-      const vP=vRev-vCost;
-      // 阶梯按月度量级判断（演示直接复用条目级阈值），亏损全划转
-      const ps=calcPubSettle({cashRev:r.cashRev,vRev:r.vRev,cashP,vP});
-      const dayRev=cashRev,dayVRev=vRev;
-      // 日级 pubCash：等比缩放月度结果
-      const monthRev=r.cashRev||1;
-      const pubCashDay=Math.round(ps.pubCash*(cashRev/monthRev));
-      allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,pubRate:ps.rate,cashRev,vRev,cost,cashP,vP,pubCash:pubCashDay,lossTransfer:ps.cashIsLossTransfer});
-    });
-  });
-  // 汇总指标（跨所有维度）
-  const totalCashP=allRows.reduce((s,x)=>s+x.cashP,0);
-  const totalPubCash=allRows.reduce((s,x)=>s+x.pubCash,0);
-  const totalVP=allRows.reduce((s,x)=>s+x.vP,0);
-  const negCount=allRows.filter(x=>x.cashP<0).length;
-  // 表格行
-  const rows=allRows.map(x=>`<tr ${x.cashP<0?'style="background:#fff8f8"':''}>
-    <td style="color:var(--muted);font-family:monospace">${x.date}</td>
-    <td>《${x.game}》</td><td>${x.platform}</td><td>${x.pub}</td>
-    <td>${mn(x.cashRev)}</td><td>${mn(x.vRev)}</td><td>${mn(x.cost)}</td>
-    <td ${x.cashP<0?'style="color:var(--red)"':''}>${mn(x.cashP)}</td>
-    <td ${x.vP<0?'style="color:var(--red)"':''}>${mn(x.vP)}</td>
-    <td style="font-weight:700">${x.pubRate}%${x.pubRate===TIER_HIGH_RATE?'<span style="background:#fff3e0;color:var(--orange);border-radius:8px;padding:0 5px;font-size:10px;margin-left:3px;font-weight:700">阶梯Ⅱ</span>':'<span style="background:#eef4fb;color:var(--primary);border-radius:8px;padding:0 5px;font-size:10px;margin-left:3px;font-weight:700">阶梯Ⅰ</span>'}</td>
-    <td style="font-weight:800;color:${x.pubCash<0?'var(--red)':'var(--text)'}">${mn(x.pubCash)}${x.lossTransfer?'<span style="background:#ffe9e9;color:var(--red);border-radius:8px;padding:0 5px;font-size:10px;margin-left:3px;font-weight:700">亏损·全划转</span>':''}</td>
-  </tr>`);
-  return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）；负值标红，待后期正值冲抵后方可提款。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
-  ${_spTabBar('open')}
-  <div class="filter" style="margin-bottom:16px">
-    <select class="select" onchange="window._spPlat=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
-      <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
-      <option value="微信小游戏" ${platF==='微信小游戏'?'selected':''}>微信小游戏</option>
-      <option value="抖音小游戏" ${platF==='抖音小游戏'?'selected':''}>抖音小游戏</option>
-    </select>
-    <span style="background:#fff3e0;color:var(--orange);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700">数据截至 ${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}（T+2）</span>
-    <span style="color:var(--muted);font-size:12px">${rows.length} 条日明细</span>
-  </div>
-  <div class="g3" style="margin-bottom:16px">
-    <div class="metric"><div class="lb">本月累计可结算（现金）</div><div class="v ${totalPubCash<0?'neg':''}">${fmt(totalPubCash)}</div></div>
-    <div class="metric"><div class="lb">本月累计现金利润</div><div class="v ${totalCashP<0?'neg':''}">${fmt(totalCashP)}</div></div>
-    <div class="metric"><div class="lb">本月累计广告金利润</div><div class="v">${fmt(totalVP)}</div></div>
-  </div>
-  <div class="notice" style="border-color:#ffe0b2;background:#fff8f0;color:#a05000">当前账期（${CUT_MONTH}）尚未出账，以下为 T+2 日维度预估数据；月末结算后将移至「已出账账期」Tab，数据以最终出账为准。</div>
-  ${tbl(['日期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金利润','广告金利润','发行商分成%','发行商可结算（现金）'],rows)}`;
-}
 function openDailyDetail(key,period,game,platform,pub){
   // 生成模拟每日数据（基于月度汇总按天拆分）
   const monthData=settle.find(r=>r.game===game&&r.platform===platform&&r.period===period);
