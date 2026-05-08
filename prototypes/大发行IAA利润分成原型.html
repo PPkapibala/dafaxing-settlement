@@ -1108,6 +1108,17 @@ function isSettleReady(period,game,platform){
   const cost=window._costConfirmed||new Set();
   return cash.has(k)&&v.has(k)&&cost.has(k);
 }
+/* 发行商「对账单确认」：已出账后再由发行商确认对账单方可打款 */
+function isBillConfirmed(period,game,platform){
+  const k=`${period}__${game}__${platform}`;
+  return (window._billConfirmed||new Set()).has(k);
+}
+function confirmBill(key){
+  if(!window._billConfirmed)window._billConfirmed=new Set();
+  window._billConfirmed.add(key);
+  alert('对账单已确认，可发起打款。');
+  document.getElementById('contentEl').innerHTML=pgSettlePub();
+}
 
 /* ── 阶梯分润 + 服务器成本 + 亏损划转（按规则配置） ── */
 // 找到一条 settle 记录对应的规则配置（生效中的优先；否则取同主键最近一条）
@@ -1731,9 +1742,12 @@ function pgSettlePubClosed(){
     const vOk=vSet.has(key);
     const costOk=costSet.has(key);
     const ready=cashOk&&vOk&&costOk;
+    const billOk=isBillConfirmed(r.period,r.game,r.platform);
     let confirmCell;
     if(ready){
-      confirmCell=`<span class="tag green" style="font-size:11px">已出账 · 入余额池</span>`;
+      confirmCell=billOk
+        ?`<span class="tag green" style="font-size:11px">✓ 已出账 · 发行商已确认</span>`
+        :`<span class="tag" style="font-size:11px;background:#fff7ec;color:#8a4b00;border:1px solid #ffd9b3">已出账 · 待发行商确认对账单</span>`;
     }else{
       const miss=[];
       if(!cashOk)miss.push('<span style="color:var(--primary)">财务现金</span>');
@@ -1760,7 +1774,7 @@ function pgSettlePubClosed(){
       <td style="font-weight:800">${ready?mn(ps.pubCash)+lossTag(ps.cashIsLossTransfer):dash}</td>
       <td>${ready?mn(ps.pubV)+lossTag(ps.vIsLossTransfer):dash}</td>
       <td>${confirmCell}</td>
-      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button></td>
+      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${key}')">确认对账单</button>`:''}</td>
     </tr>`;
   });
   return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）；负值标红，待后期正值冲抵后方可提款。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
@@ -1896,16 +1910,10 @@ function pgBalance(){
     const inFlight=pays.filter(p=>p.game===r.game&&p.platform===r.platform&&p.exec==='打款中').reduce((s,p)=>s+p.amount,0);
     const bal=pubCash-settled-inFlight;
     const vUsed=Math.round(pubV*0.4*100)/100; // 广告金已消耗（mock：累计分成的40%）
-    const vBal=Math.round((pubV-vUsed)*100)/100;
-    return {r,pubCash,pubV,vUsed,vBal,settled,inFlight,bal};
+    return {r,pubCash,pubV,vUsed,settled,inFlight,bal};
   });
-  const totalBal=rows.reduce((s,x)=>s+x.bal,0);
-  const totalPubCash=rows.reduce((s,x)=>s+x.pubCash,0);
-  const totalSettled=rows.reduce((s,x)=>s+x.settled,0);
-  const totalInFlight=rows.reduce((s,x)=>s+x.inFlight,0);
   const totalPubV=rows.reduce((s,x)=>s+x.pubV,0);
   const totalVUsed=rows.reduce((s,x)=>s+x.vUsed,0);
-  const totalVBal=rows.reduce((s,x)=>s+x.vBal,0);
   const balTab=window._balTab||'cash';
   // 构建现金流水账（Ledger）
   const ledgerEntries=[];
@@ -1965,7 +1973,7 @@ function pgBalance(){
   </div>
   <div class="tabs">
     <button class="tab ${balTab==='cash'?'active':''}" onclick="window._balTab='cash';document.getElementById('contentEl').innerHTML=pgBalance()">现金账单</button>
-    <button class="tab ${balTab==='v'?'active':''}" onclick="window._balTab='v';document.getElementById('contentEl').innerHTML=pgBalance()">广告金余额</button>
+    <button class="tab ${balTab==='v'?'active':''}" onclick="window._balTab='v';document.getElementById('contentEl').innerHTML=pgBalance()">广告金账单</button>
   </div>
   ${balTab==='cash'?`
   ${(()=>{
@@ -1988,24 +1996,10 @@ function pgBalance(){
       if(endD&&d>endD)return false;
       return true;
     });
-    // 重新计算该发行商的滚动余额
-    let rb=0;
-    // 基于全量流水计算余额（保证筛选时间区间内的余额正确）
-    const enrichedEntries=allPubEntries.map(e=>{
-      if(e.dir!==0)rb+=e.dir*e.amount;
-      return {...e,bal:rb};
-    });
-    // 按时间筛选后展示
-    const visibleEntries=enrichedEntries.filter(e=>{
-      const d=e.date.slice(0,10);
-      if(startD&&d<startD)return false;
-      if(endD&&d>endD)return false;
-      return true;
-    });
+    const visibleEntries=pubEntries;
     const pubRows=visibleEntries.slice().reverse().map(e=>{
       const isPos=e.dir>0;
       const amtStr=`<span style="font-variant-numeric:tabular-nums;font-weight:700;color:${isPos?'var(--green)':'var(--text)'}">${isPos?'+':''}${fmt(e.dir*e.amount)}</span>`;
-      const balStr=`<span style="font-variant-numeric:tabular-nums;font-weight:700;color:${e.bal<0?'var(--red)':'var(--text)'}">${fmt(e.bal)}</span>`;
       const typeTag=isPos
         ?`<span class="tag green" style="font-size:11px">${e.type}</span>`
         :e.type==='打款申请（冻结）'
@@ -2017,7 +2011,6 @@ function pgBalance(){
         <td style="color:var(--muted);font-size:12px;font-family:monospace;white-space:nowrap;width:160px">${e.date}</td>
         <td style="width:160px">${typeTag}</td>
         <td style="text-align:right;width:160px;font-family:monospace">${amtStr}</td>
-        <td style="text-align:right;width:160px;font-family:monospace">${balStr}</td>
         <td style="color:var(--muted);font-size:12px;white-space:normal;line-height:1.6">${e.remark||'—'}</td>
       </tr>`;
     });
@@ -2025,29 +2018,22 @@ function pgBalance(){
     const totalIn=allPubEntries.filter(e=>e.type==='账期结算入金').reduce((s,e)=>s+e.amount,0);
     const totalLoss=allPubEntries.filter(e=>e.type==='账期亏损分摊').reduce((s,e)=>s+e.amount,0);
     const totalOut=allPubEntries.filter(e=>e.type==='打款成功').reduce((s,e)=>s+e.amount,0);
-    const totalRefund=allPubEntries.filter(e=>e.type==='打款失败退回').reduce((s,e)=>s+e.amount,0);
     const frozen=allPubEntries.filter(e=>e.type==='打款申请（冻结）').reduce((s,e)=>s+e.amount,0);
-    const curBal=rb;
     const pubUnconfirmed=selPubName
       ?data.filter(r=>r.pub===selPubName&&!isSettleReady(r.period,r.game,r.platform)).length
       :unconfirmedCnt;
     const ledgerTbl=`<div class="card"><div class="tw"><table class="table" style="table-layout:fixed;width:100%">
-      <colgroup><col style="width:160px"><col style="width:160px"><col style="width:160px"><col style="width:160px"><col></colgroup>
-      <thead><tr><th>时间</th><th>流水类型</th><th style="text-align:right">金额</th><th style="text-align:right">账户余额</th><th>摘要</th></tr></thead>
-      <tbody>${pubRows.length?pubRows.join(''):`<tr><td colspan="5" style="text-align:center;color:var(--weak);padding:24px">暂无流水记录</td></tr>`}</tbody>
+      <colgroup><col style="width:160px"><col style="width:160px"><col style="width:160px"><col></colgroup>
+      <thead><tr><th>时间</th><th>流水类型</th><th style="text-align:right">金额</th><th>摘要</th></tr></thead>
+      <tbody>${pubRows.length?pubRows.join(''):`<tr><td colspan="4" style="text-align:center;color:var(--weak);padding:24px">暂无流水记录</td></tr>`}</tbody>
     </table></div></div>`;
     return `
     <div class="filter" style="margin-bottom:16px">
       <span style="color:var(--muted);font-size:12.5px">发行商账户</span>
       <select class="select" style="min-width:160px" onchange="window._balPubName=this.value;document.getElementById('contentEl').innerHTML=pgBalance()">${pubOpts||'<option>—</option>'}</select>
-      <button class="btn p sm" style="margin-left:auto" ${curBal<=0?'disabled title="账户余额不足，无法发起提款"':`onclick="window._payPubId='${(visiblePubs.find(p=>p.name===selPubName)||{}).id||''}';openPayNewModal()"`}>+ 发起提款</button>
+      <button class="btn p sm" style="margin-left:auto" onclick="window._payPubId='${(visiblePubs.find(p=>p.name===selPubName)||{}).id||''}';openPayNewModal()">+ 发起提款</button>
     </div>
-    <div class="g4" style="margin-bottom:16px">
-      <div class="metric">
-        <div class="lb">当前账户余额</div>
-        <div class="v ${curBal<0?'neg':''}">${fmt(curBal)}</div>
-        <div class="ft">${curBal<0?'<span style="color:var(--red)">余额为负，不可提款</span>':curBal===0?'无可提现余额':'可提现余额'}</div>
-      </div>
+    <div class="g3" style="margin-bottom:16px">
       <div class="metric">
         <div class="lb">累计结算入账</div>
         <div class="v">+${fmt(totalIn)}</div>
@@ -2065,7 +2051,7 @@ function pgBalance(){
       </div>
     </div>
     ${pubUnconfirmed>0?`<div class="notice" style="border-color:#ffe0b2;background:#fff8f0;color:#a05000">⚠ 该发行商还有 <b>${pubUnconfirmed}</b> 条分账记录尚未确认，确认后方可入账。请前往「<button class="link" style="color:var(--orange);font-size:12.5px" onclick="go('settlePub')">发行商分账明细</button>」完成确认。</div>`:''}
-    <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>账单说明：</b>每条记录为一笔账户流水。结算确认后产生入账（绿色 +），打款申请冻结余额（橙色 −），打款成功扣减余额（黑色 −），打款失败退回余额（绿色 +）。账户余额按时间正序滚动计算，列表按倒序展示。</div>
+    <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>账单说明：</b>每条记录为一笔账户打款流水。结算确认后产生入账（绿色 +），打款申请（橙色 −），打款成功（黑色 −），打款失败退回（绿色 +）。列表按时间倒序展示。</div>
     <div style="display:flex;align-items:center;gap:10px;margin:18px 0 10px">
       <div style="font-size:14px;font-weight:700">流水明细</div>
       <span style="color:var(--muted);font-size:12.5px;margin-left:12px">时间范围</span>
@@ -2077,12 +2063,11 @@ function pgBalance(){
     </div>
     ${ledgerTbl}`;
   })()}`:`
-  <div class="g3" style="margin-bottom:16px">
-    <div class="metric"><div class="lb">广告金余额</div><div class="v">${fmt(totalVBal)}</div></div>
+  <div class="g2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px">
     <div class="metric"><div class="lb">广告金累计分成</div><div class="v">${fmt(totalPubV)}</div></div>
     <div class="metric"><div class="lb">广告金已消耗</div><div class="v" style="color:var(--muted)">${fmt(totalVUsed)}</div></div>
   </div>
-  <div class="notice">广告金余额 = 广告金累计分成 − 广告金已消耗（用于平台投放）。广告金不可提现。</div>
+  <div class="notice">广告金累计分成由账期分账产生，已消耗用于平台投放。广告金不可提现。</div>
   ${vTable}`}`;
 }
 
@@ -2093,8 +2078,10 @@ function openPayNewModal(){
   const selPubId=window._payPubId||(visiblePubs[0]?.id||'');
   const selPub=publishers.find(p=>p.id===selPubId)||visiblePubs[0];
   const pubSettleAll=selPub?settle.filter(r=>r.pub===selPub.name):[];
-  const pubSettleConfirmed=pubSettleAll.filter(r=>isSettleReady(r.period,r.game,r.platform));
-  const pubUnconfirmedCnt=pubSettleAll.length-pubSettleConfirmed.length;
+  const pubReady=pubSettleAll.filter(r=>isSettleReady(r.period,r.game,r.platform));
+  const pubSettleConfirmed=pubReady.filter(r=>isBillConfirmed(r.period,r.game,r.platform));
+  const pubUnconfirmedCnt=pubSettleAll.length-pubReady.length; // 三方未齐
+  const pubBillPendingCnt=pubReady.length-pubSettleConfirmed.length; // 已出账但发行商未确认对账单
   const pubPaidOk=selPub?pays.filter(p=>p.pub===selPub.name&&p.exec==='打款成功').reduce((s,p)=>s+p.amount,0):0;
   const pubInFlight=selPub?pays.filter(p=>p.pub===selPub.name&&p.exec==='打款中').reduce((s,p)=>s+p.amount,0):0;
   const pubTotalCash=pubSettleConfirmed.reduce((s,r)=>s+calcPubSettle(r).pubCash,0);
@@ -2133,7 +2120,8 @@ function openPayNewModal(){
           <div style="color:var(--weak);font-size:11px;margin-top:3px">提款待执行</div>
         </div>
       </div>
-      ${pubUnconfirmedCnt>0?`<div style="margin-top:10px;font-size:12px;color:#a05000;background:#fff8f0;border:1px solid #ffe0b2;border-radius:var(--r2);padding:8px 10px">⚠ 该发行商还有 <b>${pubUnconfirmedCnt}</b> 条分账记录未确认，未确认部分不计入余额。</div>`:''}
+      ${pubUnconfirmedCnt>0?`<div style="margin-top:10px;font-size:12px;color:#a05000;background:#fff8f0;border:1px solid #ffe0b2;border-radius:var(--r2);padding:8px 10px">⚠ 该发行商还有 <b>${pubUnconfirmedCnt}</b> 条分账记录三方未确认，未出账部分不计入余额。</div>`:''}
+      ${pubBillPendingCnt>0?`<div style="margin-top:6px;font-size:12px;color:#1a4a80;background:#f0f7ff;border:1px solid #d0e8ff;border-radius:var(--r2);padding:8px 10px">📋 还有 <b>${pubBillPendingCnt}</b> 条已出账但<b>发行商对账单未确认</b>，未确认部分不计入余额（请在「发行商分账明细」中点击「确认对账单」）。</div>`:''}
     </div>
     <div class="fgrid">
       <div class="field"><label>打款金额 <span class="req">*</span></label><input class="input" type="number" style="width:100%" id="payAmt" placeholder="≤ ${fmt(availBal)}" oninput="validateAmt(${availBal})"/><div class="hint" id="payAmtHint">最大可打款金额：${fmt(availBal)}</div></div>
