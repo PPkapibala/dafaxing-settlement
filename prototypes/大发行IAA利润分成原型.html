@@ -1008,17 +1008,22 @@ function openRuleDetail(id){
     </div>
     <div style="display:flex;align-items:center;gap:0;border-radius:7px;overflow:hidden;border:1px solid #c6e6d6">
       <div style="background:var(--green);color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">CP<br>可结算（现金）</div>
-      <div style="background:#f0faf5;padding:10px 16px;font-size:13px;color:#0d4a2e;font-family:monospace;flex:1">
-        总利润 ≥ 0 → [ 现金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ${r.cpServerCostShare?'− 服务器成本':''} ] × <b style="color:var(--green)">${r.cpRemainShare}%</b><br>
-        总利润 &lt; 0 → <b style="color:var(--red)">CP 不分账</b>（亏损由发行商承担）
+      <div style="background:#f0faf5;padding:10px 16px;font-size:13px;color:#0d4a2e;font-family:monospace;flex:1;line-height:1.85">
+        ${r.tierEnabled?`<div><span style="display:inline-block;background:#eef4fb;color:var(--primary);border-radius:8px;padding:0 6px;font-size:10.5px;font-weight:700;margin-right:6px">阶梯Ⅰ ≤${(r.tierThreshold/10000).toFixed(0)}w</span>[ 现金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ${r.cpServerCostShare?'− 服务器成本':''} ] × <b style="color:var(--green)">${r.cpRemainShare}%</b></div>
+        <div><span style="display:inline-block;background:#fff3e0;color:var(--orange);border-radius:8px;padding:0 6px;font-size:10.5px;font-weight:700;margin-right:6px">阶梯Ⅱ &gt;${(r.tierThreshold/10000).toFixed(0)}w</span>[ 现金利润 × (1 − <b style="color:var(--orange)">${r.tierHighRate}%</b>) ${r.cpServerCostShare?'− 服务器成本':''} ] × <b style="color:var(--green)">${r.cpRemainShare}%</b></div>`
+        :`<div>总利润 ≥ 0 → [ 现金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ${r.cpServerCostShare?'− 服务器成本':''} ] × <b style="color:var(--green)">${r.cpRemainShare}%</b></div>`}
+        <div>总利润 &lt; 0 → <b style="color:var(--red)">CP 不分账</b>（亏损由发行商承担）</div>
       </div>
       <div style="background:#e6f7ee;padding:10px 12px;font-size:11.5px;color:var(--muted);white-space:nowrap">Phase 1 不可提款</div>
     </div>
     <div style="display:flex;align-items:center;gap:0;border-radius:7px;overflow:hidden;border:1px solid #c6e6d6">
       <div style="background:#2c8454;color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">CP<br>可结算（广告金）</div>
-      <div style="background:#f0faf5;padding:10px 16px;font-size:13px;color:#0d4a2e;font-family:monospace;flex:1">
-        总利润 ≥ 0 → [ 广告金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ] × <b style="color:var(--green)">${r.cpRemainShare}%</b><span style="color:var(--muted)">（不扣服务器成本）</span><br>
-        总利润 &lt; 0 → <b style="color:var(--red)">CP 不分账</b>
+      <div style="background:#f0faf5;padding:10px 16px;font-size:13px;color:#0d4a2e;font-family:monospace;flex:1;line-height:1.85">
+        ${r.tierEnabled?`<div><span style="display:inline-block;background:#eef4fb;color:var(--primary);border-radius:8px;padding:0 6px;font-size:10.5px;font-weight:700;margin-right:6px">阶梯Ⅰ ≤${(r.tierThreshold/10000).toFixed(0)}w</span>[ 广告金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ] × <b style="color:var(--green)">${r.cpRemainShare}%</b></div>
+        <div><span style="display:inline-block;background:#fff3e0;color:var(--orange);border-radius:8px;padding:0 6px;font-size:10.5px;font-weight:700;margin-right:6px">阶梯Ⅱ &gt;${(r.tierThreshold/10000).toFixed(0)}w</span>[ 广告金利润 × (1 − <b style="color:var(--orange)">${r.tierHighRate}%</b>) ] × <b style="color:var(--green)">${r.cpRemainShare}%</b></div>
+        <div style="color:var(--muted);font-size:11.5px">不扣服务器成本</div>`
+        :`<div>总利润 ≥ 0 → [ 广告金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ] × <b style="color:var(--green)">${r.cpRemainShare}%</b><span style="color:var(--muted)">（不扣服务器成本）</span></div>`}
+        <div>总利润 &lt; 0 → <b style="color:var(--red)">CP 不分账</b></div>
       </div>
       <div style="background:#e6f7ee;padding:10px 12px;font-size:11.5px;color:var(--muted);white-space:nowrap">Phase 1 不可提款</div>
     </div>
