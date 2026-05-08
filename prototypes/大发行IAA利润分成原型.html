@@ -162,7 +162,7 @@ const NAV=[
   {title:'主数据',items:[['games','▦','游戏管理'],['publishers','◉','发行商主体'],['cps','◎','CP主体']]},
   {title:'合作关系',items:[['pubMapping','⇌','游戏-发行商关系'],['cpMapping','◈','游戏-CP关系']]},
   {title:'数据看板',items:[['cashRev','▤','账期现金收入'],['vRev','▤','账期广告金收入'],['costDashboard','▥','账期投放成本'],['dailyRecon','📅','每日收支对账']]},
-  {title:'结算配置',items:[['rules','⊛','分成规则配置'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细'],['balance','▣','账户余额池']]},
+  {title:'结算配置',items:[['rules','⊛','分成规则配置'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细'],['balance','▣','账户打款流水']]},
   {title:'打款闭环',items:[['payments','☑','打款申请单'],['myPayments','💰','我的打款记录']]},
   {title:'系统运维',items:[['sync','↻','数据同步状态'],['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
 
@@ -1430,13 +1430,16 @@ function pgCostDashboard(){
   const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
   // 明细行
   const costConfirmedSet=window._costConfirmed||new Set();
+  const canConfirmCost=isPublisher();
   const detailRows=data.map(r=>{
     const cashRatio=r.cost?(r.cashCost/r.cost*100):0;
     const ckey=`${r.period}__${r.game}__${r.platform}`;
     const ck=costConfirmedSet.has(ckey);
     const confirmCell=ck
-      ?`<span class="tag green" style="font-size:11px">已确认</span>`
-      :`<button class="btn p sm" onclick="confirmCost('${ckey}')">确认无异议</button>`;
+      ?`<span class="tag green" style="font-size:11px">✓ 发行商已确认</span>`
+      :(canConfirmCost
+          ?`<button class="btn p sm" onclick="confirmCost('${ckey}')">确认无异议</button>`
+          :`<span class="tag" style="background:#fff3e0;color:var(--orange);font-size:11px">待发行商确认</span>`);
     return `<tr>
       <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
       <td style="font-weight:800">${mn(r.cost)}</td>
@@ -1448,7 +1451,7 @@ function pgCostDashboard(){
     </tr>`;
   });
   return `<div class="ph">
-    <div><div class="pt">账期投放成本</div><div class="pd">展示各游戏现金成本与广告金成本，供发行商对账使用。${SESSION?.role==='发行商'?`<span style="color:var(--orange);font-weight:650">仅可查看本主体下的游戏数据</span>`:''}</div></div>
+    <div><div class="pt">账期投放成本</div><div class="pd">展示各游戏现金成本与广告金成本。<b style="color:var(--orange)">由发行商对账后确认</b>；与「财务·现金收入」「业务运营·广告金收入」共同构成三方确认，三方全部确认后该账期自动出账。${SESSION?.role==='发行商'?`<span style="color:var(--orange);font-weight:650">仅可查看本主体下的游戏数据</span>`:''}</div></div>
     <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
   </div>
   <div class="g3" style="margin-bottom:20px">
@@ -1519,7 +1522,7 @@ function pgCostDashboard(){
       `<tr><td colspan="5" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
     </table></div>
   </div>
-  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>对账说明：</b>成本数据来源于巨量/微信平台投放消耗。</div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>对账说明：</b>成本数据来源于巨量/微信平台投放消耗。<b style="color:var(--orange)">由发行商对账后确认</b>；与「财务·现金收入确认」「业务运营·广告金收入确认」共同构成三方确认，三方全部确认后该账期自动出账并流转至「发行商分账明细」。</div>
   ${tbl(
     ['账期','游戏','平台','发行商','总成本','现金成本','广告金成本','现金/广告金占比','确认状态','操作'],
     detailRows.length?detailRows:[`<tr><td colspan="10" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
@@ -1786,15 +1789,7 @@ function pgSettlePubClosed(){
     <span style="display:inline-block;background:#fff;border:1px solid #e9dfff;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px;color:#5a3a8a"><b>② 业务运营</b>·广告金收入</span>
     <span style="display:inline-block;background:#fff;border:1px solid #ffe0b2;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px;color:#a05000"><b>③ 发行商</b>·成本</span>
     三方全部确认后该账期自动出账并流转至账户余额池，可发起打款。
-  </div>
-  <div class="notice" style="border-color:#cfe0f5;background:#fafdff;color:#1a4a80;margin-top:8px">💡 <b>分账计算规则（v2）：</b>
-    <span style="display:inline-block;margin:0 6px"><b>① 阶梯分润</b>：单款·单平台·单发行商月流水（cashRev）
-      <span style="color:var(--primary)">≤ ${(TIER_THRESHOLD/10000).toFixed(0)}w → 发行商 ${TIER_LOW_RATE}%（阶梯Ⅰ）</span> /
-      <span style="color:var(--orange)">> ${(TIER_THRESHOLD/10000).toFixed(0)}w → 发行商 ${TIER_HIGH_RATE}%（阶梯Ⅱ）</span>
-      <span style="color:var(--weak);font-size:11.5px">（演示阈值；正式上线为 3000w）</span>
-    </span><br/>
-    <span style="display:inline-block;margin:0 6px"><b>② 利润 ≥ 0</b>：按阶梯比例分成 → 发行商可结算 = 利润 × 比例</span><br/>
-    <span style="display:inline-block;margin:0 6px"><b>③ 利润 &lt; 0</b>：当期收入<b>全额划转</b>给发行商 → 发行商现金可结算 = 现金收入；广告金可结算 = 广告金收入；不参与利润分成（单元格内会标注「亏损·全划转」）</span>
+    <br/><span style="font-size:12px;color:var(--muted)">分账计算规则（阶梯分润、亏损全划转、CP 服务器成本承担）以「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置</button>」中每条规则的具体配置为准。</span>
   </div>
   ${tbl(['账期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','发行商分成%','发行商可结算（现金）','发行商可结算（广告金）','确认状态','每日明细'],rows)}`;
 }
@@ -1833,7 +1828,7 @@ function openDailyDetail(key,period,game,platform,pub){
   openModal(`每日分账明细 · 《${game}》${platform} · ${period}`,`
     <div class="kv" style="margin-bottom:14px">
       <span class="k">发行商</span><span class="v">${pub}</span>
-      <span class="k">分成比例</span><span class="v">${monthPs.rate}% ${monthPs.rate===TIER_HIGH_RATE?'（阶梯Ⅱ）':'（阶梯Ⅰ）'}</span>
+      <span class="k">分成比例</span><span class="v">${monthPs.rate}%${monthPs.tierApplied?'（阶梯Ⅱ）':(monthPs.rule&&monthPs.rule.tierEnabled?'（阶梯Ⅰ）':'')}</span>
       <span class="k">月度可结算（现金）</span><span class="v" style="color:var(--primary);font-size:15px;font-weight:800">${mn(totCash)}${monthPs.cashIsLossTransfer?' · <span style="color:var(--red);font-size:11px">亏损全划转</span>':''}</span>
     </div>
     <div style="max-height:420px;overflow:auto">
@@ -1874,15 +1869,15 @@ function pgSettleCp(){
     <div class="metric"><div class="lb">CP广告金利润</div><div class="v">${fmt(totalCpV)}</div></div>
     <div class="metric"><div class="lb">CP承担服务器成本</div><div class="v" style="color:#7a52b3">${fmt(totalCpServer)}</div><div class="ft">总服务器成本 ${fmt(totalServer)} × CP占比</div></div>
   </div>
-  <div class="notice" style="border-color:#cfe0f5;background:#fafdff;color:#1a4a80">💡 <b>CP 分账规则（v2）：</b>
-    <span style="display:inline-block;margin:0 6px"><b>① 服务器成本</b>：CP 须承担 CP 分成比例 × 服务器成本（紫色列）；先从利润中扣除该部分，再按 CP 分成比例计算 CP 分账</span><br/>
-    <span style="display:inline-block;margin:0 6px"><b>② 公式</b>：CP 现金分账 = max(0, (现金利润 − 服务器现金成本)) × CP分成%（广告金同理；服务器成本按现金/广告金收入比例分摊）</span><br/>
+  <div class="notice" style="border-color:#cfe0f5;background:#fafdff;color:#1a4a80">💡 <b>CP 分账规则：</b>
+    <span style="display:inline-block;margin:0 6px"><b>① 服务器成本承担</b>：是否承担由「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置</button>」中每条规则的「CP 承担服务器成本」开关决定；服务器成本按现金/广告金收入比例分摊</span><br/>
+    <span style="display:inline-block;margin:0 6px"><b>② 公式</b>：CP 分账 = max(0, 利润 − CP承担服务器成本) × CP分成%</span><br/>
     <span style="display:inline-block;margin:0 6px"><b>③ 利润 &lt; 0</b>：CP 不参与分账（标注「亏损不分账」），亏损由发行商承担</span>
   </div>
   ${tbl(['账期','游戏','平台','CP','现金收入','广告金收入','总消耗','服务器成本','现金利润','广告金利润','CP分账基数(现/广)','CP分成%','CP现金分账','CP广告金分账'],rows)}`;
 }
 
-/* PAGE: 余额池 */
+/* PAGE: 账户打款流水 */
 function pgBalance(){
   const ent=parsedEntity();
   const platF=window._balPlatF||'all';
@@ -1941,17 +1936,10 @@ function pgBalance(){
     else return;
     ledgerEntries.push({date:p.time,pub:p.pub,type,amount:p.amount,dir,remark,sortKey:p.time,style});
   });
-  // 按时间正序计算滚动余额
+  // 按时间正序排序
   ledgerEntries.sort((a,b)=>a.sortKey<b.sortKey?-1:a.sortKey>b.sortKey?1:0);
-  // 计算滚动余额（按 pub 分组）
-  const runBal={};
   const ledgerRows=ledgerEntries.map(e=>{
-    const key=e.pub;
-    if(!runBal[key])runBal[key]=0;
-    if(e.dir!==0)runBal[key]+=e.dir*e.amount;
-    const bal=runBal[key];
     const amtStr=`<span style="${e.style||''};font-weight:700">${e.dir>0?'+':''}${fmt(e.dir*e.amount)}</span>`;
-    const balStr=`<span style="font-weight:800;font-size:13px;color:${bal<0?'var(--red)':'var(--text)'}">${fmt(bal)}</span>`;
     const typeTag=e.dir>0?`<span class="tag green" style="font-size:11px">${e.type}</span>`
       :e.dir<0&&e.type==='打款申请（冻结）'?`<span class="tag orange" style="font-size:11px">${e.type}</span>`
       :`<span class="tag red" style="font-size:11px">${e.type}</span>`;
@@ -1960,21 +1948,19 @@ function pgBalance(){
       <td>${e.pub}</td>
       <td>${typeTag}</td>
       <td style="text-align:right">${amtStr}</td>
-      <td style="text-align:right">${balStr}</td>
       <td style="color:var(--muted);font-size:12px">${e.remark||'—'}</td>
     </tr>`;
   });
-  const cashTable=tbl(['时间','发行商','流水类型','金额','账户余额（现金）','备注'],
-    ledgerRows.length?ledgerRows:[`<tr><td colspan="6" style="text-align:center;color:var(--weak);padding:20px">暂无流水记录</td></tr>`]);
-  const vTable=tbl(['账期','游戏','平台','发行商','广告金余额','广告金累计分成','广告金已消耗','最新计算时间'],
-    rows.map(({r,pubV,vUsed,vBal})=>`<tr>
+  const cashTable=tbl(['时间','发行商','流水类型','金额','备注'],
+    ledgerRows.length?ledgerRows:[`<tr><td colspan="5" style="text-align:center;color:var(--weak);padding:20px">暂无流水记录</td></tr>`]);
+  const vTable=tbl(['账期','游戏','平台','发行商','广告金累计分成','广告金已消耗','最新计算时间'],
+    rows.map(({r,pubV,vUsed})=>`<tr>
       <td style="color:var(--muted)">${r.period}</td>
       <td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
-      <td style="font-weight:800;font-size:14px">${fmt(vBal)}</td>
       <td>${fmt(pubV)}</td><td style="color:var(--muted)">${fmt(vUsed)}</td>
       <td style="color:var(--muted);font-size:12px">2026-04-28 06:16</td></tr>`));
   return `<div class="ph">
-    <div><div class="pt">发行商账户余额池</div><div class="pd">以发行商为账户维度，展示现金流水账单——结算入账与提款记录按时间排列，余额实时滚动。</div></div>
+    <div><div class="pt">发行商账户打款流水</div><div class="pd">以发行商为账户维度，展示现金流水账单——结算入账与提款记录按时间排列。</div></div>
     <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
   </div>
   <div class="tabs">
@@ -2315,7 +2301,7 @@ const PERM_MODULES=[
   {group:'主数据',items:[{key:'games',label:'游戏管理'},{key:'publishers',label:'发行商主体'},{key:'cps',label:'CP主体'}]},
   {group:'合作关系',items:[{key:'pubMapping',label:'游戏-发行商关系'},{key:'cpMapping',label:'游戏-CP关系'}]},
   {group:'数据看板',items:[{key:'cashRev',label:'账期现金收入'},{key:'vRev',label:'账期广告金收入'},{key:'costDashboard',label:'账期投放成本'},{key:'dailyRecon',label:'每日收支对账'}]},
-  {group:'结算配置',items:[{key:'rules',label:'分成规则配置'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'账户余额池'}]},
+  {group:'结算配置',items:[{key:'rules',label:'分成规则配置'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'账户打款流水'}]},
   {group:'打款闭环',items:[{key:'payments',label:'打款申请单（财务）'},{key:'myPayments',label:'我的打款记录（发行商）'}]},
   {group:'系统运维',items:[{key:'sync',label:'数据同步状态'}]}
 ];
@@ -2478,7 +2464,7 @@ function openGrantData(uid){
   const pubChecks=publishers.map(p=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer"><input type="checkbox" class="dpCheck" value="pub:${p.id}" ${(u.dataPerms||[]).includes('pub:'+p.id)||isAllData?'checked':''} style="accent-color:var(--primary)"> <span>${p.name}（${p.id}）</span></label>`).join('');
   const cpChecks=cps.map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer"><input type="checkbox" class="dpCheck" value="cp:${c.id}" ${(u.dataPerms||[]).includes('cp:'+c.id)||isAllData?'checked':''} style="accent-color:var(--primary)"> <span>${c.name}（${c.id}）</span></label>`).join('');
   openModal(`配置数据权限 — ${u.display}`,
-    `<div class="notice" style="margin-bottom:14px">数据权限控制用户在分账明细、余额池、打款等模块中可见的发行商/CP数据范围。</div>
+    `<div class="notice" style="margin-bottom:14px">数据权限控制用户在分账明细、打款流水、打款等模块中可见的发行商/CP数据范围。</div>
      <div class="field" style="margin-bottom:12px"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;cursor:pointer"><input type="checkbox" id="dpAll" ${isAllData?'checked':''} style="accent-color:var(--primary);width:15px;height:15px" onchange="dpAllToggle(this)"> 全部数据（不限制）</label></div>
      <div id="dpSpecific" style="${isAllData?'opacity:.4;pointer-events:none':''}">
        <div class="sec-title" style="margin-top:0">发行商</div>${pubChecks}
