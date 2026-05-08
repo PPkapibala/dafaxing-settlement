@@ -249,7 +249,7 @@ const settle=[
 const pays=[
   {id:'PAY-202604-001',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',amount:60000,approval:'已通过',exec:'打款成功',time:'2026-04-10 11:20',bpm:'BPM-PAY-1001',flow:'YQ-20260410001',bkFlow:'BK-849201',reason:'—'},
   {id:'PAY-202604-002',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:90000,approval:'已通过',exec:'打款中',time:'2026-04-18 14:05',bpm:'BPM-PAY-1007',flow:'YQ-20260418002',bkFlow:'—',reason:'—'},
-  {id:'PAY-202604-003',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',amount:30000,approval:'已驳回',exec:'待执行',time:'2026-04-19 09:40',bpm:'BPM-PAY-1010',flow:'—',bkFlow:'—',reason:'本期余额为负，不允许提款'},
+  {id:'PAY-202604-003',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',amount:30000,approval:'已驳回',exec:'待执行',time:'2026-04-19 09:40',bpm:'BPM-PAY-1010',flow:'—',bkFlow:'—',reason:'本期可提款金额为负，不允许提款'},
   {id:'PAY-202604-004',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:25000,approval:'已通过',exec:'打款失败',time:'2026-04-21 16:33',bpm:'BPM-PAY-1012',flow:'YQ-20260421009',bkFlow:'BK-851002',reason:'联行号与开户支行不匹配'}
 ];
 const syncs=[
@@ -450,7 +450,7 @@ function visibleEntities(){
 
 function renderPage(){
   const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,sync:pgSync,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'账期现金收入',vRev:'账期广告金收入',costDashboard:'账期投放成本',dailyRecon:'每日收支对账',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',payments:'打款申请单',myPayments:'我的打款记录',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
+  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'账期现金收入',vRev:'账期广告金收入',costDashboard:'账期投放成本',dailyRecon:'每日收支对账',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户打款流水',payments:'打款申请单',myPayments:'我的打款记录',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -1777,7 +1777,7 @@ function pgSettlePubClosed(){
       <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${key}')">确认对账单</button>`:''}</td>
     </tr>`;
   });
-  return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）；负值标红，待后期正值冲抵后方可提款。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
+  return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
   <div class="filter" style="margin-bottom:16px">
     <span style="font-size:12px;color:var(--muted);font-weight:650">开始账期</span>
     <select class="select" onchange="window._spStart=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
@@ -1802,7 +1802,7 @@ function pgSettlePubClosed(){
     <span style="display:inline-block;background:#fff;border:1px solid #cfe0f5;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px;color:var(--primary)"><b>① 财务</b>·现金收入</span>
     <span style="display:inline-block;background:#fff;border:1px solid #e9dfff;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px;color:#5a3a8a"><b>② 业务运营</b>·广告金收入</span>
     <span style="display:inline-block;background:#fff;border:1px solid #ffe0b2;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px;color:#a05000"><b>③ 发行商</b>·成本</span>
-    三方全部确认后该账期自动出账并流转至账户余额池，可发起打款。
+    三方全部确认后该账期自动出账并计入账户打款流水，可发起打款。
     <br/><span style="font-size:12px;color:var(--muted)">分账计算规则（阶梯分润、亏损全划转、CP 服务器成本承担）以「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置</button>」中每条规则的具体配置为准。</span>
   </div>
   ${tbl(['账期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','发行商分成%','发行商可结算（现金）','发行商可结算（广告金）','确认状态','每日明细'],rows)}`;
@@ -1899,7 +1899,7 @@ function pgBalance(){
   if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
   if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
   if(platF!=='all')data=data.filter(r=>r.platform===platF);
-  // 三方（财务·业务运营·发行商）全部确认后纳入余额池
+  // 三方（财务·业务运营·发行商）全部确认后计入账户打款流水
   const confirmedData=data.filter(r=>isSettleReady(r.period,r.game,r.platform));
   const unconfirmedCnt=data.length-confirmedData.length;
   const rows=confirmedData.map(r=>{
@@ -1946,21 +1946,6 @@ function pgBalance(){
   });
   // 按时间正序排序
   ledgerEntries.sort((a,b)=>a.sortKey<b.sortKey?-1:a.sortKey>b.sortKey?1:0);
-  const ledgerRows=ledgerEntries.map(e=>{
-    const amtStr=`<span style="${e.style||''};font-weight:700">${e.dir>0?'+':''}${fmt(e.dir*e.amount)}</span>`;
-    const typeTag=e.dir>0?`<span class="tag green" style="font-size:11px">${e.type}</span>`
-      :e.dir<0&&e.type==='打款申请（冻结）'?`<span class="tag orange" style="font-size:11px">${e.type}</span>`
-      :`<span class="tag red" style="font-size:11px">${e.type}</span>`;
-    return `<tr>
-      <td style="color:var(--muted);font-size:12px;font-family:monospace">${e.date}</td>
-      <td>${e.pub}</td>
-      <td>${typeTag}</td>
-      <td style="text-align:right">${amtStr}</td>
-      <td style="color:var(--muted);font-size:12px">${e.remark||'—'}</td>
-    </tr>`;
-  });
-  const cashTable=tbl(['时间','发行商','流水类型','金额','备注'],
-    ledgerRows.length?ledgerRows:[`<tr><td colspan="5" style="text-align:center;color:var(--weak);padding:20px">暂无流水记录</td></tr>`]);
   const vTable=tbl(['账期','游戏','平台','发行商','广告金累计分成','广告金已消耗','最新计算时间'],
     rows.map(({r,pubV,vUsed})=>`<tr>
       <td style="color:var(--muted)">${r.period}</td>
@@ -1987,7 +1972,7 @@ function pgBalance(){
     const maxD=allDates[allDates.length-1]||'2026-12-31';
     const startD=window._balStart||'';
     const endD=window._balEnd||'';
-    // 该发行商所有流水（用于计算滚动余额）
+    // 该发行商所有流水（用于明细展示）
     const allPubEntries=selPubName?ledgerEntries.filter(e=>e.pub===selPubName):ledgerEntries;
     // 时间筛选后用于展示
     const pubEntries=allPubEntries.filter(e=>{
@@ -2031,7 +2016,6 @@ function pgBalance(){
     <div class="filter" style="margin-bottom:16px">
       <span style="color:var(--muted);font-size:12.5px">发行商账户</span>
       <select class="select" style="min-width:160px" onchange="window._balPubName=this.value;document.getElementById('contentEl').innerHTML=pgBalance()">${pubOpts||'<option>—</option>'}</select>
-      <button class="btn p sm" style="margin-left:auto" onclick="window._payPubId='${(visiblePubs.find(p=>p.name===selPubName)||{}).id||''}';openPayNewModal()">+ 发起提款</button>
     </div>
     <div class="g3" style="margin-bottom:16px">
       <div class="metric">
@@ -2110,9 +2094,9 @@ function openPayNewModal(){
       </div>
       <div style="margin-top:10px;display:flex;gap:16px">
         <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 14px;min-width:180px">
-          <div style="color:var(--muted);font-size:12px">当前账户余额</div>
+          <div style="color:var(--muted);font-size:12px">可提款金额</div>
           <div style="font-size:18px;font-weight:800;margin-top:5px;color:${availBal<0?'var(--red)':'var(--text)'}">${fmt(availBal)}</div>
-          <div style="color:var(--weak);font-size:11px;margin-top:3px">可提现金额（已扣除冻结）</div>
+          <div style="color:var(--weak);font-size:11px;margin-top:3px">已确认入账 − 已成功打款 − 冻结中</div>
         </div>
         <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 14px;min-width:140px">
           <div style="color:var(--muted);font-size:12px">打款中（冻结）</div>
@@ -2120,8 +2104,8 @@ function openPayNewModal(){
           <div style="color:var(--weak);font-size:11px;margin-top:3px">提款待执行</div>
         </div>
       </div>
-      ${pubUnconfirmedCnt>0?`<div style="margin-top:10px;font-size:12px;color:#a05000;background:#fff8f0;border:1px solid #ffe0b2;border-radius:var(--r2);padding:8px 10px">⚠ 该发行商还有 <b>${pubUnconfirmedCnt}</b> 条分账记录三方未确认，未出账部分不计入余额。</div>`:''}
-      ${pubBillPendingCnt>0?`<div style="margin-top:6px;font-size:12px;color:#1a4a80;background:#f0f7ff;border:1px solid #d0e8ff;border-radius:var(--r2);padding:8px 10px">📋 还有 <b>${pubBillPendingCnt}</b> 条已出账但<b>发行商对账单未确认</b>，未确认部分不计入余额（请在「发行商分账明细」中点击「确认对账单」）。</div>`:''}
+      ${pubUnconfirmedCnt>0?`<div style="margin-top:10px;font-size:12px;color:#a05000;background:#fff8f0;border:1px solid #ffe0b2;border-radius:var(--r2);padding:8px 10px">⚠ 该发行商还有 <b>${pubUnconfirmedCnt}</b> 条分账记录三方未确认，未出账部分不计入可提款金额。</div>`:''}
+      ${pubBillPendingCnt>0?`<div style="margin-top:6px;font-size:12px;color:#1a4a80;background:#f0f7ff;border:1px solid #d0e8ff;border-radius:var(--r2);padding:8px 10px">📋 还有 <b>${pubBillPendingCnt}</b> 条已出账但<b>发行商对账单未确认</b>，未确认部分不计入可提款金额（请在「发行商分账明细」中点击「确认对账单」）。</div>`:''}
     </div>
     <div class="fgrid">
       <div class="field"><label>打款金额 <span class="req">*</span></label><input class="input" type="number" style="width:100%" id="payAmt" placeholder="≤ ${fmt(availBal)}" oninput="validateAmt(${availBal})"/><div class="hint" id="payAmtHint">最大可打款金额：${fmt(availBal)}</div></div>
@@ -2131,7 +2115,7 @@ function openPayNewModal(){
   const foot=`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" ${availBal<=0?'disabled':''} onclick="submitPay()">提交申请</button>`;
   openModal('发起打款申请',body,foot);
 }
-function validateAmt(max){const v=parseFloat(document.getElementById('payAmt').value)||0;const h=document.getElementById('payAmtHint');if(v>max){h.style.color='var(--red)';h.textContent='⚠ 超过可结算余额 '+fmt(max);}else{h.style.color='var(--muted)';h.textContent='最大可打款金额：'+fmt(max)}}
+function validateAmt(max){const v=parseFloat(document.getElementById('payAmt').value)||0;const h=document.getElementById('payAmtHint');if(v>max){h.style.color='var(--red)';h.textContent='⚠ 超过可提款金额 '+fmt(max);}else{h.style.color='var(--muted)';h.textContent='最大可打款金额：'+fmt(max)}}
 function submitPay(){const v=parseFloat((document.getElementById('payAmt')||{}).value)||0;if(!v){alert('请填写打款金额');return}closeModal();alert(`原型展示：打款申请已提交 ¥${v.toLocaleString()}，\n系统将发起 BPM 审批流程（BPM-PAY-xxxx），\n审批通过后银企直联自动转账。`);go('payments')}
 
 /* PAGE: 打款申请单（财务/管理员/业务角色可见 — 真实状态 + 失败处理）
