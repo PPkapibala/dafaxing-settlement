@@ -999,10 +999,18 @@ function openRuleDetail(id){
       <div style="background:#e6f0ff;padding:10px 12px;font-size:11.5px;color:var(--muted);white-space:nowrap">仅查看，不折现</div>
     </div>
     <div style="display:flex;align-items:center;gap:0;border-radius:7px;overflow:hidden;border:1px solid #c6e6d6">
-      <div style="background:var(--green);color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">CP<br>可结算</div>
+      <div style="background:var(--green);color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">CP<br>可结算（现金）</div>
       <div style="background:#f0faf5;padding:10px 16px;font-size:13px;color:#0d4a2e;font-family:monospace;flex:1">
-        利润 ≥ 0 → max(0, 利润 ${r.cpServerCostShare?'− 服务器成本':''}) × <b style="color:var(--green)">${r.cpRate}%</b><br>
-        利润 &lt; 0 → <b style="color:var(--red)">CP 不分账</b>（亏损由发行商承担）
+        总利润 ≥ 0 → [ 现金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ${r.cpServerCostShare?'− 服务器成本':''} ] × <b style="color:var(--green)">${r.cpRate}%</b><br>
+        总利润 &lt; 0 → <b style="color:var(--red)">CP 不分账</b>（亏损由发行商承担）
+      </div>
+      <div style="background:#e6f7ee;padding:10px 12px;font-size:11.5px;color:var(--muted);white-space:nowrap">Phase 1 不可提款</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0;border-radius:7px;overflow:hidden;border:1px solid #c6e6d6">
+      <div style="background:#2c8454;color:#fff;font-size:12px;font-weight:700;padding:10px 14px;min-width:130px;text-align:center;flex-shrink:0">CP<br>可结算（广告金）</div>
+      <div style="background:#f0faf5;padding:10px 16px;font-size:13px;color:#0d4a2e;font-family:monospace;flex:1">
+        总利润 ≥ 0 → [ 广告金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ] × <b style="color:var(--green)">${r.cpRate}%</b><span style="color:var(--muted)">（不扣服务器成本）</span><br>
+        总利润 &lt; 0 → <b style="color:var(--red)">CP 不分账</b>
       </div>
       <div style="background:#e6f7ee;padding:10px 12px;font-size:11.5px;color:var(--muted);white-space:nowrap">Phase 1 不可提款</div>
     </div>
@@ -1866,35 +1874,38 @@ function pgSettleCp(){
   const totalCpCash=data.reduce((s,r)=>s+calcCpSettle(r).cpCash,0);
   const totalCpV=data.reduce((s,r)=>s+calcCpSettle(r).cpV,0);
   const totalServer=data.reduce((s,r)=>s+(r.serverCost||0),0);
-  const totalCpServer=data.reduce((s,r)=>s+(r.serverCost||0)*r.cpRate/100,0);
+  const totalCpServer=data.reduce((s,r)=>{const cs=calcCpSettle(r);return s+(cs.shareServer?cs.cashServer:0);},0);
   const rows=data.map(r=>{
     const cs=calcCpSettle(r);
-    const noShare=r.cashP<0;
-    return `<tr ${r.cashP<0?'style="background:#fff8f8"':''}>
+    const noShare=cs.noShare;
+    const lossTag='<span style="background:#ffe9e9;color:var(--red);border-radius:8px;padding:0 5px;font-size:10px;margin-left:3px;font-weight:700">总利润为负·不分账</span>';
+    return `<tr ${noShare?'style="background:#fff8f8"':''}>
       <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.cp}</td>
       <td>${mn(r.cashRev)}</td><td>${mn(r.vRev)}</td>
       <td>${mn(r.cost)}</td>
-      <td style="color:#7a52b3">${mn(r.serverCost||0)}</td>
+      <td style="color:#7a52b3">${cs.shareServer?mn(r.serverCost||0):'<span style="color:var(--weak)">—（规则未配置承担）</span>'}</td>
       <td>${mn(r.cashP)}</td><td>${mn(r.vP)}</td>
-      <td style="color:#7a52b3">${mn(cs.cpCashBase)} / ${mn(cs.cpVBase)}</td>
-      <td style="font-weight:700">${r.cpRate}%</td>
-      <td style="font-weight:700">${mn(cs.cpCash)}${noShare?'<span style="background:#ffe9e9;color:var(--red);border-radius:8px;padding:0 5px;font-size:10px;margin-left:3px;font-weight:700">亏损不分账</span>':''}</td>
-      <td>${mn(cs.cpV)}${r.vP<0?'<span style="background:#ffe9e9;color:var(--red);border-radius:8px;padding:0 5px;font-size:10px;margin-left:3px;font-weight:700">亏损不分账</span>':''}</td>
+      <td style="color:${cs.totalP<0?'var(--red)':'var(--text)'};font-weight:700">${mn(cs.totalP)}</td>
+      <td style="color:#7a52b3">${mn(cs.cashBase)} / ${mn(cs.vBase)}</td>
+      <td style="font-weight:700">${cs.pubRate}% / ${r.cpRate}%</td>
+      <td style="font-weight:700">${mn(cs.cpCash)}${noShare?lossTag:''}</td>
+      <td>${mn(cs.cpV)}${noShare?lossTag:''}</td>
     </tr>`;
   });
-  return `<div class="ph"><div><div class="pt">CP分账明细</div><div class="pd">CP 分账基数 = 利润 − 服务器成本（CP 按 CP 分成比例承担一份服务器成本）；当期利润为负则 CP 不参与分账。Phase 1 中 CP 不可主动提款，需由财务线下处理。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
+  return `<div class="ph"><div><div class="pt">CP分账明细</div><div class="pd">CP 分账基数 = 利润 × (1 − 发行商占比%) − CP承担服务器成本；当期总利润（现金+广告金）为负则 CP 不参与分账。Phase 1 中 CP 不可主动提款，需由财务线下处理。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
   <div class="filter"><select class="select"><option>账期：2026-04</option><option>2026-03</option></select></div>
   <div class="g3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px">
     <div class="metric"><div class="lb">CP现金利润合计</div><div class="v ${totalCpCash<0?'neg':''}">${fmt(totalCpCash)}</div></div>
     <div class="metric"><div class="lb">CP广告金利润</div><div class="v">${fmt(totalCpV)}</div></div>
-    <div class="metric"><div class="lb">CP承担服务器成本</div><div class="v" style="color:#7a52b3">${fmt(totalCpServer)}</div><div class="ft">总服务器成本 ${fmt(totalServer)} × CP占比</div></div>
+    <div class="metric"><div class="lb">CP承担服务器成本（现金侧）</div><div class="v" style="color:#7a52b3">${fmt(totalCpServer)}</div><div class="ft">仅规则开启「CP 承担」时计入</div></div>
   </div>
   <div class="notice" style="border-color:#cfe0f5;background:#fafdff;color:#1a4a80">💡 <b>CP 分账规则：</b>
-    <span style="display:inline-block;margin:0 6px"><b>① 服务器成本承担</b>：是否承担由「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置</button>」中每条规则的「CP 承担服务器成本」开关决定；服务器成本按现金/广告金收入比例分摊</span><br/>
-    <span style="display:inline-block;margin:0 6px"><b>② 公式</b>：CP 分账 = max(0, 利润 − CP承担服务器成本) × CP分成%</span><br/>
-    <span style="display:inline-block;margin:0 6px"><b>③ 利润 &lt; 0</b>：CP 不参与分账（标注「亏损不分账」），亏损由发行商承担</span>
+    <span style="display:inline-block;margin:0 6px"><b>① 现金</b>：CP 现金分账 = [ 现金利润 × (1 − 发行商占比%) − 服务器成本 ] × CP占比%</span><br/>
+    <span style="display:inline-block;margin:0 6px"><b>② 广告金</b>：CP 广告金分账 = [ 广告金利润 × (1 − 发行商占比%) ] × CP占比%<span style="color:var(--muted)">（不扣服务器成本）</span></span><br/>
+    <span style="display:inline-block;margin:0 6px"><b>③ 总利润 &lt; 0</b>：CP 现金/广告金均为 0（「总利润为负·不分账」标记），亏损由发行商承担</span><br/>
+    <span style="display:inline-block;margin:0 6px;color:var(--muted)">服务器成本是否扣减由「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置</button>」中每条规则的「CP 承担服务器成本」开关决定</span>
   </div>
-  ${tbl(['账期','游戏','平台','CP','现金收入','广告金收入','总消耗','服务器成本','现金利润','广告金利润','CP分账基数(现/广)','CP分成%','CP现金分账','CP广告金分账'],rows)}`;
+  ${tbl(['账期','游戏','平台','CP','现金收入','广告金收入','总消耗','服务器成本','现金利润','广告金利润','总利润','CP分账基数(现/广)','发行/CP 占比','CP现金分账','CP广告金分账'],rows)}`;
 }
 
 /* PAGE: 账户打款流水 */
@@ -1946,7 +1957,6 @@ function pgBalance(){
     let type,dir,style='',remark='';
     if(p.exec==='打款成功'){type='打款成功';dir=-1;style='color:var(--red)';remark=`申请单号 ${p.id}`;}
     else if(p.exec==='打款中'){type='打款申请（冻结）';dir=-1;style='color:var(--orange)';remark=`申请单号 ${p.id}`;}
-    else if(p.exec==='打款失败'){type='打款失败退回';dir=+1;style='color:var(--green)';remark=`申请单号 ${p.id}，原因：${p.reason}`;}
     else return;
     ledgerEntries.push({date:p.time,pub:p.pub,type,amount:p.amount,dir,remark,sortKey:p.time,style});
   });
@@ -2041,7 +2051,7 @@ function pgBalance(){
       </div>
     </div>
     ${pubUnconfirmed>0?`<div class="notice" style="border-color:#ffe0b2;background:#fff8f0;color:#a05000">⚠ 该发行商还有 <b>${pubUnconfirmed}</b> 条分账记录尚未确认，确认后方可入账。请前往「<button class="link" style="color:var(--orange);font-size:12.5px" onclick="go('settlePub')">发行商分账明细</button>」完成确认。</div>`:''}
-    <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>账单说明：</b>每条记录为一笔账户打款流水。结算确认后产生入账（绿色 +），打款申请（橙色 −），打款成功（黑色 −），打款失败退回（绿色 +）。列表按时间倒序展示。</div>
+    <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>账单说明：</b>仅展示该发行商的<b>结算入账</b>（绿色 +）、<b>打款申请（冻结中）</b>（橙色 −）和<b>打款成功</b>（黑色 −）三类记录。列表按时间倒序展示。</div>
     <div style="display:flex;align-items:center;gap:10px;margin:18px 0 10px">
       <div style="font-size:14px;font-weight:700">流水明细</div>
       <span style="color:var(--muted);font-size:12.5px;margin-left:12px">时间范围</span>
