@@ -150,18 +150,18 @@
 /* ──────────── CONFIG ──────────── */
 const ROLES=['系统管理员','业务负责人','业务运营','财务人员','财务负责人/审批人','发行商','CP'];
 const ROLE_PAGES={
-  '系统管理员':['games','publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','settlePub','settleCp','balance','payments','myPayments','sync','permConfig','userMgmt'],
-  '业务负责人':['games','publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','settlePub','settleCp','balance','payments','sync'],
-  '业务运营':['games','pubMapping','cpMapping','vRev','settlePub','settleCp','balance','sync'],
-  '财务人员':['publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','settlePub','settleCp','balance','payments','sync'],
-  '财务负责人/审批人':['pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','settlePub','settleCp','balance','payments','sync'],
-  '发行商':['pubMapping','cpMapping','costDashboard','settlePub','balance','myPayments'],
+  '系统管理员':['games','publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','dailyRecon','settlePub','settleCp','balance','payments','myPayments','sync','permConfig','userMgmt'],
+  '业务负责人':['games','publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','dailyRecon','settlePub','settleCp','balance','payments','sync'],
+  '业务运营':['games','pubMapping','cpMapping','vRev','dailyRecon','settlePub','settleCp','balance','sync'],
+  '财务人员':['publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','dailyRecon','settlePub','settleCp','balance','payments','sync'],
+  '财务负责人/审批人':['pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','dailyRecon','settlePub','settleCp','balance','payments','sync'],
+  '发行商':['pubMapping','cpMapping','costDashboard','dailyRecon','settlePub','balance','myPayments'],
   'CP':['cpMapping','settleCp']
 };
 const NAV=[
   {title:'主数据',items:[['games','▦','游戏管理'],['publishers','◉','发行商主体'],['cps','◎','CP主体']]},
   {title:'合作关系',items:[['pubMapping','⇌','游戏-发行商关系'],['cpMapping','◈','游戏-CP关系']]},
-  {title:'大盘数据',items:[['cashRev','▤','现金收入看板'],['vRev','▤','广告金收入看板'],['costDashboard','▥','成本看板']]},
+  {title:'大盘数据',items:[['cashRev','▤','现金收入看板'],['vRev','▤','广告金收入看板'],['costDashboard','▥','成本看板'],['dailyRecon','📅','收入成本对账看板']]},
   {title:'结算配置',items:[['rules','⊛','分成规则配置'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细'],['balance','▣','账户余额池']]},
   {title:'打款闭环',items:[['payments','☑','打款申请单'],['myPayments','💰','我的打款记录']]},
   {title:'系统运维',items:[['sync','↻','数据同步状态'],['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
@@ -449,8 +449,8 @@ function visibleEntities(){
 }
 
 function renderPage(){
-  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,sync:pgSync,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'现金收入看板',vRev:'广告金收入看板',costDashboard:'成本看板',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',payments:'打款申请单',myPayments:'我的打款记录',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
+  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,sync:pgSync,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
+  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'现金收入看板',vRev:'广告金收入看板',costDashboard:'成本看板',dailyRecon:'收入成本对账看板',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',payments:'打款申请单',myPayments:'我的打款记录',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -1483,6 +1483,89 @@ function openCostDailyDetail(game,platform,period){
     <div style="margin-top:10px;font-size:12px;color:var(--weak)">* 每日数据为按月度总量模拟拆分，仅供原型演示；实际数据由平台每日同步。</div>`)
 }
 
+/* PAGE: 收入成本对账看板（每日 T+1 数据，发行商/业务运营对账用）
+ * 数据来源：基于 settle 月度数据按日均拆分（mock）
+ * 状态语义：
+ *   - 已确认：距今 ≥ 5 天，月底统一确认锁定，作为结算依据
+ *   - 预估：T+1 已同步但仍可能因平台后台延迟回吐而变动，不作为结算依据
+ * 信息隔离：发行商角色只看本主体的数据；CP 不可见此页面
+ */
+function pgDailyRecon(){
+  const ent=parsedEntity();
+  const TODAY='2026-05-15', CUT_MONTH='2026-05', CUT_DAY=12;
+  const CONFIRM_LAG=5;
+
+  if(!window._drStatus)window._drStatus='all';
+  if(!window._drStart)window._drStart=`${CUT_MONTH}-01`;
+  if(!window._drEnd)window._drEnd=`${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}`;
+
+  let baseData=settle.filter(r=>r.period==='2026-04');
+  if(FILTER_GAME!=='all')baseData=baseData.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
+  if(ent.type==='pub')baseData=baseData.filter(r=>r.pub===ent.name);
+  if(ent.type==='cp')baseData=[];
+
+  const weights=Array.from({length:CUT_DAY},(_,i)=>0.55+0.45*Math.sin(i/3.5));
+  const wSum=weights.reduce((a,b)=>a+b,0);
+  const allRows=[];
+  baseData.forEach(r=>{
+    weights.forEach((w,i)=>{
+      const dayNum=i+1;
+      const d=String(dayNum).padStart(2,'0');
+      const date=`${CUT_MONTH}-${d}`;
+      const scale=0.8/30;
+      const cashRev=Math.round(r.cashRev*scale*w/wSum*CUT_DAY);
+      const vRev=Math.round(r.vRev*scale*w/wSum*CUT_DAY);
+      const cost=Math.round(r.cost*scale*w/wSum*CUT_DAY);
+      const todayDay=parseInt(TODAY.split('-')[2],10);
+      const status=(todayDay-dayNum)>=CONFIRM_LAG?'confirmed':'estimated';
+      allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,profit:cashRev+vRev-cost,status});
+    });
+  });
+
+  let rows=allRows.filter(r=>r.date>=window._drStart&&r.date<=window._drEnd);
+  if(window._drStatus!=='all')rows=rows.filter(r=>r.status===window._drStatus);
+  rows.sort((a,b)=>a.date===b.date?(a.game+a.platform).localeCompare(b.game+b.platform):b.date.localeCompare(a.date));
+
+  const sum=rows.reduce((s,r)=>{s.cashRev+=r.cashRev;s.vRev+=r.vRev;s.cost+=r.cost;s.profit+=r.profit;return s},{cashRev:0,vRev:0,cost:0,profit:0});
+  const confirmedCnt=allRows.filter(r=>r.status==='confirmed'&&r.date>=window._drStart&&r.date<=window._drEnd).length;
+  const estimatedCnt=allRows.filter(r=>r.status==='estimated'&&r.date>=window._drStart&&r.date<=window._drEnd).length;
+
+  const tag=(s)=>s==='confirmed'
+    ?'<span class="tag" style="background:#e8f7ee;color:var(--green);font-size:11px">✓ 已确认</span>'
+    :'<span class="tag" style="background:#fff3e0;color:var(--orange);font-size:11px">⏳ 预估</span>';
+
+  const tableRows=rows.map(r=>`<tr style="${r.status==='estimated'?'background:#fffbf5':''}"><td style="font-family:monospace">${r.date}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td style="font-weight:700">${fmt(r.cashRev)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="color:var(--purple);font-weight:700">${fmt(r.vRev)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="color:var(--red);font-weight:700">${fmt(r.cost)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="font-weight:700;color:${r.profit>=0?'var(--green)':'var(--red)'}">${fmt(r.profit)}</td><td>${tag(r.status)}</td></tr>`);
+  const sumRow=`<tr style="background:#f5f7fa;font-weight:800"><td colspan="4">合计（${rows.length} 行）</td><td>${fmt(sum.cashRev)}</td><td style="color:var(--purple)">${fmt(sum.vRev)}</td><td style="color:var(--red)">${fmt(sum.cost)}</td><td style="color:${sum.profit>=0?'var(--green)':'var(--red)'}">${fmt(sum.profit)}</td><td>—</td></tr>`;
+
+  const dateOpts=(selected)=>Array.from({length:CUT_DAY},(_,i)=>{const d=String(i+1).padStart(2,'0');const v=`${CUT_MONTH}-${d}`;return `<option value="${v}" ${v===selected?'selected':''}>${v}</option>`}).join('');
+
+  return `<div class="ph"><div><div class="pt">收入成本对账看板</div><div class="pd">每日 T+1 同步收入与投放成本数据，方便发行商和业务运营每日对账。距今 ≥ ${CONFIRM_LAG} 天的数据已锁定为「已确认」，近 ${CONFIRM_LAG} 天数据为「预估」，可能因平台后台延迟回吐而变动。</div></div><div class="acts"><button class="btn g" onclick="alert('导出当前对账数据')">↓ 导出</button></div></div>
+  <div class="notice" style="border-color:#ffd9b3;background:#fff7ec;color:#8a4b00">⚠ <b>预估数据说明：</b>近 ${CONFIRM_LAG} 天为 T+1 同步的预估数据（表中以 <span style="color:var(--orange)">*</span> 标记），受平台延迟回吐影响可能存在变动；月度结算后以「发行商分账明细」中的最终数据为准。如发现数据与投放后台差异较大，请联系业务运营线下反馈核查。</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0">
+    <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">现金收入合计</div><div style="font-size:20px;font-weight:800;margin-top:4px">${fmt(sum.cashRev)}</div></div>
+    <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">广告金收入合计</div><div style="font-size:20px;font-weight:800;margin-top:4px;color:var(--purple)">${fmt(sum.vRev)}</div></div>
+    <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">投放成本合计</div><div style="font-size:20px;font-weight:800;margin-top:4px;color:var(--red)">${fmt(sum.cost)}</div></div>
+    <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">毛利</div><div style="font-size:20px;font-weight:800;margin-top:4px;color:${sum.profit>=0?'var(--green)':'var(--red)'}">${fmt(sum.profit)}</div></div>
+  </div>
+  <div class="filter" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <span style="font-size:12px;color:var(--muted)">日期：</span>
+    <select class="select" onchange="window._drStart=this.value;document.getElementById('contentEl').innerHTML=pgDailyRecon()">${dateOpts(window._drStart)}</select>
+    <span style="color:var(--muted)">→</span>
+    <select class="select" onchange="window._drEnd=this.value;document.getElementById('contentEl').innerHTML=pgDailyRecon()">${dateOpts(window._drEnd)}</select>
+    <span style="font-size:12px;color:var(--muted);margin-left:12px">状态：</span>
+    <select class="select" onchange="window._drStatus=this.value;document.getElementById('contentEl').innerHTML=pgDailyRecon()">
+      <option value="all" ${window._drStatus==='all'?'selected':''}>全部（已确认 ${confirmedCnt} · 预估 ${estimatedCnt}）</option>
+      <option value="confirmed" ${window._drStatus==='confirmed'?'selected':''}>仅已确认</option>
+      <option value="estimated" ${window._drStatus==='estimated'?'selected':''}>仅预估</option>
+    </select>
+    <button class="btn g sm" onclick="window._drStart='${CUT_MONTH}-01';window._drEnd='${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}';window._drStatus='all';document.getElementById('contentEl').innerHTML=pgDailyRecon()">重置</button>
+  </div>
+  <div style="max-height:520px;overflow:auto;margin-top:10px">
+    ${tbl(['日期','游戏','平台','发行商','现金收入','广告金收入','投放成本','毛利','状态'],tableRows.concat([sumRow]))}
+  </div>
+  <div style="margin-top:10px;font-size:12px;color:var(--weak)">* 数据基于 T+1 同步，今日数据预计 ${TODAY} 06:00 前到位；最终结果以「发行商分账明细」结算后数据为准。</div>`;
+}
+
 /* PAGE: 发行商分账明细 */
 function pgSettlePub(){
   const spTab=window._spTab||'closed';  // 'closed' | 'open'
@@ -2160,7 +2243,7 @@ function pgSync(){
 const PERM_MODULES=[
   {group:'主数据',items:[{key:'games',label:'游戏管理'},{key:'publishers',label:'发行商主体'},{key:'cps',label:'CP主体'}]},
   {group:'合作关系',items:[{key:'pubMapping',label:'游戏-发行商关系'},{key:'cpMapping',label:'游戏-CP关系'}]},
-  {group:'大盘数据',items:[{key:'cashRev',label:'现金收入看板'},{key:'vRev',label:'广告金收入看板'},{key:'costDashboard',label:'成本看板'}]},
+  {group:'大盘数据',items:[{key:'cashRev',label:'现金收入看板'},{key:'vRev',label:'广告金收入看板'},{key:'costDashboard',label:'成本看板'},{key:'dailyRecon',label:'收入成本对账看板'}]},
   {group:'结算配置',items:[{key:'rules',label:'分成规则配置'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'账户余额池'}]},
   {group:'打款闭环',items:[{key:'payments',label:'打款申请单（财务）'},{key:'myPayments',label:'我的打款记录（发行商）'}]},
   {group:'系统运维',items:[{key:'sync',label:'数据同步状态'}]}
@@ -2169,13 +2252,13 @@ const OPS=['查看','新增/编辑','删除','审批/确认','导出'];
 const OP_KEYS=['view','edit','delete','approve','export'];
 // 初始操作权限配置（只对有页面访问权限的角色有意义）
 const PERM_OPS={
-  '系统管理员':{games:{view:1,edit:1,delete:1,approve:0,export:1},publishers:{view:1,edit:1,delete:1,approve:0,export:1},cps:{view:1,edit:1,delete:1,approve:0,export:1},pubMapping:{view:1,edit:1,delete:1,approve:0,export:1},cpMapping:{view:1,edit:1,delete:1,approve:0,export:1},rules:{view:1,edit:1,delete:1,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:1,edit:1,delete:1,approve:1,export:0},payments:{view:1,edit:1,delete:0,approve:1,export:1},myPayments:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:1,edit:1,delete:0,approve:0,export:0}},
-  '业务负责人':{games:{view:1,edit:1,delete:0,approve:0,export:1},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},rules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:0,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
-  '业务运营':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
-  '财务人员':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},rules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:1,delete:0,approve:0,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
-  '财务负责人/审批人':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},rules:{view:1,edit:0,delete:0,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:1,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
-  '发行商':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:0,edit:0,delete:0,approve:0,export:0},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:1,edit:1,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:0,edit:0,delete:0,approve:0,export:0}},
-  'CP':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:0,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:0,edit:0,delete:0,approve:0,export:0},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:0,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:0,edit:0,delete:0,approve:0,export:0}}
+  '系统管理员':{games:{view:1,edit:1,delete:1,approve:0,export:1},publishers:{view:1,edit:1,delete:1,approve:0,export:1},cps:{view:1,edit:1,delete:1,approve:0,export:1},pubMapping:{view:1,edit:1,delete:1,approve:0,export:1},cpMapping:{view:1,edit:1,delete:1,approve:0,export:1},rules:{view:1,edit:1,delete:1,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:1,edit:1,delete:1,approve:1,export:0},payments:{view:1,edit:1,delete:0,approve:1,export:1},myPayments:{view:1,edit:0,delete:0,approve:0,export:1},dailyRecon:{view:1,edit:1,delete:0,approve:0,export:1},sync:{view:1,edit:1,delete:0,approve:0,export:0}},
+  '业务负责人':{games:{view:1,edit:1,delete:0,approve:0,export:1},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},rules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:0,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
+  '业务运营':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
+  '财务人员':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},rules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:1,delete:0,approve:0,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
+  '财务负责人/审批人':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},rules:{view:1,edit:0,delete:0,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:1,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:1,edit:0,delete:0,approve:0,export:0}},
+  '发行商':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:0,edit:0,delete:0,approve:0,export:0},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:1,edit:1,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:1,edit:0,delete:0,approve:0,export:1},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1},sync:{view:0,edit:0,delete:0,approve:0,export:0}},
+  'CP':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:0,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:0,edit:0,delete:0,approve:0,export:0},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:0,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:0,edit:0,delete:0,approve:0,export:0},sync:{view:0,edit:0,delete:0,approve:0,export:0}}
 };
 let _permEditRole=null;
 function pgPermConfig(){
