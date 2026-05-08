@@ -1498,6 +1498,7 @@ function pgDailyRecon(){
   if(!window._drStatus)window._drStatus='all';
   if(!window._drStart)window._drStart=`${CUT_MONTH}-01`;
   if(!window._drEnd)window._drEnd=`${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}`;
+  if(!window._drPlat)window._drPlat='all';
 
   let baseData=settle.filter(r=>r.period==='2026-04');
   if(FILTER_GAME!=='all')baseData=baseData.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
@@ -1523,6 +1524,7 @@ function pgDailyRecon(){
   });
 
   let rows=allRows.filter(r=>r.date>=window._drStart&&r.date<=window._drEnd);
+  if(window._drPlat!=='all')rows=rows.filter(r=>r.platform===window._drPlat);
   if(window._drStatus!=='all')rows=rows.filter(r=>r.status===window._drStatus);
   rows.sort((a,b)=>a.date===b.date?(a.game+a.platform).localeCompare(b.game+b.platform):b.date.localeCompare(a.date));
 
@@ -1552,13 +1554,18 @@ function pgDailyRecon(){
     <select class="select" onchange="window._drStart=this.value;document.getElementById('contentEl').innerHTML=pgDailyRecon()">${dateOpts(window._drStart)}</select>
     <span style="color:var(--muted)">→</span>
     <select class="select" onchange="window._drEnd=this.value;document.getElementById('contentEl').innerHTML=pgDailyRecon()">${dateOpts(window._drEnd)}</select>
+    <span style="font-size:12px;color:var(--muted);margin-left:12px">平台：</span>
+    <select class="select" onchange="window._drPlat=this.value;document.getElementById('contentEl').innerHTML=pgDailyRecon()">
+      <option value="all" ${window._drPlat==='all'?'selected':''}>全部平台</option>
+      ${[...new Set(allRows.map(r=>r.platform))].map(p=>`<option value="${p}" ${window._drPlat===p?'selected':''}>${p}</option>`).join('')}
+    </select>
     <span style="font-size:12px;color:var(--muted);margin-left:12px">状态：</span>
     <select class="select" onchange="window._drStatus=this.value;document.getElementById('contentEl').innerHTML=pgDailyRecon()">
       <option value="all" ${window._drStatus==='all'?'selected':''}>全部（已确认 ${confirmedCnt} · 预估 ${estimatedCnt}）</option>
       <option value="confirmed" ${window._drStatus==='confirmed'?'selected':''}>仅已确认</option>
       <option value="estimated" ${window._drStatus==='estimated'?'selected':''}>仅预估</option>
     </select>
-    <button class="btn g sm" onclick="window._drStart='${CUT_MONTH}-01';window._drEnd='${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}';window._drStatus='all';document.getElementById('contentEl').innerHTML=pgDailyRecon()">重置</button>
+    <button class="btn g sm" onclick="window._drStart='${CUT_MONTH}-01';window._drEnd='${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}';window._drStatus='all';window._drPlat='all';document.getElementById('contentEl').innerHTML=pgDailyRecon()">重置</button>
   </div>
   <div style="max-height:520px;overflow:auto;margin-top:10px">
     ${tbl(['日期','游戏','平台','发行商','现金收入','广告金收入','投放成本','毛利','状态'],tableRows.concat([sumRow]))}
