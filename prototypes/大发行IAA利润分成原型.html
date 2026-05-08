@@ -161,7 +161,7 @@ const ROLE_PAGES={
 const NAV=[
   {title:'主数据',items:[['games','▦','游戏管理'],['publishers','◉','发行商主体'],['cps','◎','CP主体']]},
   {title:'合作关系',items:[['pubMapping','⇌','游戏-发行商关系'],['cpMapping','◈','游戏-CP关系']]},
-  {title:'大盘数据',items:[['cashRev','▤','现金收入看板'],['vRev','▤','广告金收入看板'],['costDashboard','▥','成本看板'],['dailyRecon','📅','收入成本对账看板']]},
+  {title:'数据看板',items:[['cashRev','▤','账期现金收入'],['vRev','▤','账期广告金收入'],['costDashboard','▥','账期投放成本'],['dailyRecon','📅','每日收支对账']]},
   {title:'结算配置',items:[['rules','⊛','分成规则配置'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细'],['balance','▣','账户余额池']]},
   {title:'打款闭环',items:[['payments','☑','打款申请单'],['myPayments','💰','我的打款记录']]},
   {title:'系统运维',items:[['sync','↻','数据同步状态'],['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
@@ -450,7 +450,7 @@ function visibleEntities(){
 
 function renderPage(){
   const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,sync:pgSync,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'现金收入看板',vRev:'广告金收入看板',costDashboard:'成本看板',dailyRecon:'收入成本对账看板',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',payments:'打款申请单',myPayments:'我的打款记录',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
+  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'账期现金收入',vRev:'账期广告金收入',costDashboard:'账期投放成本',dailyRecon:'每日收支对账',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户余额池',payments:'打款申请单',myPayments:'我的打款记录',sync:'数据同步状态',permConfig:'权限配置',userMgmt:'用户管理'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -1213,7 +1213,7 @@ function _revFilterPanel(prefix,ctx,refreshFn){
   </div>`;
 }
 
-/* PAGE: 现金收入看板（财务确认） */
+/* PAGE: 账期现金收入（财务确认） */
 function pgCashRevDashboard(){
   syncRevConfirmed();
   const ctx=_revBaseFilter('crd');
@@ -1239,7 +1239,7 @@ function pgCashRevDashboard(){
     </tr>`;
   });
   return `<div class="ph">
-    <div><div class="pt">现金收入看板</div><div class="pd">展示各游戏现金收入。<b style="color:var(--primary)">由财务对账后确认</b>；确认后该账期的现金收入数据流转至「发行商分账明细」。</div></div>
+    <div><div class="pt">账期现金收入</div><div class="pd">展示各游戏现金收入。<b style="color:var(--primary)">由财务对账后确认</b>；确认后该账期的现金收入数据流转至「发行商分账明细」。</div></div>
     <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
   </div>
   <div class="g3" style="margin-bottom:20px">
@@ -1272,7 +1272,7 @@ function confirmCashRev(key){
   document.getElementById('contentEl').innerHTML=pgCashRevDashboard();
 }
 
-/* PAGE: 广告金收入看板（业务运营确认） */
+/* PAGE: 账期广告金收入（业务运营确认） */
 function pgVRevDashboard(){
   syncRevConfirmed();
   const ctx=_revBaseFilter('vrd');
@@ -1298,7 +1298,7 @@ function pgVRevDashboard(){
     </tr>`;
   });
   return `<div class="ph">
-    <div><div class="pt">广告金收入看板</div><div class="pd">展示各游戏广告金收入（虚拟币/激励视频奖励等）。<b style="color:var(--purple)">由业务运营对账后确认</b>；确认后该账期的广告金收入数据流转至「发行商分账明细」。</div></div>
+    <div><div class="pt">账期广告金收入</div><div class="pd">展示各游戏广告金收入（虚拟币/激励视频奖励等）。<b style="color:var(--purple)">由业务运营对账后确认</b>；确认后该账期的广告金收入数据流转至「发行商分账明细」。</div></div>
     <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
   </div>
   <div class="g3" style="margin-bottom:20px">
@@ -1376,7 +1376,7 @@ function openRevDailyDetail(game,platform,period){
     <div style="margin-top:10px;font-size:12px;color:var(--weak)">* 每日数据为按月度总量模拟拆分，仅供原型演示；实际数据由平台每日同步。</div>`)
 }
 
-/* PAGE: 成本看板 */
+/* PAGE: 账期投放成本 */
 function pgCostDashboard(){
   const startF=window._cdStart||'2026-01';
   const endF=window._cdEnd||'2026-04';
@@ -1429,7 +1429,7 @@ function pgCostDashboard(){
     </tr>`;
   });
   return `<div class="ph">
-    <div><div class="pt">成本看板</div><div class="pd">展示各游戏现金成本与广告金成本，供发行商对账使用。${SESSION?.role==='发行商'?`<span style="color:var(--orange);font-weight:650">仅可查看本主体下的游戏数据</span>`:''}</div></div>
+    <div><div class="pt">账期投放成本</div><div class="pd">展示各游戏现金成本与广告金成本，供发行商对账使用。${SESSION?.role==='发行商'?`<span style="color:var(--orange);font-weight:650">仅可查看本主体下的游戏数据</span>`:''}</div></div>
     <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
   </div>
   <div class="g3" style="margin-bottom:20px">
@@ -1559,7 +1559,7 @@ function openCostDailyDetail(game,platform,period){
     <div style="margin-top:10px;font-size:12px;color:var(--weak)">* 每日数据为按月度总量模拟拆分，仅供原型演示；实际数据由平台每日同步。</div>`)
 }
 
-/* PAGE: 收入成本对账看板（每日 T+1 数据，发行商/业务运营对账用）
+/* PAGE: 每日收支对账（每日 T+1 数据，发行商/业务运营对账用）
  * 数据来源：基于 settle 月度数据按日均拆分（mock）
  * 状态语义：
  *   - 已确认：历史账期已结算并确认无异议，数据锁定，作为结算依据
@@ -1641,7 +1641,7 @@ function pgDailyRecon(){
   for(let i=1;i<=CUT_DAY;i++)dateList.push(`${CUT_MONTH}-${String(i).padStart(2,'0')}`);
   const dateOpts=(selected)=>dateList.map(v=>`<option value="${v}" ${v===selected?'selected':''}>${v}</option>`).join('');
 
-  return `<div class="ph"><div><div class="pt">收入成本对账看板</div><div class="pd">每日 T+1 同步收入与投放成本数据，方便发行商和业务运营每日对账。历史账期已确认无异议的数据已锁定为「已确认」，未出账期的数据为「预估」，可能因平台后台延迟回吐而变动。</div></div><div class="acts"><button class="btn g" onclick="alert('导出当前对账数据')">↓ 导出</button></div></div>
+  return `<div class="ph"><div><div class="pt">每日收支对账</div><div class="pd">每日 T+1 同步收入与投放成本数据，方便发行商和业务运营每日对账。历史账期已确认无异议的数据已锁定为「已确认」，未出账期的数据为「预估」，可能因平台后台延迟回吐而变动。</div></div><div class="acts"><button class="btn g" onclick="alert('导出当前对账数据')">↓ 导出</button></div></div>
   <div class="notice" style="border-color:#ffd9b3;background:#fff7ec;color:#8a4b00">⚠ <b>预估数据说明：</b>当前账期（${CUT_MONTH}）尚未出账，T+1 同步的日级数据为预估值（表中以 <span style="color:var(--orange)">*</span> 标记），受平台延迟回吐影响可能存在变动；月度结算后以「发行商分账明细」中的最终数据为准。如发现数据与投放后台差异较大，请联系业务运营线下反馈核查。</div>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0">
     <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">现金收入合计</div><div style="font-size:20px;font-weight:800;margin-top:4px">${fmt(sum.cashRev)}</div></div>
@@ -2376,7 +2376,7 @@ function pgSync(){
 const PERM_MODULES=[
   {group:'主数据',items:[{key:'games',label:'游戏管理'},{key:'publishers',label:'发行商主体'},{key:'cps',label:'CP主体'}]},
   {group:'合作关系',items:[{key:'pubMapping',label:'游戏-发行商关系'},{key:'cpMapping',label:'游戏-CP关系'}]},
-  {group:'大盘数据',items:[{key:'cashRev',label:'现金收入看板'},{key:'vRev',label:'广告金收入看板'},{key:'costDashboard',label:'成本看板'},{key:'dailyRecon',label:'收入成本对账看板'}]},
+  {group:'数据看板',items:[{key:'cashRev',label:'账期现金收入'},{key:'vRev',label:'账期广告金收入'},{key:'costDashboard',label:'账期投放成本'},{key:'dailyRecon',label:'每日收支对账'}]},
   {group:'结算配置',items:[{key:'rules',label:'分成规则配置'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'账户余额池'}]},
   {group:'打款闭环',items:[{key:'payments',label:'打款申请单（财务）'},{key:'myPayments',label:'我的打款记录（发行商）'}]},
   {group:'系统运维',items:[{key:'sync',label:'数据同步状态'}]}
