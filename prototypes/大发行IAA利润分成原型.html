@@ -266,6 +266,17 @@ function ts(s){const m={'生效中':'green','审批中':'orange','已到期':'gr
 function tbl(ths,rows){return `<div class="card"><div class="tw"><table class="table"><thead><tr>${ths.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`}
 function openModal(title,body,foot){document.getElementById('mTitle').innerHTML=title;document.getElementById('mBody').innerHTML=body;document.getElementById('mFoot').innerHTML=foot||'<button class="btn g" onclick="closeModal()">关闭</button>';document.getElementById('mask').classList.add('open')}
 function closeModal(){document.getElementById('mask').classList.remove('open')}
+// 二次确认弹窗：title 标题，msg 正文，onYes 确定回调，yesLabel/yesStyle 自定按钮
+window._confirmCb=null;
+function _confirmYes(){const cb=window._confirmCb;window._confirmCb=null;closeModal();if(cb)cb();}
+function confirmDialog(title,msg,onYes,yesLabel,yesStyle){
+  window._confirmCb=onYes;
+  openModal(title,
+    `<div style="padding:6px 2px;font-size:13.5px;color:var(--text);line-height:1.7">${msg}</div>
+     <div style="margin-top:10px;font-size:12px;color:var(--muted);background:#fff8f0;border:1px solid #ffe0b2;border-radius:6px;padding:8px 12px">⚠ 操作不可撤销，请确认无误后再执行。</div>`,
+    `<button class="btn g" onclick="window._confirmCb=null;closeModal()">取消</button>
+     <button class="btn ${yesStyle||'p'}" onclick="_confirmYes()">${yesLabel||'确认'}</button>`);
+}
 const canEdit=()=>['系统管理员','业务负责人','业务运营'].includes(ROLE);
 const canFin=()=>['财务人员','财务负责人/审批人'].includes(ROLE);
 const isPublisher=()=>ROLE==='发行商';
@@ -1155,10 +1166,99 @@ function isBillConfirmed(period,game,platform){
   return (window._billConfirmed||new Set()).has(k);
 }
 function confirmBill(key){
-  if(!window._billConfirmed)window._billConfirmed=new Set();
-  window._billConfirmed.add(key);
-  alert('对账单已确认，可发起打款。');
-  document.getElementById('contentEl').innerHTML=pgSettlePub();
+  const [p,g,pl]=key.split('__');
+  confirmDialog('确认对账单',
+    `确认《${g}》· ${pl} 账期 <b>${p}</b> 的<b style="color:#1a4a80">分账对账单</b>无异议？<br/>确认后该笔金额将进入账户余额池，可发起打款申请。`,
+    function(){
+      if(!window._billConfirmed)window._billConfirmed=new Set();
+      window._billConfirmed.add(key);
+      document.getElementById('contentEl').innerHTML=pgSettlePub();
+      openBillStatement(key);
+    },'确认无异议');
+}
+const SETTLEMENT_PREPARER='大发行结算平台';
+function buildBillStatementHtml(key,opts){
+  opts=opts||{};
+  const [period,game,platform]=key.split('__');
+  const r=settle.find(x=>x.period===period&&x.game===game&&x.platform===platform);
+  if(!r)return '';
+  const ps=calcPubSettle(r);
+  const pub=publishers.find(p=>p.name===r.pub);
+  const pubLegal=pub&&pub.accName?pub.accName:r.pub;
+  const today=new Date().toISOString().slice(0,10);
+  const tierTag=ps.tierApplied?'（阶梯Ⅱ）':(ps.rule&&ps.rule.tierEnabled?'（阶梯Ⅰ）':'');
+  const styles=`
+    <style>
+      .bs{font-family:"Microsoft YaHei",-apple-system,sans-serif;color:#222;max-width:760px;margin:0 auto;padding:24px;background:#fff}
+      .bs h1{text-align:center;font-size:22px;margin:0 0 6px;letter-spacing:4px}
+      .bs .bs-sub{text-align:center;color:#666;font-size:13px;margin-bottom:18px}
+      .bs .bs-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;font-size:13px;border:1px solid #d8d8d8;padding:10px 14px;border-radius:4px;margin-bottom:14px;background:#fafafa}
+      .bs .bs-meta .k{color:#666;display:inline-block;min-width:78px}
+      .bs table{width:100%;border-collapse:collapse;font-size:13px}
+      .bs th,.bs td{border:1px solid #c8c8c8;padding:6px 10px;text-align:right}
+      .bs th{background:#f0f4fa;font-weight:700;text-align:center}
+      .bs td:first-child,.bs th:first-child{text-align:left}
+      .bs .bs-total td{background:#fff8e6;font-weight:800}
+      .bs .bs-foot{margin-top:18px;font-size:13px;line-height:1.8;border-top:1px dashed #c8c8c8;padding-top:12px;color:#444}
+      .bs .bs-stamps{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:13px}
+      .bs .bs-stamp{border:1px solid #d8d8d8;padding:14px;min-height:90px;border-radius:4px}
+      .bs .bs-stamp .lbl{color:#666;margin-bottom:8px}
+      .bs .bs-stamp .sig{height:48px;border-bottom:1px solid #ccc}
+      .bs .bs-stamp .dt{margin-top:8px;color:#666;font-size:12px}
+    </style>`;
+  const body=`
+    <div class="bs">
+      <h1>分账结算对账单</h1>
+      <div class="bs-sub">Settlement Statement · ${period}</div>
+      <div class="bs-meta">
+        <div><span class="k">游戏名称：</span><b>《${game}》</b></div>
+        <div><span class="k">投放平台：</span>${platform}</div>
+        <div><span class="k">发行商主体：</span><b>${pubLegal}</b></div>
+        <div><span class="k">结算账期：</span>${period}</div>
+        <div><span class="k">填制单位：</span>${SETTLEMENT_PREPARER}</div>
+        <div><span class="k">填制日期：</span>${today}</div>
+        <div><span class="k">分成比例：</span>${ps.rate}%${tierTag}</div>
+        <div><span class="k">对账单编号：</span>BS-${period.replace('-','')}-${(pub&&pub.id||'P').replace(/[^A-Z0-9]/g,'')}-${(game.length+platform.length).toString().padStart(2,'0')}</div>
+      </div>
+      <table>
+        <thead><tr><th>项目</th><th>金额（元）</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>现金收入</td><td>${fmt(r.cashRev)}</td><td style="text-align:left;color:#666">月度账期合计</td></tr>
+          <tr><td>广告金收入</td><td>${fmt(r.vRev)}</td><td style="text-align:left;color:#666">平台广告金</td></tr>
+          <tr><td>总消耗</td><td>${fmt(r.cost)}</td><td style="text-align:left;color:#666">现金 ${fmt(r.cashCost)} / 广告金 ${fmt(r.vCost)}</td></tr>
+          <tr><td>现金利润</td><td>${fmt(r.cashP)}</td><td style="text-align:left;color:#666">现金收入 − 现金消耗</td></tr>
+          <tr><td>广告金利润</td><td>${fmt(r.vP)}</td><td style="text-align:left;color:#666">广告金收入 − 广告金消耗</td></tr>
+          <tr class="bs-total"><td>发行商可结算（现金）</td><td>${fmt(ps.pubCash)}</td><td style="text-align:left;color:#444">现金利润 × ${ps.rate}%${ps.cashIsLossTransfer?' · 亏损全划转':''}</td></tr>
+          <tr class="bs-total"><td>发行商可结算（广告金）</td><td>${fmt(ps.pubV)}</td><td style="text-align:left;color:#444">广告金利润 × ${ps.rate}%${ps.vIsLossTransfer?' · 亏损全划转':''}</td></tr>
+        </tbody>
+      </table>
+      <div class="bs-foot">经核对，以上数据金额确认无误。本结算单双方盖章一式两份，双方各执一份。</div>
+      <div class="bs-stamps">
+        <div class="bs-stamp"><div class="lbl">填制单位（盖章）：</div><div class="sig"></div><div class="dt">${SETTLEMENT_PREPARER}　日期：${today}</div></div>
+        <div class="bs-stamp"><div class="lbl">发行商（盖章）：</div><div class="sig"></div><div class="dt">${pubLegal}　日期：　　年　月　日</div></div>
+      </div>
+    </div>`;
+  return opts.standalone
+    ?`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>对账单 · 《${game}》${platform} · ${period}</title>${styles}</head><body>${body}</body></html>`
+    :`${styles}${body}`;
+}
+function downloadBillStatement(key){
+  const html=buildBillStatementHtml(key,{standalone:true});
+  if(!html){alert('未找到该账期数据');return;}
+  const [period,game,platform]=key.split('__');
+  const blob=new Blob(['﻿'+html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`对账单_${game}_${platform}_${period}.html`;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},0);
+}
+function openBillStatement(key){
+  const html=buildBillStatementHtml(key);
+  if(!html){alert('未找到该账期数据');return;}
+  openModal('对账单预览',
+    `<div style="background:#f5f5f5;padding:14px;border-radius:6px">${html}</div>`,
+    `<button class="btn g" onclick="closeModal()">关闭</button><button class="btn p" onclick="downloadBillStatement('${key}')">↓ 下载对账单</button>`);
 }
 
 /* ── 阶梯分润 + 服务器成本 + 亏损划转（按规则配置） ── */
@@ -1343,10 +1443,15 @@ function pgCashRevDashboard(){
   )}`;
 }
 function confirmCashRev(key){
-  if(!window._cashRevConfirmed)window._cashRevConfirmed=new Set();
-  window._cashRevConfirmed.add(key);
-  syncRevConfirmed();
-  document.getElementById('contentEl').innerHTML=pgCashRevDashboard();
+  const [p,g,pl]=key.split('__');
+  confirmDialog('确认现金收入',
+    `确认账期 <b>${p}</b> · 《${g}》· ${pl} 的<b style="color:var(--primary)">现金收入</b>无异议？<br/>确认后该条记录将同步至「发行商分账明细」，参与可结算金额计算。`,
+    function(){
+      if(!window._cashRevConfirmed)window._cashRevConfirmed=new Set();
+      window._cashRevConfirmed.add(key);
+      syncRevConfirmed();
+      document.getElementById('contentEl').innerHTML=pgCashRevDashboard();
+    },'确认无异议');
 }
 
 /* PAGE: 账期广告金收入（业务运营确认） */
@@ -1402,10 +1507,15 @@ function pgVRevDashboard(){
   )}`;
 }
 function confirmVRev(key){
-  if(!window._vRevConfirmed)window._vRevConfirmed=new Set();
-  window._vRevConfirmed.add(key);
-  syncRevConfirmed();
-  document.getElementById('contentEl').innerHTML=pgVRevDashboard();
+  const [p,g,pl]=key.split('__');
+  confirmDialog('确认广告金收入',
+    `确认账期 <b>${p}</b> · 《${g}》· ${pl} 的<b style="color:var(--purple)">广告金收入</b>无异议？<br/>确认后该条记录将同步至「发行商分账明细」，参与可结算金额计算。`,
+    function(){
+      if(!window._vRevConfirmed)window._vRevConfirmed=new Set();
+      window._vRevConfirmed.add(key);
+      syncRevConfirmed();
+      document.getElementById('contentEl').innerHTML=pgVRevDashboard();
+    },'确认无异议');
 }
 function openRevDailyDetail(game,platform,period){
   const monthData=settle.find(r=>r.game===game&&r.platform===platform&&r.period===period);
@@ -1587,9 +1697,14 @@ function pgCostDashboard(){
   )}`;
 }
 function confirmCost(key){
-  if(!window._costConfirmed)window._costConfirmed=new Set();
-  window._costConfirmed.add(key);
-  document.getElementById('contentEl').innerHTML=pgCostDashboard();
+  const [p,g,pl]=key.split('__');
+  confirmDialog('确认成本数据',
+    `确认账期 <b>${p}</b> · 《${g}》· ${pl} 的<b style="color:var(--orange)">成本数据</b>无异议？<br/>确认后该条记录将参与利润分账计算。`,
+    function(){
+      if(!window._costConfirmed)window._costConfirmed=new Set();
+      window._costConfirmed.add(key);
+      document.getElementById('contentEl').innerHTML=pgCostDashboard();
+    },'确认无异议');
 }
 function openCostDailyDetail(game,platform,period){
   const monthData=settle.find(r=>r.game===game&&r.platform===platform&&r.period===period);
@@ -1818,11 +1933,11 @@ function pgSettlePubClosed(){
       <td>${costOk?mn(r.cost):dash}</td><td>${costOk?mn(r.cashCost):dash}</td><td>${costOk?mn(r.vCost):dash}</td>
       <td ${showProfit&&r.cashP<0?'style="color:var(--red);font-weight:700"':''}>${showProfit?mn(r.cashP):dash}</td>
       <td ${showProfit&&r.vP<0?'style="color:var(--red)"':''}>${showProfit?mn(r.vP):dash}</td>
-      <td style="font-weight:700">${ps.rate}%${tierBadge}</td>
+      <td style="font-weight:700">${cashOk?`${ps.rate}%${tierBadge}`:dash}</td>
       <td style="font-weight:800">${ready?mn(ps.pubCash)+lossTag(ps.cashIsLossTransfer):dash}</td>
       <td>${ready?mn(ps.pubV)+lossTag(ps.vIsLossTransfer):dash}</td>
       <td>${confirmCell}</td>
-      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${key}')">确认对账单</button>`:''}${ready&&billOk&&['发行商','财务人员','系统管理员'].includes(ROLE)?`<button class="link" style="margin-left:8px;color:var(--primary);font-weight:700" onclick="window._payPubId='${(publishers.find(p=>p.name===r.pub)||{}).id||''}';openPayNewModal()">发起提款</button>`:''}</td>
+      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${key}')">确认对账单</button>`:''}${ready&&billOk?`<button class="link" style="margin-left:8px" onclick="openBillStatement('${key}')">查看对账单</button>`:''}${ready&&billOk&&['发行商','财务人员','系统管理员'].includes(ROLE)?`<button class="link" style="margin-left:8px;color:var(--primary);font-weight:700" onclick="window._payPubId='${(publishers.find(p=>p.name===r.pub)||{}).id||''}';openPayNewModal()">发起提款</button>`:''}</td>
     </tr>`;
   });
   return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
