@@ -163,7 +163,7 @@ const NAV=[
   {title:'合作关系',items:[['pubMapping','⇌','游戏-发行商关系'],['cpMapping','◈','游戏-CP关系']]},
   {title:'数据看板',items:[['cashRev','▤','账期现金收入'],['vRev','▤','账期广告金收入'],['costDashboard','▥','账期投放成本'],['cloudCost','☁','账期云服务成本'],['dailyRecon','📅','每日收支对账']]},
   {title:'结算配置',items:[['rules','⊛','分成规则配置'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细']]},
-  {title:'打款闭环',items:[['payments','☑','打款申请单'],['myPayments','💰','发行商打款申请单'],['balance','▣','账户打款流水'],['invoices','📑','票据管理']]},
+  {title:'打款闭环',items:[['payments','☑','打款申请单'],['myPayments','💰','发行商打款申请单'],['balance','▣','发行商账户流水'],['invoices','📑','票据管理']]},
   {title:'系统运维',items:[['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
 
 /* ── SESSION & 用户列表 ── */
@@ -312,6 +312,13 @@ function tbl(ths,rows,opts){
 }
 function goPage(key,no){if(!window._pageMap)window._pageMap={};window._pageMap[key+'__no']=Math.max(1,Number(no)||1);renderPage();}
 function setPageSize(key,size){if(!window._pageMap)window._pageMap={};window._pageMap[key+'__size']=Number(size)||10;window._pageMap[key+'__no']=1;renderPage();}
+function copyText(text){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text);}
+    else{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}
+    alert(`已复制：${text}`);
+  }catch(e){alert('复制失败，请手动复制：'+text);}
+}
 function openModal(title,body,foot){document.getElementById('mTitle').innerHTML=title;document.getElementById('mBody').innerHTML=body;document.getElementById('mFoot').innerHTML=foot||'<button class="btn g" onclick="closeModal()">关闭</button>';document.getElementById('mask').classList.add('open')}
 function closeModal(){document.getElementById('mask').classList.remove('open')}
 // 二次确认弹窗：title 标题，msg 正文，onYes 确定回调，yesLabel/yesStyle 自定按钮
@@ -536,7 +543,7 @@ function visibleEntities(){
 
 function renderPage(){
   const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,cloudCost:pgCloudCost,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,invoices:pgInvoices,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'账期现金收入',vRev:'账期广告金收入',costDashboard:'账期投放成本',cloudCost:'账期云服务成本',dailyRecon:'每日收支对账',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'账户打款流水',payments:'打款申请单',myPayments:'发行商打款申请单',invoices:'票据管理',permConfig:'权限配置',userMgmt:'用户管理'};
+  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'账期现金收入',vRev:'账期广告金收入',costDashboard:'账期投放成本',cloudCost:'账期云服务成本',dailyRecon:'每日收支对账',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'发行商账户流水',payments:'打款申请单',myPayments:'发行商打款申请单',invoices:'票据管理',permConfig:'权限配置',userMgmt:'用户管理'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -1099,14 +1106,10 @@ function saveJlIdsConfig(id){
   document.getElementById('contentEl').innerHTML=pgPubMapping();
 }
 function openCpMappingForm(presetGameId){
-  const gameOpts=games.map(g=>{
-    const rel=cpMappings.find(c=>c.gameId===g.id);
-    const tag=rel?` ✓ 已绑定 ${rel.cp}`:'';
-    return `<option value="${g.id}" ${presetGameId===g.id?'selected':''}>${g.name}${tag}</option>`;
-  }).join('');
+  const gameOpts=games.map(g=>`<option value="${g.id}" ${presetGameId===g.id?'selected':''}>${g.name}</option>`).join('');
   const cpOpts=cps.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
   openModal('配置游戏-CP关系',`
-    <div class="notice"><b>规则：</b>一个游戏只能绑定一个 CP；一个 CP 可绑定多个游戏。<br/>选择已绑定 CP 的游戏会触发<b style="color:var(--orange)">覆盖确认</b>。</div>
+    <div class="notice"><b>规则：</b>一个游戏只能绑定一个 CP；一个 CP 可绑定多个游戏。已绑定 CP 的游戏不允许重复配置，请在列表操作列点击「修改 CP」进行变更。</div>
     <div class="fgrid">
       <div class="field"><label>所属游戏 <span class="req">*</span></label><select id="cpf_game" class="select" style="width:100%"><option value="">-- 选择 --</option>${gameOpts}</select></div>
       <div class="field"><label>CP主体 <span class="req">*</span></label><select id="cpf_cp" class="select" style="width:100%"><option value="">-- 选择 --</option>${cpOpts}</select></div>
@@ -1121,21 +1124,28 @@ function submitCpMappingForm(){
   const cp=cps.find(c=>c.id===cpId);
   const existed=cpMappings.find(c=>c.gameId===gameId);
   if(existed){
-    if(existed.cpId===cpId){alert('该游戏已绑定该 CP，无需重复配置');return;}
-    closeModal();
-    confirmDialog(`覆盖现有 CP 关系`,
-      `《${game.name}》当前已绑定 CP：<b>${existed.cp}</b><br/>是否替换为新 CP：<b style="color:var(--primary)">${cp.name}</b>？<br/><span style="color:var(--muted);font-size:12px">替换后旧关系将解除，仅保留新关系。</span>`,
-      function(){
-        existed.cpId=cpId;existed.cp=cp.name;
-        document.getElementById('contentEl').innerHTML=pgCpMapping();
-        alert('原型展示：CP 关系已覆盖更新。');
-      },'确认覆盖','d');
+    alert(`《${game.name}》已绑定 CP「${existed.cp}」。每个游戏只能绑定一个 CP，如需变更请在列表操作列点击「修改 CP」。`);
     return;
   }
   cpMappings.push({gameId,game:game.name,cpId,cp:cp.name});
   closeModal();
   document.getElementById('contentEl').innerHTML=pgCpMapping();
   alert('原型展示：游戏-CP关系已配置。');
+}
+function openCpMappingDetail(gameId){
+  const g=games.find(x=>x.id===gameId);
+  const rel=cpMappings.find(c=>c.gameId===gameId);
+  if(!g)return;
+  openModal(`游戏-CP关系详情：《${g.name}》`,`
+    <div class="kv">
+      <span class="k">游戏ID</span><span class="v" style="font-family:monospace">${g.id}</span>
+      <span class="k">游戏名称</span><span class="v">《${g.name}》</span>
+      <span class="k">上架平台</span><span class="v">${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</span>
+      <span class="k">CP主体ID</span><span class="v" style="font-family:monospace">${rel?rel.cpId:'—'}</span>
+      <span class="k">CP名称</span><span class="v">${rel?rel.cp:'<span style="color:var(--red)">未配置</span>'}</span>
+      <span class="k">创建人</span><span class="v">${rel?rel.creator:'—'}</span>
+      <span class="k">创建时间</span><span class="v">${rel?rel.created:'—'}</span>
+    </div>`)
 }
 function openCpMappingEdit(gameId){
   const g=games.find(x=>x.id===gameId);
@@ -1192,7 +1202,7 @@ function pgCpMapping(){
       <td>${rel?rel.cp:`<span style="color:var(--red)">未配置</span>`}</td>
       <td style="color:var(--muted);font-size:12px">${rel?rel.creator+' · '+rel.created:'—'}</td>
       <td>${rel
-        ? (canBizMapping()?`<button class="link" onclick="openCpMappingEdit('${g.id}')">修改CP</button>`:'—')
+        ? `<button class="link" onclick="openCpMappingDetail('${g.id}')">查看</button>${canBizMapping()?`<button class="link" style="margin-left:6px" onclick="openCpMappingEdit('${g.id}')">编辑</button>`:''}`
         : (canBizMapping()?`<button class="link" onclick="openCpMappingForm('${g.id}')">配置CP</button>`:'<span style="color:var(--red)">待配置</span>')
       }</td>
     </tr>`;
@@ -1405,11 +1415,11 @@ function pgRules(){
     const cpHigh=r.tierEnabled?((100-r.tierHighRate)*r.cpRemainShare/100).toFixed(1):null;
     const cpDerived=cpHigh?`<span style="color:var(--green);font-weight:700">${cpLow}% / ${cpHigh}%</span>`:`<span style="color:var(--green);font-weight:700">${cpLow}%</span>`;
     const cpFormulaTxt=`<div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:monospace">(1 − 发行商%) × <b style="color:var(--green)">${r.cpRemainShare}%</b></div>`;
-    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td style="font-weight:700">${cpDerived}${cpFormulaTxt}<div style="margin-top:3px">${cpServer}</div></td><td>${ts(r.status)}</td><td><button class="link" onclick="openRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
+    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td style="font-weight:700">${cpDerived}${cpFormulaTxt}<div style="margin-top:3px">${cpServer}</div></td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
   });
-  return `<div class="ph"><div><div class="pt">分成规则配置</div><div class="pd">每条规则绑定「游戏＋平台＋发行商＋CP」，并配置阶梯分润 / CP 服务器成本承担等规则参数；审批通过后内容不可修改，如需调整须重建规则。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openRuleForm()">＋ 新建规则</button>':''}</div></div>
+  return `<div class="ph"><div><div class="pt">分成规则配置</div><div class="pd">每条规则绑定「游戏＋平台＋发行商＋CP」，并配置阶梯分润 / CP 服务器成本承担等规则参数；审批通过后内容不可修改，如需调整须重建规则。审批流程进度请到 BPM 系统按审批单号查看。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="filter"><select class="select"><option>全部平台</option><option>微信小游戏</option><option>抖音小游戏</option></select><select class="select"><option>全部状态</option><option>草稿</option><option>审批中</option><option>生效中</option><option>已到期</option><option>已驳回</option></select></div>
-  ${tbl(['规则ID','游戏','平台','发行商','CP','生效期间','发行商分成（含阶梯）','CP分成','状态','操作'],rows,{pageKey:'rules'})}`;
+  ${tbl(['规则ID','游戏','平台','发行商','CP','生效期间','发行商分成（含阶梯）','CP分成','状态','BPM审批单号','操作'],rows,{pageKey:'rules'})}`;
 }
 function openRuleDetail(id){
   const r=rules.find(x=>x.id===id);
@@ -2673,7 +2683,7 @@ function pgBalance(){
       <td>${fmt(pubV)}</td><td style="color:var(--muted)">${fmt(vUsed)}</td>
       <td style="color:var(--muted);font-size:12px">2026-04-28 06:16</td></tr>`));
   return `<div class="ph">
-    <div><div class="pt">发行商账户打款流水</div><div class="pd">以发行商为账户维度，展示现金流水账单——结算入账与提款记录按时间排列。</div></div>
+    <div><div class="pt">发行商账户流水</div><div class="pd">以发行商为账户维度，展示现金流水账单——结算入账与提款记录按时间排列。</div></div>
     <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
   </div>
   <div class="tabs">
@@ -3165,7 +3175,7 @@ const PERM_MODULES=[
   {group:'主数据',items:[{key:'games',label:'游戏管理'},{key:'publishers',label:'发行商主体'},{key:'cps',label:'CP主体'}]},
   {group:'合作关系',items:[{key:'pubMapping',label:'游戏-发行商关系'},{key:'cpMapping',label:'游戏-CP关系'}]},
   {group:'数据看板',items:[{key:'cashRev',label:'账期现金收入'},{key:'vRev',label:'账期广告金收入'},{key:'costDashboard',label:'账期投放成本'},{key:'cloudCost',label:'账期云服务成本'},{key:'dailyRecon',label:'每日收支对账'}]},
-  {group:'结算配置',items:[{key:'rules',label:'分成规则配置'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'账户打款流水'}]},
+  {group:'结算配置',items:[{key:'rules',label:'分成规则配置'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'发行商账户流水'}]},
   {group:'打款闭环',items:[{key:'payments',label:'打款申请单（财务）'},{key:'myPayments',label:'发行商打款申请单'},{key:'invoices',label:'票据管理'}]}
 ];
 const OPS=['查看','新增/编辑','删除'];
