@@ -991,6 +991,74 @@ function savePubMappingEdit(id){
   closeModal();
   document.getElementById('contentEl').innerHTML=pgPubMapping();
 }
+/* 仅配置巨量账户ID（抖音映射用） */
+function openJlIdsConfig(id){
+  const m=pubMappings.find(x=>x.id===id);
+  if(!m||m.platform!=='抖音小游戏')return;
+  const allJlAccounts=[
+    {id:'881002',name:'巨量-光速传媒-主账户'},
+    {id:'881003',name:'巨量-光速传媒-子账户A'},
+    {id:'881099',name:'巨量-光速传媒-子账户B'},
+    {id:'992011',name:'巨量-光速传媒-星际'},
+    {id:'776500',name:'巨量-待分配账户'}
+  ];
+  openModal(`配置巨量账户ID · ${m.id}`,`
+    <div class="kv" style="margin-bottom:12px">
+      <span class="k">游戏</span><span class="v">《${m.game}》</span>
+      <span class="k">平台</span><span class="v"><span class="tag blue">抖音小游戏</span></span>
+      <span class="k">发行商</span><span class="v">${m.pub}（${m.pubId}）</span>
+      <span class="k">抖音应用ID</span><span class="v" style="font-family:monospace">${m.dyAppId||'—'}</span>
+      <span class="k">已绑定账户数</span><span class="v" style="color:var(--primary);font-weight:700">${m.jlIds.length}</span>
+    </div>
+    <div class="notice" style="margin-bottom:8px">已绑定账户<b>不允许取消</b>（解绑需在巨量后台操作并待数据同步）；可勾选未绑定账户进行追加，或手动输入新账户ID。</div>
+    <div class="sec-title">账户列表</div>
+    <div id="jl_list" style="display:flex;flex-direction:column;gap:4px;max-height:320px;overflow:auto">
+      ${allJlAccounts.map(a=>{
+        const bound=m.jlIds.includes(a.id);
+        return `<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;background:${bound?'#f0f7ff':'#fafafa'};border:1px solid ${bound?'#c9e0f7':'#eee'};cursor:${bound?'default':'pointer'}">
+          <input type="checkbox" ${bound?'checked disabled':''} data-jl-id="${a.id}" data-jl-name="${a.name}" style="width:14px;height:14px;accent-color:var(--primary)"/>
+          <span style="font-family:monospace;font-size:13px;font-weight:700">${a.id}</span>
+          <span style="color:var(--muted);font-size:12px">${a.name}</span>
+          ${bound?'<span style="margin-left:auto;font-size:11px;color:var(--primary);background:#e8f3ff;padding:1px 8px;border-radius:10px;font-weight:700">已绑定</span>':'<span style="margin-left:auto;font-size:11px;color:var(--muted);background:#f0f0f0;padding:1px 8px;border-radius:10px">未绑定</span>'}
+        </label>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:12px;padding:10px 12px;background:#fafdf7;border:1px solid #c6e6d6;border-radius:6px">
+      <div style="font-size:12.5px;color:#0d4a2e;font-weight:700;margin-bottom:6px">手动追加账户</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="jl_new_id" class="input" style="width:160px;font-family:monospace" placeholder="账户ID（如 881100）"/>
+        <input id="jl_new_name" class="input" style="flex:1" placeholder="账户名称"/>
+        <button class="btn g" style="white-space:nowrap" onclick="addJlConfigRow()">＋ 追加</button>
+      </div>
+    </div>`,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveJlIdsConfig('${m.id}')">保存</button>`);
+}
+function addJlConfigRow(){
+  const newId=document.getElementById('jl_new_id').value.trim();
+  const newName=document.getElementById('jl_new_name').value.trim();
+  if(!newId){alert('请输入账户ID');return;}
+  const list=document.getElementById('jl_list');
+  if(list.querySelector(`[data-jl-id="${newId}"]`)){alert('该账户ID已存在');return;}
+  const row=document.createElement('label');
+  row.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;background:#fafdf7;border:1px solid #c6e6d6;cursor:pointer';
+  row.innerHTML=`<input type="checkbox" checked data-jl-id="${newId}" data-jl-name="${newName||newId}" style="width:14px;height:14px;accent-color:var(--green)"/>
+    <span style="font-family:monospace;font-size:13px;font-weight:700">${newId}</span>
+    <span style="color:var(--muted);font-size:12px">${newName||'—'}</span>
+    <span style="margin-left:auto;font-size:11px;color:#0d4a2e;background:#d9f0e0;padding:1px 8px;border-radius:10px;font-weight:700">手动追加</span>`;
+  list.appendChild(row);
+  document.getElementById('jl_new_id').value='';
+  document.getElementById('jl_new_name').value='';
+}
+function saveJlIdsConfig(id){
+  const m=pubMappings.find(x=>x.id===id);
+  const checks=document.querySelectorAll('#jl_list input[type=checkbox]');
+  const newIds=[],newNames=[];
+  checks.forEach(cb=>{if(cb.checked){newIds.push(cb.dataset.jlId);newNames.push(cb.dataset.jlName);}});
+  m.jlIds=newIds;
+  m.jlNames=newNames;
+  closeModal();
+  document.getElementById('contentEl').innerHTML=pgPubMapping();
+}
 function openCpMappingForm(presetGameId){
   const gameOpts=games.map(g=>`<option value="${g.id}" ${presetGameId===g.id?'selected':''}>${g.name}</option>`).join('');
   openModal('配置游戏-CP关系',`
@@ -1099,7 +1167,7 @@ function pgPubMapping(){
     const jl=!r.isWx&&m.jlIds.length
       ?`<ul style="padding-left:16px;margin:0">${m.jlIds.map((id,j)=>`<li style="margin:2px 0"><span style="font-family:monospace;color:#31557d">${id}</span><span style="color:var(--muted);margin-left:6px">${m.jlNames[j]||''}</span></li>`).join('')}</ul>`
       :'—';
-    const acts=`<button class="link" onclick="openPubMappingDetail('${m.id}')">查看</button>${canBizMapping()?`<button class="link" onclick="openPubMappingEdit('${m.id}')">编辑</button>`:''}`;
+    const acts=`<button class="link" onclick="openPubMappingDetail('${m.id}')">查看</button>${canBizMapping()?`<button class="link" onclick="openPubMappingEdit('${m.id}')">编辑</button>`:''}${(!r.isWx&&canBizMapping())?`<button class="link" style="color:#7a52b3" onclick="openJlIdsConfig('${m.id}')">配置巨量ID</button>`:''}`;
     return `<tr>
       <td>${gameCell}</td>
       <td>${tag}</td>
@@ -1764,7 +1832,7 @@ function pgCashRevDashboard(){
   ${tbl(
     ['账期','游戏','平台','发行商','现金收入','财务确认','操作'],
     detailRows.length?detailRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
-  )}`;
+  ,{pageKey:'cashRev'})}`;
 }
 function confirmCashRev(key){
   const [p,g,pl]=key.split('__');
@@ -1828,7 +1896,7 @@ function pgVRevDashboard(){
   ${tbl(
     ['账期','游戏','平台','发行商','广告金收入','业务运营确认','操作'],
     detailRows.length?detailRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
-  )}`;
+  ,{pageKey:'vRev'})}`;
 }
 function confirmVRev(key){
   const [p,g,pl]=key.split('__');
@@ -2018,7 +2086,7 @@ function pgCostDashboard(){
   ${tbl(
     ['账期','游戏','平台','发行商','总成本','现金成本','广告金成本','现金/广告金占比','确认状态','操作'],
     detailRows.length?detailRows:[`<tr><td colspan="10" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
-  )}`;
+  ,{pageKey:'costDashboard'})}`;
 }
 function confirmCost(key){
   const [p,g,pl]=key.split('__');
@@ -2798,7 +2866,7 @@ function pgPayments(){
   return `<div class="ph"><div><div class="pt">打款申请单${finView?'（财务内部视图）':''}</div><div class="pd">展示所有打款申请的真实审批状态与执行状态；打款失败条目标红，可查看失败原因。${ent.type==='cp'?'<b style="color:var(--orange)">（Phase 1 中CP不参与直接打款，由财务线下处理）</b>':''}</div></div><div class="acts"><button class="btn g" onclick="alert('导出申请单列表（含失败处理记录）')">↓ 导出</button></div></div>
   ${banner}
   <div class="filter"><select class="select"><option>全部审批状态</option><option>待审批</option><option>已通过</option><option>已驳回</option></select><select class="select"><option>全部执行状态</option><option>待执行</option><option>打款中</option><option>打款成功</option><option>打款失败</option></select></div>
-  ${tbl(['申请单号','游戏','平台','发行商','打款金额','审批状态','执行状态','发起时间','操作'],rows)}`;
+  ${tbl(['申请单号','游戏','平台','发行商','打款金额','审批状态','执行状态','发起时间','操作'],rows,{pageKey:'payments'})}`;
 }
 
 /* PAGE: 我的打款记录（发行商专用 — 失败状态对外脱敏为「打款中」）
@@ -2824,7 +2892,7 @@ function pgMyPayments(){
   return `<div class="ph"><div><div class="pt">发行商打款申请单</div><div class="pd">查看本主体名下所有打款申请的进度。打款成功后可下载电子回单。</div></div><div class="acts"><button class="btn g" onclick="alert('导出发行商打款申请单')">↓ 导出</button></div></div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">👁 <b>只读视图：</b>本页面仅展示与本发行商主体相关的打款单。如对结果有疑问，请联系结算财务对接人。</div>
   <div class="filter"><select class="select"><option>全部审批状态</option><option>待审批</option><option>已通过</option><option>已驳回</option></select><select class="select"><option>全部执行状态</option><option>待执行</option><option>打款中</option><option>打款成功</option></select></div>
-  ${tbl(['申请单号','游戏','平台','发行商','打款金额','审批状态','执行状态','发起时间','操作'],rows)}`;
+  ${tbl(['申请单号','游戏','平台','发行商','打款金额','审批状态','执行状态','发起时间','操作'],rows,{pageKey:'myPayments'})}`;
 }
 
 /* PAGE: 票据管理（仅含打款成功的记录，按账期 × 发行商汇总结算金额，并提供发票/对账单查看） */
@@ -2904,7 +2972,7 @@ function pgInvoices(){
     <span style="font-size:12px;color:var(--muted);font-weight:650;margin-left:8px">发行商</span>
     <select class="select" onchange="window._invPub=this.value;document.getElementById('contentEl').innerHTML=pgInvoices()">${pubOpts}</select>
   </div>
-  ${tbl(['账期','发行商','游戏','平台','申请单号','打款时间','银行流水号','打款金额','票据'],rows)}`;
+  ${tbl(['账期','发行商','游戏','平台','申请单号','打款时间','银行流水号','打款金额','票据'],rows,{pageKey:'invoices'})}`;
 }
 
 /* 票据预览（模拟） */
@@ -3136,7 +3204,7 @@ function pgUserMgmt(){
       </td>
     </tr>`;
   });
-  const tableOrEmpty=rows.length?tbl(['用户','手机号','登录方式','角色','数据权限','状态','最后登录','操作'],rows):
+  const tableOrEmpty=rows.length?tbl(['用户','手机号','登录方式','角色','数据权限','状态','最后登录','操作'],rows,{pageKey:'userMgmt'}):
     `<div class="card" style="padding:40px;text-align:center;color:var(--muted)">暂无匹配用户</div>`;
   return `<div class="ph">
     <div><div class="pt">用户管理</div><div class="pd">管理所有登录用户的角色与数据权限，首次登录的用户需在此授权后方可使用系统</div></div>
