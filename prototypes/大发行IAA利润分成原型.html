@@ -221,11 +221,11 @@ const cpMappings=[
   {id:'CPR-003',game:'萌宠大陆',gameId:'G-1003',cp:'梦工厂',cpId:'CP-3001',creator:'业务负责人',created:'2026-04-09'}
 ];
 const publishers=[
-  {id:'P-2001',name:'星辰网络',credit:'91440300MA5XCHEN01',contact:'李明',phone:'138****1208',email:'li.ming@xc.com',status:'合作中',bank:'招商银行深圳科技园支行',accName:'深圳星辰网络有限公司',acc:'****8126',bankNo:'308584000013'},
-  {id:'P-2002',name:'光速传媒',credit:'91310115MA1GSPD02',contact:'王璐',phone:'136****7789',email:'wanglu@gsmedia.com',status:'合作中',bank:'中国银行上海浦东支行',accName:'上海光速传媒有限公司',acc:'****4392',bankNo:'104290003456'},
-  {id:'P-2003',name:'灵犀互娱',credit:'91440101MA9QLXI003',contact:'赵磊',phone:'137****5566',email:'zhaolei@lingxi.com',status:'合作中',bank:'平安银行广州天河支行',accName:'广州灵犀互娱科技有限公司',acc:'****7731',bankNo:'307584000027'}
+  {id:'P-2001',name:'星辰网络',credit:'91440300MA5XCHEN01',contact:'李明',phone:'138****1208',email:'li.ming@xc.com',status:'合作中',bank:'招商银行深圳科技园支行',accName:'深圳星辰网络有限公司',acc:'****8126',bankNo:'308584000013',license:'营业执照_星辰网络.pdf'},
+  {id:'P-2002',name:'光速传媒',credit:'91310115MA1GSPD02',contact:'王璐',phone:'136****7789',email:'wanglu@gsmedia.com',status:'合作中',bank:'中国银行上海浦东支行',accName:'上海光速传媒有限公司',acc:'****4392',bankNo:'104290003456',license:'营业执照_光速传媒.pdf'},
+  {id:'P-2003',name:'灵犀互娱',credit:'91440101MA9QLXI003',contact:'赵磊',phone:'137****5566',email:'zhaolei@lingxi.com',status:'合作中',bank:'平安银行广州天河支行',accName:'广州灵犀互娱科技有限公司',acc:'****7731',bankNo:'307584000027',license:''}
 ];
-const cps=[{id:'CP-3001',name:'梦工厂',legal:'周启',idNo:'4403**********6218',contact:'陈晓',phone:'139****2201',email:'chenxiao@dream.com',status:'合作中'}];
+const cps=[{id:'CP-3001',name:'梦工厂',legal:'周启',idNo:'4403**********6218',contact:'陈晓',phone:'139****2201',email:'chenxiao@dream.com',status:'合作中',license:'营业执照_梦工厂.pdf'}];
 const rules=[
   {id:'RU-202604-001',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:60,cpRemainShare:50,tierEnabled:true,tierThreshold:250000,tierHighRate:70,cpServerCostShare:true,status:'生效中',bpm:'BPM-IAA-00021',approved:'2026-04-02 15:22'},
   {id:'RU-202604-002',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:55,cpRemainShare:55,tierEnabled:false,tierThreshold:0,tierHighRate:0,cpServerCostShare:true,status:'审批中',bpm:'BPM-IAA-00026',approved:'—'},
@@ -274,7 +274,44 @@ const syncs=[
 function fmt(n){return '¥ '+Number(n).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function mn(n){const cls=n<0?'neg':'pos';return `<span class="money ${cls}">${fmt(n)}</span>`}
 function ts(s){const m={'生效中':'green','审批中':'orange','已到期':'gray','已驳回':'red','草稿':'blue','成功':'green','失败':'red','打款成功':'green','打款中':'orange','打款失败':'red','待执行':'gray','已通过':'green','待审批':'orange','合作中':'green','已授权':'green','待授权':'orange'};return `<span class="tag ${m[s]||'gray'}">${s}</span>`}
-function tbl(ths,rows){return `<div class="card"><div class="tw"><table class="table"><thead><tr>${ths.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`}
+function tbl(ths,rows,opts){
+  opts=opts||{};
+  const pageKey=opts.pageKey;
+  // 没有 pageKey 时降级为原行为（用于嵌入子表 / 含汇总行的复合表格）
+  if(!pageKey){
+    return `<div class="card"><div class="tw"><table class="table"><thead><tr>${ths.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`;
+  }
+  if(!window._pageMap)window._pageMap={};
+  const sizeKey=pageKey+'__size';
+  const pageNoKey=pageKey+'__no';
+  const size=window._pageMap[sizeKey]||10;
+  let pageNo=window._pageMap[pageNoKey]||1;
+  const total=rows.length;
+  const totalPages=Math.max(1,Math.ceil(total/size));
+  if(pageNo>totalPages)pageNo=totalPages;
+  window._pageMap[pageNoKey]=pageNo;
+  const start=(pageNo-1)*size;
+  const pageRows=rows.slice(start,start+size);
+  const opt=[10,20,50].map(n=>`<option value="${n}" ${n===size?'selected':''}>${n} 条/页</option>`).join('');
+  const btn=(label,toNo,disabled,active)=>`<button class="btn g sm" style="min-width:34px;padding:0 8px;${active?'background:var(--primary);color:#fff;border-color:var(--primary)':''}" ${disabled?'disabled':''} onclick="goPage('${pageKey}',${toNo})">${label}</button>`;
+  // 简化的页码：当前页 ± 2
+  const nums=[];
+  for(let i=Math.max(1,pageNo-2);i<=Math.min(totalPages,pageNo+2);i++)nums.push(i);
+  const numsHtml=nums.map(n=>btn(n,n,false,n===pageNo)).join('');
+  const pager=`<div style="display:flex;align-items:center;gap:6px;padding:10px 12px;border-top:1px solid var(--line);background:#fafbfc;flex-wrap:wrap">
+    <span style="color:var(--muted);font-size:12px">共 ${total} 条</span>
+    <select class="select sm" style="margin-left:8px" onchange="setPageSize('${pageKey}',this.value)">${opt}</select>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+      ${btn('«',1,pageNo===1)}${btn('‹',pageNo-1,pageNo===1)}
+      ${numsHtml}
+      ${btn('›',pageNo+1,pageNo===totalPages)}${btn('»',totalPages,pageNo===totalPages)}
+      <span style="color:var(--muted);font-size:12px;margin-left:6px">第 ${pageNo} / ${totalPages} 页</span>
+    </div>
+  </div>`;
+  return `<div class="card"><div class="tw"><table class="table"><thead><tr>${ths.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${pageRows.join('')}</tbody></table></div>${total>0?pager:''}</div>`;
+}
+function goPage(key,no){if(!window._pageMap)window._pageMap={};window._pageMap[key+'__no']=Math.max(1,Number(no)||1);renderPage();}
+function setPageSize(key,size){if(!window._pageMap)window._pageMap={};window._pageMap[key+'__size']=Number(size)||10;window._pageMap[key+'__no']=1;renderPage();}
 function openModal(title,body,foot){document.getElementById('mTitle').innerHTML=title;document.getElementById('mBody').innerHTML=body;document.getElementById('mFoot').innerHTML=foot||'<button class="btn g" onclick="closeModal()">关闭</button>';document.getElementById('mask').classList.add('open')}
 function closeModal(){document.getElementById('mask').classList.remove('open')}
 // 二次确认弹窗：title 标题，msg 正文，onYes 确定回调，yesLabel/yesStyle 自定按钮
@@ -582,9 +619,50 @@ function pgGames(){
     ${kw||platF!=='all'||cpF!=='all'?`<button class="btn g sm" onclick="window._gameKw='';window._gamePlatF='all';window._gameCpF='all';refreshGames()">清除筛选</button>`:''}
     <span style="color:var(--muted);font-size:12px;margin-left:4px">共 ${data.length} 条</span>
   </div>
-  ${data.length?tbl(['游戏ID','游戏名称','上架平台','浑天仪项目','备注','绑定CP','创建人','创建时间','操作'],rows):'<div class="notice">未找到匹配的游戏</div>'}`;
+  ${data.length?tbl(['游戏ID','游戏名称','上架平台','浑天仪项目','备注','绑定CP','创建人','创建时间','操作'],rows,{pageKey:'games'}):'<div class="notice">未找到匹配的游戏</div>'}`;
 }
 function refreshGames(){document.getElementById('contentEl').innerHTML=pgGames();}
+
+/* 营业执照：上传字段渲染 + 文件名校验 + 预览 modal */
+function renderLicenseUpload(idAttr,currentName){
+  return `<div class="field" style="grid-column:1/-1">
+    <label>营业执照 <span class="req">*</span></label>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <input class="input" type="file" id="${idAttr}" accept=".pdf,.jpg,.jpeg,.png" style="flex:1;min-width:240px" onchange="onLicenseChange('${idAttr}','${idAttr}_hint')" />
+      ${currentName?`<span class="tag green" style="font-size:11.5px" id="${idAttr}_current">📎 已上传：${currentName}</span>`:''}
+    </div>
+    <div class="hint" id="${idAttr}_hint">支持 PDF / JPG / PNG，单文件 ≤ 10MB；用于主体资质归档</div>
+  </div>`;
+}
+function onLicenseChange(inputId,hintId){
+  const input=document.getElementById(inputId);const hint=document.getElementById(hintId);
+  if(!input||!hint)return;
+  const f=input.files&&input.files[0];if(!f)return;
+  const sizeMb=(f.size/1024/1024).toFixed(2);
+  if(f.size>10*1024*1024){hint.style.color='var(--red)';hint.textContent=`⚠ ${f.name} 超出 10MB 限制（${sizeMb}MB）`;return;}
+  hint.style.color='var(--green)';hint.textContent=`✓ 已选择：${f.name}（${sizeMb}MB）`;
+}
+function openLicensePreview(entityId,entityType){
+  const e=entityType==='cp'?cps.find(x=>x.id===entityId):publishers.find(x=>x.id===entityId);
+  if(!e||!e.license){alert('该主体未上传营业执照');return}
+  openModal(`营业执照预览 · ${e.name}`,`
+    <div class="kv" style="margin-bottom:14px">
+      <span class="k">主体ID</span><span class="v" style="font-family:monospace">${e.id}</span>
+      <span class="k">公司名称</span><span class="v">${e.name}</span>
+      ${e.credit?`<span class="k">统一社会信用代码</span><span class="v" style="font-family:monospace">${e.credit}</span>`:''}
+      <span class="k">文件名</span><span class="v" style="font-family:monospace">${e.license}</span>
+    </div>
+    <div style="border:1px dashed var(--line);background:#fafafa;padding:60px 20px;text-align:center;border-radius:6px;color:var(--muted)">
+      <div style="font-size:48px;line-height:1">📜</div>
+      <div style="margin-top:10px;font-size:13px">营业执照预览（原型 mock）</div>
+      <div style="margin-top:4px;font-size:12px;color:var(--weak)">实际系统将在此渲染 PDF / 图片预览，并支持下载与水印</div>
+    </div>`,
+    `<button class="btn g" onclick="closeModal()">关闭</button><button class="btn p" onclick="alert('原型展示：下载 ${e.license}')">↓ 下载</button>`);
+}
+function licenseCell(e,entityType){
+  if(!e.license)return '<span class="tag" style="background:#fff3e0;color:var(--orange);font-size:11px;border:1px solid #ffe0b2">未上传</span>';
+  return `<button class="link" onclick="openLicensePreview('${e.id}','${entityType}')">查看营业执照</button>`;
+}
 /* 浑天仪项目：自定义"可搜索下拉"，展示 项目ID + 项目名称，最终落库为 项目ID */
 function renderCloudProjCombo(initId,scope){
   const sel=cloudProjects.find(p=>p.id===initId);
@@ -972,64 +1050,84 @@ function pgCpMapping(){
     <div class="acts">${canBizMapping()?`<button class="btn p" onclick="openCpMappingForm()">＋ 配置CP关系</button>`:''}</div>
   </div>
   <div class="notice">一个游戏只能绑定一个CP；重复配置时系统提示确认覆盖（REQ-R-104）。</div>
-  ${tbl(['游戏ID','游戏名称','上架平台','CP主体ID','CP名称','创建人/时间','操作'],rows)}`;
+  ${tbl(['游戏ID','游戏名称','上架平台','CP主体ID','CP名称','创建人/时间','操作'],rows,{pageKey:'cpMapping'})}`;
 }
 
 /* PAGE: 平台-发行商映射（独立模块） */
 function pgPubMapping(){
   const ent=parsedEntity();
   let gList=FILTER_GAME==='all'?games:games.filter(g=>g.id===FILTER_GAME);
-  // 发行商筛选：只展示有该发行商映射的游戏
   if(ent.type==='pub')gList=gList.filter(g=>pubMappings.some(m=>m.gameId===g.id&&m.pubId===ent.id));
-  // CP筛选：只展示绑定了该CP的游戏
   if(ent.type==='cp')gList=gList.filter(g=>cpMappings.some(c=>c.gameId===g.id&&c.cpId===ent.id));
-  const cards=gList.map(g=>{
-    // 一条 mapping 一行，平台标签独立显示
-    const mappingRows=g.platforms.flatMap(platform=>{
+  // 拍平：每个 游戏×平台×发行商 一行；无映射的平台也保留占位行
+  const allRows=[];
+  gList.forEach(g=>{
+    g.platforms.forEach(platform=>{
       let list=pubMappings.filter(m=>m.gameId===g.id&&m.platform===platform);
-      // 发行商筛选：行级过滤
       if(ent.type==='pub')list=list.filter(m=>m.pubId===ent.id);
       const isWx=platform==='微信小游戏';
-      const tag=isWx?`<span class="tag green">微信小游戏</span>`:`<span class="tag blue">抖音小游戏</span>`;
-      if(!list.length){
-        const cfg=canBizMapping()?`<button class="link" onclick="openPubMappingForm('${g.id}')">配置</button>`:'—';
-        return [`<tr>
-          <td style="width:130px">${tag}</td>
-          <td style="color:var(--red)">未配置发行商</td>
-          <td>—</td><td>—</td>
-          <td style="width:120px">${cfg}</td>
-        </tr>`];
-      }
-      return list.map(m=>{
-        const appId=`<span style="font-family:monospace;color:#31557d">${isWx?(m.wxAppId||'—'):(m.dyAppId||'—')}</span>`;
-        const jl=!isWx&&m.jlIds.length
-          ?`<ul style="padding-left:16px;margin:0">${m.jlIds.map((id,j)=>`<li style="margin:2px 0"><span style="font-family:monospace;color:#31557d">${id}</span><span style="color:var(--muted);margin-left:6px">${m.jlNames[j]||''}</span></li>`).join('')}</ul>`
-          :'—';
-        const acts=`<button class="link" onclick="openPubMappingDetail('${m.id}')">查看</button>${canBizMapping()?`<button class="link" onclick="openPubMappingEdit('${m.id}')">编辑</button>`:''}`;
-        return `<tr>
-          <td style="width:130px">${tag}</td>
-          <td style="min-width:180px"><b>${m.pub}</b><span style="color:var(--muted);font-size:12px;margin-left:6px">${m.pubId}</span></td>
-          <td style="width:180px">${appId}</td>
-          <td style="width:280px">${jl}</td>
-          <td style="width:120px">${acts}</td>
-        </tr>`;
-      });
+      if(!list.length){allRows.push({game:g,platform,isWx,mapping:null});}
+      else list.forEach(m=>allRows.push({game:g,platform,isWx,mapping:m}));
     });
-    return `<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;background:#f8fafc;border-bottom:1px solid var(--line2)">
-        <div><b>《${g.name}》</b><span style="font-family:monospace;color:var(--muted);font-size:12px;margin-left:8px">${g.id}</span></div>
-        <div style="display:flex;gap:4px">${g.platforms.map(p=>p==='微信小游戏'?`<span class="tag green">微信小游戏</span>`:`<span class="tag blue">抖音小游戏</span>`).join('')}</div>
-      </div>
-      ${tbl(['平台类型','对应发行商','对应应用ID','巨量账户ID列表','操作'],mappingRows)}
-    </div>`;
-  }).join('');
+  });
+  // 分页：按行
+  if(!window._pageMap)window._pageMap={};
+  const pageKey='pubMapping';
+  const size=window._pageMap[pageKey+'__size']||15;
+  let pageNo=window._pageMap[pageKey+'__no']||1;
+  const total=allRows.length;
+  const totalPages=Math.max(1,Math.ceil(total/size));
+  if(pageNo>totalPages)pageNo=totalPages;
+  window._pageMap[pageKey+'__no']=pageNo;
+  const pageRows=allRows.slice((pageNo-1)*size,(pageNo-1)*size+size);
+  const tableRows=pageRows.map(r=>{
+    const tag=r.isWx?`<span class="tag green">微信小游戏</span>`:`<span class="tag blue">抖音小游戏</span>`;
+    const gameCell=`<b>《${r.game.name}》</b><div style="font-family:monospace;color:var(--muted);font-size:11px;margin-top:2px">${r.game.id}</div>`;
+    if(!r.mapping){
+      const cfg=canBizMapping()?`<button class="link" onclick="openPubMappingForm('${r.game.id}')">配置</button>`:'—';
+      return `<tr style="background:#fff8f8">
+        <td>${gameCell}</td>
+        <td>${tag}</td>
+        <td style="color:var(--red)">未配置发行商</td>
+        <td>—</td>
+        <td>—</td>
+        <td>${cfg}</td>
+      </tr>`;
+    }
+    const m=r.mapping;
+    const appId=`<span style="font-family:monospace;color:#31557d">${r.isWx?(m.wxAppId||'—'):(m.dyAppId||'—')}</span>`;
+    const jl=!r.isWx&&m.jlIds.length
+      ?`<ul style="padding-left:16px;margin:0">${m.jlIds.map((id,j)=>`<li style="margin:2px 0"><span style="font-family:monospace;color:#31557d">${id}</span><span style="color:var(--muted);margin-left:6px">${m.jlNames[j]||''}</span></li>`).join('')}</ul>`
+      :'—';
+    const acts=`<button class="link" onclick="openPubMappingDetail('${m.id}')">查看</button>${canBizMapping()?`<button class="link" onclick="openPubMappingEdit('${m.id}')">编辑</button>`:''}`;
+    return `<tr>
+      <td>${gameCell}</td>
+      <td>${tag}</td>
+      <td><b>${m.pub}</b><div style="color:var(--muted);font-size:11px;font-family:monospace;margin-top:2px">${m.pubId}</div></td>
+      <td>${appId}</td>
+      <td>${jl}</td>
+      <td>${acts}</td>
+    </tr>`;
+  });
+  const pagerHtml=total>0?(()=>{
+    const opt=[15,30,50].map(n=>`<option value="${n}" ${n===size?'selected':''}>${n} 行/页</option>`).join('');
+    const btn=(label,toNo,disabled,active)=>`<button class="btn g sm" style="min-width:34px;padding:0 8px;${active?'background:var(--primary);color:#fff;border-color:var(--primary)':''}" ${disabled?'disabled':''} onclick="goPage('${pageKey}',${toNo})">${label}</button>`;
+    const nums=[];for(let i=Math.max(1,pageNo-2);i<=Math.min(totalPages,pageNo+2);i++)nums.push(i);
+    return `<div style="display:flex;align-items:center;gap:6px;padding:10px 12px;margin-top:8px;border:1px solid var(--line);background:#fafbfc;border-radius:var(--r2);flex-wrap:wrap">
+      <span style="color:var(--muted);font-size:12px">共 ${total} 条</span>
+      <select class="select sm" style="margin-left:8px" onchange="setPageSize('${pageKey}',this.value)">${opt}</select>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+        ${btn('«',1,pageNo===1)}${btn('‹',pageNo-1,pageNo===1)}${nums.map(n=>btn(n,n,false,n===pageNo)).join('')}${btn('›',pageNo+1,pageNo===totalPages)}${btn('»',totalPages,pageNo===totalPages)}
+        <span style="color:var(--muted);font-size:12px;margin-left:6px">第 ${pageNo} / ${totalPages} 页</span>
+      </div></div>`;
+  })():'';
   return `<div class="ph">
-    <div><div class="pt">游戏-发行商关系</div><div class="pd">按游戏聚合展示各平台的发行商主体、微信/抖音应用ID及巨量账户ID列表，是系统取数和分账核算的唯一依据。</div></div>
-    <div class="acts">${canBizMapping()?`<button class="btn p" onclick="openPubMappingForm()">＋ 新增映射</button>`:''}
-    </div>
+    <div><div class="pt">游戏-发行商关系</div><div class="pd">按「游戏 × 平台 × 发行商」三元组逐行展示对应的应用 ID 与巨量账户 ID 列表，是系统取数和分账核算的唯一依据。</div></div>
+    <div class="acts">${canBizMapping()?`<button class="btn p" onclick="openPubMappingForm()">＋ 新增映射</button>`:''}</div>
   </div>
   <div class="notice">微信小游戏：一个游戏可对应多个发行商；抖音小游戏：<b>一个游戏只能对应一个发行商</b>（REQ-R-102）。巨量账户ID每日从巨量同步，已绑定的不允许删除。</div>
-  ${gList.length?cards:'<div class="notice">暂无数据</div>'}`;
+  ${total?tbl(['游戏','平台','发行商主体','对应应用ID','巨量账户ID列表','操作'],tableRows):'<div class="notice">暂无数据</div>'}
+  ${pagerHtml}`;
 }
 
 /* PAGE: 发行商主体管理 */
@@ -1050,14 +1148,14 @@ function pgPublishers(){
     <input class="input" style="width:220px" placeholder="搜索公司名称 / ID / 联系人" value="${PUB_SEARCH}" oninput="PUB_SEARCH=this.value;document.getElementById('contentEl').innerHTML=pgPublishers()" />
     <span style="color:var(--muted);font-size:12px">共 ${data.length} 家</span>
   </div>
-  ${tbl(['主体ID / 公司名称','联系人','邮箱','操作'],rows)}${empty}`;
+  ${tbl(['主体ID / 公司名称','联系人','邮箱','操作'],rows,{pageKey:'publishers'})}${empty}`;
 }
 function openPub(id){
   const p=publishers.find(x=>x.id===id);
-  openModal(`发行商档案：${p.name}`,`<div class="kv"><span class="k">主体ID</span><span class="v">${p.id}</span><span class="k">公司名称</span><span class="v">${p.name}</span><span class="k">统一社会信用代码</span><span class="v" style="font-family:monospace">${p.credit}</span><span class="k">联系人</span><span class="v">${p.contact}</span><span class="k">手机号</span><span class="v">${p.phone}</span><span class="k">邮箱</span><span class="v">${p.email}</span></div><div class="sec-title">银行账户</div><div class="kv"><span class="k">账户名称</span><span class="v">${p.accName}</span><span class="k">开户银行</span><span class="v">${p.bank}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">****${p.acc}</span><span class="k">联行号</span><span class="v" style="font-family:monospace">${p.bankNo}</span></div>`)
+  openModal(`发行商档案：${p.name}`,`<div class="kv"><span class="k">主体ID</span><span class="v">${p.id}</span><span class="k">公司名称</span><span class="v">${p.name}</span><span class="k">统一社会信用代码</span><span class="v" style="font-family:monospace">${p.credit}</span><span class="k">联系人</span><span class="v">${p.contact}</span><span class="k">手机号</span><span class="v">${p.phone}</span><span class="k">邮箱</span><span class="v">${p.email}</span><span class="k">营业执照</span><span class="v">${licenseCell(p,'pub')}</span></div><div class="sec-title">银行账户</div><div class="kv"><span class="k">账户名称</span><span class="v">${p.accName}</span><span class="k">开户银行</span><span class="v">${p.bank}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">****${p.acc}</span><span class="k">联行号</span><span class="v" style="font-family:monospace">${p.bankNo}</span></div>`)
 }
 function openPubForm(){
-  openModal('新建发行商主体',`<div class="fgrid"><div class="field"><label>公司名称 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="与营业执照一致" /></div><div class="field"><label>统一社会信用代码 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="全局唯一" /></div><div class="field"><label>法人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>法人证件号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="加密存储，展示时脱敏" /></div><div class="field"><label>联系人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人手机号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人邮箱</label><input class="input" style="width:100%" /></div></div><div class="sec-title">银行账户</div><div class="fgrid"><div class="field"><label>账户名称 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户银行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户支行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>银行账号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联行号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="跨行转账使用" /></div></div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：提交后档案创建，账户同步至银企直联系统');closeModal()">提交</button>`)
+  openModal('新建发行商主体',`<div class="fgrid"><div class="field"><label>公司名称 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="与营业执照一致" /></div><div class="field"><label>统一社会信用代码 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="全局唯一" /></div><div class="field"><label>法人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>法人证件号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="加密存储，展示时脱敏" /></div><div class="field"><label>联系人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人手机号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人邮箱</label><input class="input" style="width:100%" /></div>${renderLicenseUpload('pubLicNew','')}</div><div class="sec-title">银行账户</div><div class="fgrid"><div class="field"><label>账户名称 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户银行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户支行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>银行账号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联行号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="跨行转账使用" /></div></div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：提交后档案创建，账户同步至银企直联系统');closeModal()">提交</button>`)
 }
 function openPubEdit(id){
   const p=publishers.find(x=>x.id===id);
@@ -1067,6 +1165,7 @@ function openPubEdit(id){
     <div class="field"><label>联系人姓名 <span class="req">*</span></label><input id="pe_contact" class="input" style="width:100%" value="${p.contact}"/></div>
     <div class="field"><label>联系人手机号 <span class="req">*</span></label><input id="pe_phone" class="input" style="width:100%" value="${p.phone}"/></div>
     <div class="field"><label>联系人邮箱</label><input id="pe_email" class="input" style="width:100%" value="${p.email}"/></div>
+    ${renderLicenseUpload('pe_license',p.license||'')}
   </div><div class="sec-title">银行账户</div><div class="fgrid">
     <div class="field"><label>账户名称 <span class="req">*</span></label><input id="pe_accName" class="input" style="width:100%" value="${p.accName}"/></div>
     <div class="field"><label>开户银行 <span class="req">*</span></label><input id="pe_bank" class="input" style="width:100%" value="${p.bank}"/></div>
@@ -1087,6 +1186,8 @@ function savePubEdit(id){
   p.accName=document.getElementById('pe_accName').value.trim()||p.accName;
   p.bank=document.getElementById('pe_bank').value.trim()||p.bank;
   p.bankNo=document.getElementById('pe_bankNo').value.trim()||p.bankNo;
+  const licInput=document.getElementById('pe_license');
+  if(licInput&&licInput.files&&licInput.files[0])p.license=licInput.files[0].name;
   closeModal();
   document.getElementById('contentEl').innerHTML=pgPublishers();
 }
@@ -1102,12 +1203,12 @@ function pgCPs(){
     ${kw?`<button class="btn g sm" onclick="window._cpKw='';refreshCPs()">清除</button>`:''}
     <span style="color:var(--muted);font-size:12px;margin-left:4px">共 ${data.length} 条</span>
   </div>
-  ${data.length?tbl(['主体ID','公司名称','法人姓名','法人证件号','联系人','操作'],rows):'<div class="notice">未找到匹配的CP主体</div>'}`;
+  ${data.length?tbl(['主体ID','公司名称','法人姓名','法人证件号','联系人','操作'],rows,{pageKey:'cps'}):'<div class="notice">未找到匹配的CP主体</div>'}`;
 }
 function refreshCPs(){document.getElementById('contentEl').innerHTML=pgCPs();}
 function openCP(id){
   const c=cps.find(x=>x.id===id);
-  openModal(`CP档案：${c.name}`,`<div class="kv"><span class="k">主体ID</span><span class="v">${c.id}</span><span class="k">公司名称</span><span class="v">${c.name}</span><span class="k">法人姓名</span><span class="v">${c.legal}</span><span class="k">法人证件号</span><span class="v" style="font-family:monospace">${c.idNo}</span><span class="k">联系人</span><span class="v">${c.contact}</span><span class="k">手机号</span><span class="v">${c.phone}</span><span class="k">邮箱</span><span class="v">${c.email}</span></div>`)
+  openModal(`CP档案：${c.name}`,`<div class="kv"><span class="k">主体ID</span><span class="v">${c.id}</span><span class="k">公司名称</span><span class="v">${c.name}</span><span class="k">法人姓名</span><span class="v">${c.legal}</span><span class="k">法人证件号</span><span class="v" style="font-family:monospace">${c.idNo}</span><span class="k">联系人</span><span class="v">${c.contact}</span><span class="k">手机号</span><span class="v">${c.phone}</span><span class="k">邮箱</span><span class="v">${c.email}</span><span class="k">营业执照</span><span class="v">${licenseCell(c,'cp')}</span></div>`)
 }
 function openCPEdit(id){
   const c=cps.find(x=>x.id===id);
@@ -1118,6 +1219,7 @@ function openCPEdit(id){
     <div class="field"><label>联系人姓名 <span class="req">*</span></label><input id="ce_contact" class="input" style="width:100%" value="${c.contact}"/></div>
     <div class="field"><label>联系人手机号 <span class="req">*</span></label><input id="ce_phone" class="input" style="width:100%" value="${c.phone}"/></div>
     <div class="field"><label>联系人邮箱</label><input id="ce_email" class="input" style="width:100%" value="${c.email}"/></div>
+    ${renderLicenseUpload('ce_license',c.license||'')}
   </div>`,
   `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveCPEdit('${c.id}')">保存</button>`)
 }
@@ -1131,6 +1233,8 @@ function saveCPEdit(id){
   c.contact=document.getElementById('ce_contact').value.trim()||c.contact;
   c.phone=document.getElementById('ce_phone').value.trim()||c.phone;
   c.email=document.getElementById('ce_email').value.trim()||c.email;
+  const licInput=document.getElementById('ce_license');
+  if(licInput&&licInput.files&&licInput.files[0])c.license=licInput.files[0].name;
   closeModal();
   refreshCPs();
 }
@@ -1153,7 +1257,7 @@ function pgRules(){
   });
   return `<div class="ph"><div><div class="pt">分成规则配置</div><div class="pd">每条规则绑定「游戏＋平台＋发行商＋CP」，并配置阶梯分润 / CP 服务器成本承担等规则参数；审批通过后内容不可修改，如需调整须重建规则。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="filter"><select class="select"><option>全部平台</option><option>微信小游戏</option><option>抖音小游戏</option></select><select class="select"><option>全部状态</option><option>草稿</option><option>审批中</option><option>生效中</option><option>已到期</option><option>已驳回</option></select></div>
-  ${tbl(['规则ID','游戏','平台','发行商','CP','生效期间','发行商分成（含阶梯）','CP分成','状态','操作'],rows)}`;
+  ${tbl(['规则ID','游戏','平台','发行商','CP','生效期间','发行商分成（含阶梯）','CP分成','状态','操作'],rows,{pageKey:'rules'})}`;
 }
 function openRuleDetail(id){
   const r=rules.find(x=>x.id===id);
@@ -2040,7 +2144,7 @@ function pgCloudCost(){
     </select>
     <button class="btn g sm" onclick="window._ccStart='2026-04';window._ccEnd='2026-04';window._ccGame='all';document.getElementById('contentEl').innerHTML=pgCloudCost()">重置</button>
   </div>
-  ${tbl(['账期','游戏ID','游戏名称','浑天仪项目ID','项目名称','云服务成本','确认状态'],tableRows.length?tableRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`])}`;
+  ${tbl(['账期','游戏ID','游戏名称','浑天仪项目ID','项目名称','云服务成本','确认状态'],tableRows.length?tableRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`],{pageKey:'cloudCost'})}`;
 }
 
 /* PAGE: 每日收支对账（每日 T+1 数据，发行商/业务运营对账用）
@@ -2257,7 +2361,7 @@ function pgSettlePubClosed(){
     三方全部确认后该账期自动出账，可发起打款。
     <br/><span style="font-size:12px;color:var(--muted)">分账计算规则以「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置</button>」中每条规则的具体配置为准。</span>
   </div>
-  ${tbl(['账期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','发行商分成%','发行商可结算（现金）','发行商可结算（广告金）','确认状态','每日明细'],rows)}`;
+  ${tbl(['账期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','发行商分成%','发行商可结算（现金）','发行商可结算（广告金）','确认状态','每日明细'],rows,{pageKey:'settlePub'})}`;
 }
 
 function openDailyDetail(key,period,game,platform,pub){
@@ -2352,7 +2456,7 @@ function pgSettleCp(){
     <span style="display:inline-block;margin:0 6px"><b>③ 总利润 &lt; 0</b>：CP 现金/广告金均为 0（「总利润为负·不分账」标记），亏损由发行商承担</span><br/>
     <span style="display:inline-block;margin:0 6px;color:var(--muted)">服务器成本是否扣减由「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置</button>」中每条规则的「CP 承担服务器成本」开关决定</span>
   </div>
-  ${tbl(['账期','游戏','平台','CP','现金收入','广告金收入','总消耗','服务器成本','现金利润','广告金利润','总利润','CP分账基数(现/广)','发行/CP 占比','CP现金分账','CP广告金分账','云成本状态'],rows)}`;
+  ${tbl(['账期','游戏','平台','CP','现金收入','广告金收入','总消耗','服务器成本','现金利润','广告金利润','总利润','CP分账基数(现/广)','发行/CP 占比','CP现金分账','CP广告金分账','云成本状态'],rows,{pageKey:'settleCp'})}`;
 }
 
 /* PAGE: 账户打款流水 */
