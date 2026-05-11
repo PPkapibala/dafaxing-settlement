@@ -415,12 +415,11 @@ function loginAs(u){
   SESSION={userId:u.id,account:u.account,display:u.display,role:u.role,dataPerms:u.dataPerms||['all']};
   ROLE=u.role;
   FILTER_GAME='all';FILTER_ENTITY='all';
-  // 单主体数据权限：自动锁定主体筛选
-  const dp=SESSION.dataPerms;
-  if(!dp.includes('all')&&dp.length===1){
-    const pid=dp[0];
-    if(publishers.find(p=>p.id===pid))FILTER_ENTITY='pub:'+pid;
-    else if(cps.find(c=>c.id===pid))FILTER_ENTITY='cp:'+pid;
+  // 单主体数据权限：若数据权限只涉及一个发行商主体，则自动锁定主体筛选
+  const {visiblePubs,visibleCps}=visibleEntities();
+  if(!SESSION.dataPerms.includes('all')){
+    if(visiblePubs.length===1&&visibleCps.length===0)FILTER_ENTITY='pub:'+visiblePubs[0].id;
+    else if(visibleCps.length===1&&visiblePubs.length===0)FILTER_ENTITY='cp:'+visibleCps[0].id;
   }
   const mask=document.getElementById('loginMask');
   if(mask.classList.contains('show')){mask.classList.remove('show');PAGE=(ROLE_PAGES[ROLE]||[])[0]||'';}
@@ -444,20 +443,46 @@ function sendSmsCode(){
 // 主数据管理页：不显示任何筛选
 const MASTER_PAGES=['games','publishers','cps','permConfig','userMgmt','cashRev','vRev'];
 
-// 根据 SESSION.dataPerms 计算当前用户可见的发行商/CP/游戏范围
-function visibleEntities(){
-  const dp=SESSION?.dataPerms||['all'];
-  const allPub=dp.includes('all');
-  const allCp=dp.includes('all');
-  const visiblePubs=allPub?publishers:publishers.filter(p=>dp.includes(p.id)||dp.includes('pub:'+p.id));
-  const visibleCps=allCp?cps:cps.filter(c=>dp.includes(c.id)||dp.includes('cp:'+c.id));
-  // 可见游戏 = 与可见发行商或CP有关联的游戏
-  const visibleGameIds=new Set();
-  if(allPub&&allCp){games.forEach(g=>visibleGameIds.add(g.id));}
-  else{
-    pubMappings.filter(m=>visiblePubs.find(p=>p.id===m.pubId)).forEach(m=>visibleGameIds.add(m.gameId));
-    cpMappings.filter(m=>visibleCps.find(c=>c.id===m.cpId)).forEach(m=>visibleGameIds.add(m.gameId));
+// 解析数据权限项
+function parseDataPerm(p){
+  if(p==='all')return{kind:'all'};
+  if(typeof p==='string'&&p.startsWith('gp:')){
+    const [gameId,platform]=p.slice(3).split('__');
+    return{kind:'gp',gameId,platform};
   }
+  return null;
+}
+// 当前用户允许访问的「游戏×平台」组合（Set of "gameId__platform"）
+function visibleGamePlatforms(){
+  const dp=SESSION?.dataPerms||['all'];
+  if(dp.includes('all')){
+    const all=new Set();
+    pubMappings.forEach(m=>all.add(`${m.gameId}__${m.platform}`));
+    return {all:true,set:all};
+  }
+  const set=new Set();
+  dp.forEach(p=>{const it=parseDataPerm(p);if(it&&it.kind==='gp')set.add(`${it.gameId}__${it.platform}`);});
+  return {all:false,set};
+}
+// 根据 SESSION.dataPerms 计算当前用户可见的发行商/CP/游戏范围（颗粒度：游戏+平台）
+function visibleEntities(){
+  const gp=visibleGamePlatforms();
+  if(gp.all){
+    return {visiblePubs:[...publishers],visibleCps:[...cps],visibleGames:[...games]};
+  }
+  const visiblePubIds=new Set();
+  const visibleGameIds=new Set();
+  pubMappings.forEach(m=>{
+    if(gp.set.has(`${m.gameId}__${m.platform}`)){
+      visiblePubIds.add(m.pubId);
+      visibleGameIds.add(m.gameId);
+    }
+  });
+  // CP 仅按 game 关联，game 可见则其 CP 可见
+  const visibleCpIds=new Set();
+  cpMappings.forEach(m=>{if(visibleGameIds.has(m.gameId))visibleCpIds.add(m.cpId);});
+  const visiblePubs=publishers.filter(p=>visiblePubIds.has(p.id));
+  const visibleCps=cps.filter(c=>visibleCpIds.has(c.id));
   const visibleGames=games.filter(g=>visibleGameIds.has(g.id));
   return {visiblePubs,visibleCps,visibleGames};
 }
@@ -2445,13 +2470,13 @@ function pgMyPayments(){
   const rows=data.map(p=>{
     const shown=maskExec(p.exec);
     const ops=`<button class="link" onclick="openMyPayDetail('${p.id}')">查看</button>${shown==='打款成功'?`<button class="link" style="margin-left:8px" onclick="alert('下载电子回单（Mock）：${p.id}')">下载回单</button>`:''}`;
-    return `<tr><td style="font-family:monospace;font-size:12px">${p.id}</td><td>《${p.game}》</td><td>${p.platform}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(shown)}</td><td style="color:var(--muted)">${p.time}</td><td>${ops}</td></tr>`;
+    return `<tr><td style="font-family:monospace;font-size:12px">${p.id}</td><td>《${p.game}》</td><td>${p.platform}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(shown)}</td><td style="color:var(--muted)">${p.time}</td><td>${ops}</td></tr>`;
   });
 
   return `<div class="ph"><div><div class="pt">发行商打款申请单</div><div class="pd">查看本主体名下所有打款申请的进度。打款成功后可下载电子回单。</div></div><div class="acts"><button class="btn g" onclick="alert('导出发行商打款申请单')">↓ 导出</button></div></div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">👁 <b>只读视图：</b>本页面仅展示与本发行商主体相关的打款单。如对结果有疑问，请联系结算财务对接人。</div>
   <div class="filter"><select class="select"><option>全部审批状态</option><option>待审批</option><option>已通过</option><option>已驳回</option></select><select class="select"><option>全部执行状态</option><option>待执行</option><option>打款中</option><option>打款成功</option></select></div>
-  ${tbl(['申请单号','游戏','平台','打款金额','审批状态','执行状态','发起时间','操作'],rows)}`;
+  ${tbl(['申请单号','游戏','平台','发行商','打款金额','审批状态','执行状态','发起时间','操作'],rows)}`;
 }
 
 /* PAGE: 票据管理（仅含打款成功的记录，按账期 × 发行商汇总结算金额，并提供发票/对账单查看） */
@@ -2729,9 +2754,21 @@ function pgUserMgmt(){
     const isPending=u.status==='待授权';
     const avatarColor=isPending?'#9aacbf':'var(--primary)';
     const roleTag=u.role?ts2(u.role):'<span class="tag gray">未分配</span>';
-    const dataTag=!u.dataPerms||!u.dataPerms.length?'<span class="tag gray">无</span>':
-      u.dataPerms.includes('all')?'<span class="tag blue">全部数据</span>':
-      `<span class="tag purple">${u.dataPerms.length}个主体</span>`;
+    const dataTag=(()=>{
+      if(!u.dataPerms||!u.dataPerms.length)return '<span class="tag gray">无</span>';
+      if(u.dataPerms.includes('all'))return '<span class="tag blue">全部数据</span>';
+      const items=u.dataPerms.map(p=>{
+        const it=parseDataPerm(p);
+        if(!it||it.kind!=='gp')return null;
+        const g=games.find(x=>x.id===it.gameId);
+        return g?{game:g.name,platform:it.platform}:null;
+      }).filter(Boolean);
+      if(!items.length)return '<span class="tag gray">无</span>';
+      const max=2;
+      const shown=items.slice(0,max).map(it=>`<span class="tag purple" style="font-size:11px;margin-right:4px">《${it.game}》·${it.platform}</span>`).join('');
+      const more=items.length>max?`<span class="tag gray" style="font-size:11px" title="${items.map(it=>'《'+it.game+'》·'+it.platform).join('，')}">+${items.length-max}</span>`:'';
+      return `<div style="display:flex;flex-wrap:wrap;gap:2px;align-items:center">${shown}${more}</div>`;
+    })();
     return `<tr>
       <td>
         <div style="display:flex;align-items:center;gap:10px">
@@ -2798,14 +2835,28 @@ function confirmGrantRole(uid){
 function openGrantData(uid){
   const u=USER_DB.find(u=>u.id===uid);if(!u||!u.role)return;
   const isAllData=u.dataPerms&&u.dataPerms.includes('all');
-  const pubChecks=publishers.map(p=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer"><input type="checkbox" class="dpCheck" value="pub:${p.id}" ${(u.dataPerms||[]).includes('pub:'+p.id)||isAllData?'checked':''} style="accent-color:var(--primary)"> <span>${p.name}（${p.id}）</span></label>`).join('');
-  const cpChecks=cps.map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer"><input type="checkbox" class="dpCheck" value="cp:${c.id}" ${(u.dataPerms||[]).includes('cp:'+c.id)||isAllData?'checked':''} style="accent-color:var(--primary)"> <span>${c.name}（${c.id}）</span></label>`).join('');
+  const userSet=new Set((u.dataPerms||[]).filter(x=>typeof x==='string'&&x.startsWith('gp:')).map(x=>x.slice(3)));
+  // 按游戏分组生成可勾选的「游戏 × 平台」组合
+  const gameGroups=games.map(g=>{
+    const platforms=[...new Set(pubMappings.filter(m=>m.gameId===g.id).map(m=>m.platform))];
+    if(!platforms.length)return '';
+    const items=platforms.map(pf=>{
+      const v=`${g.id}__${pf}`;
+      const checked=isAllData||userSet.has(v);
+      const pubsOnGp=[...new Set(pubMappings.filter(m=>m.gameId===g.id&&m.platform===pf).map(m=>m.pub))].join(' · ');
+      return `<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;border:1px solid var(--line);border-radius:6px;background:#fff">
+        <input type="checkbox" class="dpCheck" value="gp:${v}" ${checked?'checked':''} style="accent-color:var(--primary)">
+        <span style="font-size:12.5px"><b>${pf}</b><span style="color:var(--muted);font-size:11.5px;margin-left:6px">发行商：${pubsOnGp||'—'}</span></span>
+      </label>`;
+    }).join('');
+    return `<div style="margin-bottom:10px"><div style="font-weight:700;margin-bottom:6px">《${g.name}》<span style="color:var(--muted);font-size:11.5px;margin-left:6px">${g.id}</span></div><div style="display:flex;flex-wrap:wrap;gap:8px">${items}</div></div>`;
+  }).join('');
   openModal(`配置数据权限 — ${u.display}`,
-    `<div class="notice" style="margin-bottom:14px">数据权限控制用户在分账明细、打款流水、打款等模块中可见的发行商/CP数据范围。</div>
+    `<div class="notice" style="margin-bottom:14px">数据权限按「<b>游戏 + 平台</b>」颗粒度控制用户在分账明细、打款流水、打款申请单、票据管理等模块中可见的数据范围。</div>
      <div class="field" style="margin-bottom:12px"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;cursor:pointer"><input type="checkbox" id="dpAll" ${isAllData?'checked':''} style="accent-color:var(--primary);width:15px;height:15px" onchange="dpAllToggle(this)"> 全部数据（不限制）</label></div>
      <div id="dpSpecific" style="${isAllData?'opacity:.4;pointer-events:none':''}">
-       <div class="sec-title" style="margin-top:0">发行商</div>${pubChecks}
-       <div class="sec-title">CP</div>${cpChecks}
+       <div class="sec-title" style="margin-top:0">按游戏 × 平台勾选</div>
+       ${gameGroups||'<div style="color:var(--muted);font-size:13px;padding:10px">暂无可配置的游戏-平台组合</div>'}
      </div>`,
     `<button class="btn g" onclick="closeModal()">取消</button>
      <button class="btn p" onclick="confirmGrantData('${uid}')">确认保存</button>`);
