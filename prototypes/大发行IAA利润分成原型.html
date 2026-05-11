@@ -2763,8 +2763,8 @@ const PERM_MODULES=[
   {group:'结算配置',items:[{key:'rules',label:'分成规则配置'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'账户打款流水'}]},
   {group:'打款闭环',items:[{key:'payments',label:'打款申请单（财务）'},{key:'myPayments',label:'发行商打款申请单'},{key:'invoices',label:'票据管理'}]}
 ];
-const OPS=['查看','新增/编辑','删除','审批/确认','导出'];
-const OP_KEYS=['view','edit','delete','approve','export'];
+const OPS=['查看','新增/编辑','删除'];
+const OP_KEYS=['view','edit','delete'];
 // 初始操作权限配置（只对有页面访问权限的角色有意义）
 const PERM_OPS={
   '系统管理员':{games:{view:1,edit:1,delete:1,approve:0,export:1},publishers:{view:1,edit:1,delete:1,approve:0,export:1},cps:{view:1,edit:1,delete:1,approve:0,export:1},pubMapping:{view:1,edit:1,delete:1,approve:0,export:1},cpMapping:{view:1,edit:1,delete:1,approve:0,export:1},rules:{view:1,edit:1,delete:1,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:1,edit:1,delete:1,approve:1,export:0},payments:{view:1,edit:1,delete:0,approve:1,export:1},myPayments:{view:1,edit:0,delete:0,approve:0,export:1},invoices:{view:1,edit:0,delete:0,approve:0,export:1},cloudCost:{view:1,edit:1,delete:0,approve:1,export:1},dailyRecon:{view:1,edit:1,delete:0,approve:0,export:1}},
@@ -2825,11 +2825,11 @@ function pgPermConfig(){
         <button class="btn g sm" onclick="_permEditRole=null;renderPage()">收起</button>
       </div>
       <div class="tw"><table class="table" style="min-width:0"><thead>
-        <tr><th style="min-width:120px">功能模块</th><th style="min-width:70px;text-align:center">页面访问</th>${OPS.map(o=>`<th style="min-width:80px;text-align:center">${o}</th>`).join('')}</tr>
+        <tr><th style="min-width:120px">功能模块</th><th style="min-width:70px;text-align:center">页面访问</th>${OPS.map(o=>`<th style="min-width:90px;text-align:center">${o}</th>`).join('')}</tr>
       </thead><tbody>${sections}</tbody></table></div>
     </div>`;
   }
-  return `<div class="ph"><div><div class="pt">权限配置</div><div class="pd">管理各角色的功能模块访问权限及操作级权限</div></div>
+  return `<div class="ph"><div><div class="pt">权限配置</div><div class="pd">管理各角色的页面访问与操作权限（页面访问 / 新增·编辑 / 删除）；审批权限不在此处配置，由 BPM 流程节点决定。</div></div>
     <div class="acts"><span class="tag orange" style="font-size:12px">原型演示 · 变更不持久化</span></div></div>
     ${matrixView()}${opPanel()}`;
 }
@@ -2930,39 +2930,124 @@ function confirmGrantRole(uid){
 }
 function openGrantData(uid){
   const u=USER_DB.find(u=>u.id===uid);if(!u||!u.role)return;
-  const isAllData=u.dataPerms&&u.dataPerms.includes('all');
-  const userSet=new Set((u.dataPerms||[]).filter(x=>typeof x==='string'&&x.startsWith('gp:')).map(x=>x.slice(3)));
-  // 按游戏分组生成可勾选的「游戏 × 平台」组合
-  const gameGroups=games.map(g=>{
-    const platforms=[...new Set(pubMappings.filter(m=>m.gameId===g.id).map(m=>m.platform))];
-    if(!platforms.length)return '';
-    const items=platforms.map(pf=>{
-      const v=`${g.id}__${pf}`;
-      const checked=isAllData||userSet.has(v);
-      const pubsOnGp=[...new Set(pubMappings.filter(m=>m.gameId===g.id&&m.platform===pf).map(m=>m.pub))].join(' · ');
-      return `<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;border:1px solid var(--line);border-radius:6px;background:#fff">
-        <input type="checkbox" class="dpCheck" value="gp:${v}" ${checked?'checked':''} style="accent-color:var(--primary)">
-        <span style="font-size:12.5px"><b>${pf}</b><span style="color:var(--muted);font-size:11.5px;margin-left:6px">发行商：${pubsOnGp||'—'}</span></span>
-      </label>`;
-    }).join('');
-    return `<div style="margin-bottom:10px"><div style="font-weight:700;margin-bottom:6px">《${g.name}》<span style="color:var(--muted);font-size:11.5px;margin-left:6px">${g.id}</span></div><div style="display:flex;flex-wrap:wrap;gap:8px">${items}</div></div>`;
-  }).join('');
+  // 初始化弹窗分页/筛选状态（每次打开重置）
+  window._dpState={uid,kw:'',gameF:'all',platF:'all',page:1,pageSize:10};
   openModal(`配置数据权限 — ${u.display}`,
     `<div class="notice" style="margin-bottom:14px">数据权限按「<b>游戏 + 平台</b>」颗粒度控制用户在分账明细、打款流水、打款申请单、票据管理等模块中可见的数据范围。</div>
-     <div class="field" style="margin-bottom:12px"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;cursor:pointer"><input type="checkbox" id="dpAll" ${isAllData?'checked':''} style="accent-color:var(--primary);width:15px;height:15px" onchange="dpAllToggle(this)"> 全部数据（不限制）</label></div>
-     <div id="dpSpecific" style="${isAllData?'opacity:.4;pointer-events:none':''}">
-       <div class="sec-title" style="margin-top:0">按游戏 × 平台勾选</div>
-       ${gameGroups||'<div style="color:var(--muted);font-size:13px;padding:10px">暂无可配置的游戏-平台组合</div>'}
+     <div class="field" style="margin-bottom:12px"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;cursor:pointer"><input type="checkbox" id="dpAll" ${u.dataPerms&&u.dataPerms.includes('all')?'checked':''} style="accent-color:var(--primary);width:15px;height:15px" onchange="dpAllToggle(this)"> 全部数据（不限制）</label></div>
+     <div id="dpSpecific" style="${u.dataPerms&&u.dataPerms.includes('all')?'opacity:.4;pointer-events:none':''}">
+       ${renderDpPanel()}
      </div>`,
     `<button class="btn g" onclick="closeModal()">取消</button>
      <button class="btn p" onclick="confirmGrantData('${uid}')">确认保存</button>`);
+}
+
+// 收集弹窗内当前勾选值到 window._dpState，避免翻页/搜索时丢失勾选
+function _dpCollectChecks(){
+  if(!window._dpState)return;
+  if(!window._dpState.selected){
+    const u=USER_DB.find(x=>x.id===window._dpState.uid);
+    const cur=(u&&u.dataPerms||[]).filter(x=>typeof x==='string'&&x.startsWith('gp:')).map(x=>x.slice(3));
+    window._dpState.selected=new Set(cur);
+  }
+  document.querySelectorAll('.dpCheck').forEach(cb=>{
+    const v=cb.value.replace(/^gp:/,'');
+    if(cb.checked)window._dpState.selected.add(v);
+    else window._dpState.selected.delete(v);
+  });
+}
+
+function _dpRerender(){
+  _dpCollectChecks();
+  const el=document.getElementById('dpSpecific');
+  if(el)el.innerHTML=renderDpPanel();
+}
+
+function renderDpPanel(){
+  const st=window._dpState;const u=USER_DB.find(x=>x.id===st.uid);
+  // 组合行：game × platform
+  const rows=[];
+  games.forEach(g=>{
+    const platforms=[...new Set(pubMappings.filter(m=>m.gameId===g.id).map(m=>m.platform))];
+    platforms.forEach(pf=>{
+      const pubs=[...new Set(pubMappings.filter(m=>m.gameId===g.id&&m.platform===pf).map(m=>m.pub))].join(' · ');
+      rows.push({gameId:g.id,gameName:g.name,platform:pf,pubs,v:`${g.id}__${pf}`});
+    });
+  });
+  // 筛选
+  const kw=(st.kw||'').trim().toLowerCase();
+  let filtered=rows.filter(r=>{
+    if(kw&&!r.gameName.toLowerCase().includes(kw)&&!r.gameId.toLowerCase().includes(kw))return false;
+    if(st.gameF!=='all'&&r.gameId!==st.gameF)return false;
+    if(st.platF!=='all'&&r.platform!==st.platF)return false;
+    return true;
+  });
+  // 选中集合：优先用 state 维护的 selected；否则取 u.dataPerms
+  if(!st.selected){
+    const cur=(u.dataPerms||[]).filter(x=>typeof x==='string'&&x.startsWith('gp:')).map(x=>x.slice(3));
+    st.selected=new Set(cur);
+  }
+  const total=filtered.length;
+  const totalPages=Math.max(1,Math.ceil(total/st.pageSize));
+  if(st.page>totalPages)st.page=totalPages;
+  const start=(st.page-1)*st.pageSize;
+  const pageRows=filtered.slice(start,start+st.pageSize);
+  const selectedOnPage=pageRows.filter(r=>st.selected.has(r.v)).length;
+  const allOnPageChecked=pageRows.length>0&&selectedOnPage===pageRows.length;
+
+  const tableBody=pageRows.length?pageRows.map(r=>{
+    const checked=st.selected.has(r.v);
+    return `<tr>
+      <td style="width:40px;text-align:center"><input type="checkbox" class="dpCheck" value="gp:${r.v}" ${checked?'checked':''} style="accent-color:var(--primary)"></td>
+      <td style="font-family:monospace;font-size:11.5px;color:var(--muted)">${r.gameId}</td>
+      <td><b>《${r.gameName}》</b></td>
+      <td>${r.platform}</td>
+      <td style="color:var(--muted);font-size:12px">${r.pubs||'—'}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--weak);padding:20px">无匹配的游戏-平台组合</td></tr>';
+
+  const gameOpts=games.map(g=>`<option value="${g.id}" ${st.gameF===g.id?'selected':''}>${g.name}</option>`).join('');
+  const platList=[...new Set(rows.map(r=>r.platform))];
+  const platOpts=platList.map(p=>`<option value="${p}" ${st.platF===p?'selected':''}>${p}</option>`).join('');
+
+  // 分页按钮
+  const pageBtn=(n,label,disabled)=>`<button class="btn g sm" ${disabled?'disabled':''} onclick="window._dpState.page=${n};_dpRerender()">${label}</button>`;
+  const pager=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:var(--muted)">
+    <div>共 <b>${total}</b> 条（已选 <b style="color:var(--primary)">${st.selected.size}</b> 条）</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      ${pageBtn(1,'« 首页',st.page===1)}
+      ${pageBtn(Math.max(1,st.page-1),'‹ 上一页',st.page===1)}
+      <span style="padding:0 8px">第 <b>${st.page}</b> / ${totalPages} 页</span>
+      ${pageBtn(Math.min(totalPages,st.page+1),'下一页 ›',st.page===totalPages)}
+      ${pageBtn(totalPages,'末页 »',st.page===totalPages)}
+    </div>
+  </div>`;
+
+  return `<div class="sec-title" style="margin-top:0">按游戏 × 平台勾选</div>
+    <div class="filter" style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <input class="input" id="dpKwInput" style="width:180px" placeholder="搜索游戏名称 / ID…" value="${st.kw||''}" oninput="window._dpState.kw=this.value;window._dpState.page=1;_dpRerender();const i=document.getElementById('dpKwInput');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}"/>
+      <select class="select" onchange="window._dpState.gameF=this.value;window._dpState.page=1;_dpRerender()"><option value="all" ${st.gameF==='all'?'selected':''}>全部游戏</option>${gameOpts}</select>
+      <select class="select" onchange="window._dpState.platF=this.value;window._dpState.page=1;_dpRerender()"><option value="all" ${st.platF==='all'?'selected':''}>全部平台</option>${platOpts}</select>
+      <button class="btn g sm" onclick="_dpCollectChecks();[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=true;window._dpState.selected.add(cb.value.replace(/^gp:/,''))});_dpRerender()" title="全选当前页">✓ 本页全选</button>
+      <button class="btn g sm" onclick="_dpCollectChecks();[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=false;window._dpState.selected.delete(cb.value.replace(/^gp:/,''))});_dpRerender()" title="清空当前页">✕ 本页清空</button>
+      <button class="btn g sm" onclick="if(confirm('确认清空全部勾选？')){window._dpState.selected=new Set();_dpRerender()}">清空全部</button>
+    </div>
+    <div class="tw" style="max-height:320px;overflow:auto"><table class="table" style="margin:0"><thead><tr>
+      <th style="width:40px;text-align:center"><input type="checkbox" ${allOnPageChecked?'checked':''} onchange="_dpCollectChecks();const on=this.checked;[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=on;if(on)window._dpState.selected.add(cb.value.replace(/^gp:/,''));else window._dpState.selected.delete(cb.value.replace(/^gp:/,''))});_dpRerender()"></th>
+      <th>游戏ID</th><th>游戏名称</th><th>平台</th><th>发行商</th>
+    </tr></thead><tbody>${tableBody}</tbody></table></div>
+    ${pager}`;
 }
 function dpAllToggle(cb){const sp=document.getElementById('dpSpecific');sp.style.opacity=cb.checked?'.4':'1';sp.style.pointerEvents=cb.checked?'none':'auto';}
 function confirmGrantData(uid){
   const u=USER_DB.find(u=>u.id===uid);if(!u)return;
   const allCb=document.getElementById('dpAll');
   if(allCb.checked){u.dataPerms=['all'];}
-  else{u.dataPerms=[...document.querySelectorAll('.dpCheck:checked')].map(c=>c.value);}
+  else{
+    _dpCollectChecks();
+    const sel=(window._dpState&&window._dpState.selected)||new Set();
+    u.dataPerms=[...sel].map(v=>'gp:'+v);
+  }
   closeModal();renderPage();
 }
 
