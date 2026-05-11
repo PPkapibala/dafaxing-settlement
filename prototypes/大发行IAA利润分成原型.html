@@ -1010,7 +1010,7 @@ function openJlIdsConfig(id){
       <span class="k">抖音应用ID</span><span class="v" style="font-family:monospace">${m.dyAppId||'—'}</span>
       <span class="k">已绑定账户数</span><span class="v" style="color:var(--primary);font-weight:700">${m.jlIds.length}</span>
     </div>
-    <div class="notice" style="margin-bottom:8px">已绑定账户<b>不允许取消</b>（解绑需在巨量后台操作并待数据同步）；可勾选未绑定账户进行追加，或手动输入新账户ID。</div>
+    <div class="notice" style="margin-bottom:8px">已绑定账户<b>不允许取消</b>（解绑需在巨量后台操作并待数据同步）；可勾选未绑定账户进行追加。</div>
     <div class="sec-title">账户列表</div>
     <div id="jl_list" style="display:flex;flex-direction:column;gap:4px;max-height:320px;overflow:auto">
       ${allJlAccounts.map(a=>{
@@ -1022,32 +1022,8 @@ function openJlIdsConfig(id){
           ${bound?'<span style="margin-left:auto;font-size:11px;color:var(--primary);background:#e8f3ff;padding:1px 8px;border-radius:10px;font-weight:700">已绑定</span>':'<span style="margin-left:auto;font-size:11px;color:var(--muted);background:#f0f0f0;padding:1px 8px;border-radius:10px">未绑定</span>'}
         </label>`;
       }).join('')}
-    </div>
-    <div style="margin-top:12px;padding:10px 12px;background:#fafdf7;border:1px solid #c6e6d6;border-radius:6px">
-      <div style="font-size:12.5px;color:#0d4a2e;font-weight:700;margin-bottom:6px">手动追加账户</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="jl_new_id" class="input" style="width:160px;font-family:monospace" placeholder="账户ID（如 881100）"/>
-        <input id="jl_new_name" class="input" style="flex:1" placeholder="账户名称"/>
-        <button class="btn g" style="white-space:nowrap" onclick="addJlConfigRow()">＋ 追加</button>
-      </div>
     </div>`,
     `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveJlIdsConfig('${m.id}')">保存</button>`);
-}
-function addJlConfigRow(){
-  const newId=document.getElementById('jl_new_id').value.trim();
-  const newName=document.getElementById('jl_new_name').value.trim();
-  if(!newId){alert('请输入账户ID');return;}
-  const list=document.getElementById('jl_list');
-  if(list.querySelector(`[data-jl-id="${newId}"]`)){alert('该账户ID已存在');return;}
-  const row=document.createElement('label');
-  row.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;background:#fafdf7;border:1px solid #c6e6d6;cursor:pointer';
-  row.innerHTML=`<input type="checkbox" checked data-jl-id="${newId}" data-jl-name="${newName||newId}" style="width:14px;height:14px;accent-color:var(--green)"/>
-    <span style="font-family:monospace;font-size:13px;font-weight:700">${newId}</span>
-    <span style="color:var(--muted);font-size:12px">${newName||'—'}</span>
-    <span style="margin-left:auto;font-size:11px;color:#0d4a2e;background:#d9f0e0;padding:1px 8px;border-radius:10px;font-weight:700">手动追加</span>`;
-  list.appendChild(row);
-  document.getElementById('jl_new_id').value='';
-  document.getElementById('jl_new_name').value='';
 }
 function saveJlIdsConfig(id){
   const m=pubMappings.find(x=>x.id===id);
