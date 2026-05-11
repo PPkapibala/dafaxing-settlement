@@ -328,9 +328,11 @@ function confirmDialog(title,msg,onYes,yesLabel,yesStyle){
 const canEdit=()=>['系统管理员','业务负责人','业务运营'].includes(ROLE);
 const canFin=()=>['财务人员','财务负责人/审批人'].includes(ROLE);
 const isPublisher=()=>ROLE==='发行商';
+const isAdmin=()=>ROLE==='系统管理员';
 // PRD 4.1.3 权限细化
 const canAdminGame=()=>ROLE==='系统管理员';           // 新建/编辑/删除游戏基础信息
-const canBizMapping=()=>['业务负责人','业务运营'].includes(ROLE); // 新建/编辑映射关系
+const canBizMapping=()=>ROLE==='系统管理员';          // 新增/编辑映射关系（三元组、应用ID、解绑巨量ID）仅系统管理员
+const canConfigJl=()=>['系统管理员','业务负责人','业务运营'].includes(ROLE); // 配置巨量ID：业务可追加，但不能取消已绑定（已通过 disabled 锁定）
 
 /* ──────────── NAV ──────────── */
 function renderNav(){
@@ -870,36 +872,68 @@ function confirmDeleteGame(id){
 function openPubMappingForm(presetGameId){
   const gameOpts=games.map(g=>`<option value="${g.id}" ${presetGameId===g.id?'selected':''}>${g.name}</option>`).join('');
   openModal('新增游戏-发行商关系',`
-    <div class="notice">抖音小游戏：<b>一个游戏只能对应一个发行商</b>；微信小游戏不限。巨量账户ID每日从巨量同步，请从下拉选择（REQ-R-101 ~ R-103）。</div>
+    <div class="notice">微信小游戏：一个游戏可对应多个微信应用ID（每个ID单独建一条映射）；抖音小游戏：一个游戏只能对应一个抖音应用ID。<b>应用ID全局唯一</b>，重复将提示并阻止保存。巨量账户ID在创建完成后通过「配置巨量ID」入口管理。</div>
     <div class="fgrid">
-      <div class="field"><label>所属游戏 <span class="req">*</span></label><select class="select" style="width:100%"><option value="">-- 选择 --</option>${gameOpts}</select></div>
+      <div class="field"><label>所属游戏 <span class="req">*</span></label><select class="select" id="pmGameSel" style="width:100%"><option value="">-- 选择 --</option>${gameOpts}</select></div>
       <div class="field"><label>平台类型 <span class="req">*</span></label>
         <select class="select" style="width:100%" id="pmPlatSel" onchange="togglePlatFields()">
           <option value="">-- 选择 --</option><option>微信小游戏</option><option>抖音小游戏</option>
         </select>
       </div>
-      <div class="field"><label>发行商主体 <span class="req">*</span></label><select class="select" style="width:100%"><option value="">-- 选择 --</option>${publishers.map(p=>`<option>${p.name}</option>`).join('')}</select></div>
+      <div class="field"><label>发行商主体 <span class="req">*</span></label><select class="select" id="pmPubSel" style="width:100%"><option value="">-- 选择 --</option>${publishers.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
     </div>
     <div id="pmWxFields" style="display:none">
-      <div class="sec-title">微信小游戏字段</div>
-      <div class="field"><label>微信小游戏应用ID <span class="req">*</span></label><input class="input" style="width:100%;font-family:monospace" placeholder="与微信后台应用ID一致，可配置多个" /></div>
-      <div class="hint">一个游戏可对应多个微信后台应用ID（如分A/B包）。</div>
+      <div class="field"><label>微信小游戏应用ID <span class="req">*</span></label>
+        <input id="pm_wxAppId" class="input" style="width:100%;font-family:monospace" placeholder="与微信后台应用ID一致" />
+        <div class="hint">同一应用ID只能归属于一个游戏。</div>
+      </div>
     </div>
     <div id="pmDyFields" style="display:none">
-      <div class="sec-title">抖音小游戏字段</div>
-      <div class="fgrid">
-        <div class="field"><label>抖音小游戏应用ID <span class="req">*</span></label><input class="input" style="width:100%;font-family:monospace" placeholder="唯一，一个游戏只允许一个" /></div>
+      <div class="field"><label>抖音小游戏应用ID <span class="req">*</span></label>
+        <input id="pm_dyAppId" class="input" style="width:100%;font-family:monospace" placeholder="一个游戏只允许一个" />
+        <div class="hint">保存后可在列表的「配置巨量ID」中绑定巨量账户，用于获取投放数据。</div>
       </div>
-      <div class="sec-title">巨量账户ID（多选）</div>
-      <div class="notice">以下为已从巨量同步的账户，勾选后绑定为取数范围，<b>已绑定的不允许取消勾选</b>。</div>
-      ${['881002 · 巨量-光速传媒-主账户','881003 · 巨量-光速传媒-子账户A','992011 · 巨量-光速传媒-星际','776500 · 巨量-待分配账户'].map(a=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px"><input type="checkbox" style="width:15px;height:15px" /><span style="font-family:monospace">${a}</span></label>`).join('')}
     </div>`,
-    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：映射关系已保存，系统将以此作为取数依据。');closeModal()">保存映射</button>`)
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="submitPubMapping()">保存映射</button>`)
 }
 function togglePlatFields(){
   const v=document.getElementById('pmPlatSel').value;
   document.getElementById('pmWxFields').style.display=v==='微信小游戏'?'':'none';
   document.getElementById('pmDyFields').style.display=v==='抖音小游戏'?'':'none';
+}
+function submitPubMapping(){
+  const gameId=document.getElementById('pmGameSel').value;
+  const platform=document.getElementById('pmPlatSel').value;
+  const pubId=document.getElementById('pmPubSel').value;
+  if(!gameId||!platform||!pubId){alert('请完整选择 游戏 / 平台 / 发行商');return;}
+  const game=games.find(g=>g.id===gameId);
+  const pub=publishers.find(p=>p.id===pubId);
+  if(platform==='微信小游戏'){
+    const appId=(document.getElementById('pm_wxAppId').value||'').trim();
+    if(!appId){alert('请填写微信小游戏应用ID');return;}
+    const existed=pubMappings.find(m=>m.platform==='微信小游戏'&&m.wxAppId===appId);
+    if(existed){
+      alert(`微信应用ID「${appId}」已被《${existed.game}》占用（发行商：${existed.pub}），同一应用ID只能归属于一个游戏。请检查后重新填写。`);
+      return;
+    }
+    pubMappings.push({id:'M-'+String(pubMappings.length+1).padStart(3,'0'),game:game.name,gameId:game.id,platform,pub:pub.name,pubId:pub.id,wxAppId:appId,dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:new Date().toISOString().slice(0,10)});
+  }else{
+    const appId=(document.getElementById('pm_dyAppId').value||'').trim();
+    if(!appId){alert('请填写抖音小游戏应用ID');return;}
+    const sameGameDy=pubMappings.find(m=>m.platform==='抖音小游戏'&&m.gameId===game.id);
+    if(sameGameDy){
+      alert(`《${game.name}》在抖音小游戏平台已配置（应用ID ${sameGameDy.dyAppId}，发行商：${sameGameDy.pub}）。一个游戏只能对应一个抖音应用ID。`);
+      return;
+    }
+    const idTaken=pubMappings.find(m=>m.platform==='抖音小游戏'&&m.dyAppId===appId);
+    if(idTaken){
+      alert(`抖音应用ID「${appId}」已被《${idTaken.game}》占用（发行商：${idTaken.pub}），同一应用ID只能归属于一个游戏。`);
+      return;
+    }
+    pubMappings.push({id:'M-'+String(pubMappings.length+1).padStart(3,'0'),game:game.name,gameId:game.id,platform,pub:pub.name,pubId:pub.id,wxAppId:'',dyAppId:appId,jlIds:[],jlNames:[],creator:'业务运营',created:new Date().toISOString().slice(0,10)});
+  }
+  closeModal();
+  document.getElementById('contentEl').innerHTML=pgPubMapping();
 }
 function openPubMappingDetail(id){
   const m=pubMappings.find(x=>x.id===id);
@@ -917,6 +951,7 @@ function openPubMappingDetail(id){
     </div>`)
 }
 function openPubMappingEdit(id){
+  if(!isAdmin()){alert('仅系统管理员可修改映射关系，其他角色请联系管理员');return;}
   const m=pubMappings.find(x=>x.id===id);
   const isWx=m.platform==='微信小游戏';
   const allJlAccounts=[
@@ -926,17 +961,20 @@ function openPubMappingEdit(id){
     {id:'992011',name:'巨量-光速传媒-星际'},
     {id:'776500',name:'巨量-待分配账户'}
   ];
+  const gameOpts=games.map(g=>`<option value="${g.id}" ${m.gameId===g.id?'selected':''}>${g.name}</option>`).join('');
+  const platOpts=['微信小游戏','抖音小游戏'].map(p=>`<option value="${p}" ${m.platform===p?'selected':''}>${p}</option>`).join('');
+  const pubOpts=publishers.map(p=>`<option value="${p.id}" ${m.pubId===p.id?'selected':''}>${p.name}</option>`).join('');
   const appIdField=isWx
-    ?`<div class="field"><label>微信小游戏应用ID <span class="req">*</span></label><input id="pme_appId" class="input" style="width:100%;font-family:monospace" value="${m.wxAppId}"/></div>`
-    :`<div class="field"><label>抖音小游戏应用ID <span class="req">*</span></label><input id="pme_appId" class="input" style="width:100%;font-family:monospace" value="${m.dyAppId}"/></div>`;
+    ?`<div class="field"><label>微信小游戏应用ID <span class="req">*</span></label><input id="pme_appId" class="input" style="width:100%;font-family:monospace" value="${m.wxAppId||''}"/><div class="hint">同一应用ID只能归属于一个游戏，修改时仍会校验全局唯一。</div></div>`
+    :`<div class="field"><label>抖音小游戏应用ID <span class="req">*</span></label><input id="pme_appId" class="input" style="width:100%;font-family:monospace" value="${m.dyAppId||''}"/><div class="hint">同一应用ID只能归属于一个游戏，修改时仍会校验全局唯一。</div></div>`;
   const jlSection=!isWx?`
     <div class="sec-title">巨量账户ID（已绑定 ${m.jlIds.length} 个）</div>
-    <div class="notice" style="margin-bottom:8px">已绑定的账户<b>不可取消</b>；可勾选新账户追加绑定。</div>
+    <div class="notice" style="margin-bottom:8px;border-color:#ffe0b2;background:#fff8f0;color:#a05000">⚠ 系统管理员可在此<b>取消</b>已绑定账户。普通用户在「配置巨量ID」中只能追加，不能取消。</div>
     <div id="pme_jlList" style="display:flex;flex-direction:column;gap:4px">
       ${allJlAccounts.map(a=>{
         const bound=m.jlIds.includes(a.id);
-        return `<label style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:6px;background:${bound?'#f0f7ff':'#fafafa'};border:1px solid ${bound?'#c9e0f7':'#eee'};cursor:${bound?'default':'pointer'}">
-          <input type="checkbox" ${bound?'checked disabled':''} data-jl-id="${a.id}" data-jl-name="${a.name}" style="width:14px;height:14px;accent-color:var(--blue)"/>
+        return `<label style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:6px;background:${bound?'#f0f7ff':'#fafafa'};border:1px solid ${bound?'#c9e0f7':'#eee'};cursor:pointer">
+          <input type="checkbox" ${bound?'checked':''} data-jl-id="${a.id}" data-jl-name="${a.name}" style="width:14px;height:14px;accent-color:var(--blue)"/>
           <span style="font-family:monospace;font-size:13px">${a.id}</span>
           <span style="color:var(--muted);font-size:12px">${a.name}</span>
           ${bound?'<span style="margin-left:auto;font-size:11px;color:var(--blue);background:#e8f3ff;padding:1px 6px;border-radius:10px">已绑定</span>':''}
@@ -948,12 +986,12 @@ function openPubMappingEdit(id){
       <input id="pme_jlNewName" class="input" style="width:160px" placeholder="账户名称"/>
       <button class="btn g" style="white-space:nowrap" onclick="addJlRow('${m.id}')">＋ 追加</button>
     </div>`:'';
-  openModal(`编辑映射：${m.id}`,`
-    <div class="notice" style="margin-bottom:12px">平台类型与发行商绑定后不可更改；巨量账户ID已绑定的<b>不允许删除</b>，只可新增。</div>
-    <div class="kv" style="margin-bottom:14px">
-      <span class="k">游戏</span><span class="v">《${m.game}》</span>
-      <span class="k">平台</span><span class="v">${m.platform}</span>
-      <span class="k">发行商</span><span class="v">${m.pub}（${m.pubId}）</span>
+  openModal(`编辑映射：${m.id}（系统管理员）`,`
+    <div class="notice" style="margin-bottom:12px;border-color:#ffd7a8;background:#fff5e6;color:#a04000">🔧 系统管理员高权限编辑：可修改游戏 / 平台 / 发行商三元组与已绑定的应用ID。修改将触发应用ID全局唯一性校验，并影响后续取数与分账，请谨慎操作。</div>
+    <div class="fgrid">
+      <div class="field"><label>所属游戏 <span class="req">*</span></label><select id="pme_game" class="select" style="width:100%">${gameOpts}</select></div>
+      <div class="field"><label>平台类型 <span class="req">*</span></label><select id="pme_plat" class="select" style="width:100%">${platOpts}</select></div>
+      <div class="field"><label>发行商主体 <span class="req">*</span></label><select id="pme_pub" class="select" style="width:100%">${pubOpts}</select></div>
     </div>
     ${appIdField}
     ${jlSection}`,
@@ -976,12 +1014,37 @@ function addJlRow(mappingId){
   document.getElementById('pme_jlNewName').value='';
 }
 function savePubMappingEdit(id){
+  if(!isAdmin()){alert('仅系统管理员可修改映射关系');return;}
   const m=pubMappings.find(x=>x.id===id);
-  const appId=document.getElementById('pme_appId').value.trim();
-  if(!appId){alert('应用ID不能为空');return;}
-  if(m.platform==='微信小游戏'){m.wxAppId=appId;}
+  const newGameId=document.getElementById('pme_game').value;
+  const newPlat=document.getElementById('pme_plat').value;
+  const newPubId=document.getElementById('pme_pub').value;
+  if(!newGameId||!newPlat||!newPubId){alert('请完整选择 游戏 / 平台 / 发行商');return;}
+  const newAppId=(document.getElementById('pme_appId').value||'').trim();
+  if(!newAppId){alert('应用ID不能为空');return;}
+  // 全局唯一性校验：排除当前 mapping 本身
+  if(newPlat==='微信小游戏'){
+    const dup=pubMappings.find(x=>x.id!==id&&x.platform==='微信小游戏'&&x.wxAppId===newAppId);
+    if(dup){alert(`微信应用ID「${newAppId}」已被《${dup.game}》占用（发行商：${dup.pub}）。`);return;}
+  }else{
+    const dup=pubMappings.find(x=>x.id!==id&&x.platform==='抖音小游戏'&&x.dyAppId===newAppId);
+    if(dup){alert(`抖音应用ID「${newAppId}」已被《${dup.game}》占用（发行商：${dup.pub}）。`);return;}
+    // 抖音：同游戏只能一条
+    const sameGameDy=pubMappings.find(x=>x.id!==id&&x.platform==='抖音小游戏'&&x.gameId===newGameId);
+    if(sameGameDy){
+      const g=games.find(g=>g.id===newGameId);
+      alert(`《${g?g.name:newGameId}》在抖音小游戏平台已存在映射（应用ID ${sameGameDy.dyAppId}，发行商：${sameGameDy.pub}）。一个游戏只能对应一个抖音应用ID。`);
+      return;
+    }
+  }
+  const game=games.find(g=>g.id===newGameId);
+  const pub=publishers.find(p=>p.id===newPubId);
+  m.gameId=newGameId;m.game=game?game.name:m.game;
+  m.platform=newPlat;
+  m.pubId=newPubId;m.pub=pub?pub.name:m.pub;
+  if(newPlat==='微信小游戏'){m.wxAppId=newAppId;m.dyAppId='';m.jlIds=[];m.jlNames=[];}
   else{
-    m.dyAppId=appId;
+    m.dyAppId=newAppId;m.wxAppId='';
     const checks=document.querySelectorAll('#pme_jlList input[type=checkbox]');
     const newIds=[],newNames=[];
     checks.forEach(cb=>{if(cb.checked){newIds.push(cb.dataset.jlId);newNames.push(cb.dataset.jlName);}});
@@ -1036,25 +1099,70 @@ function saveJlIdsConfig(id){
   document.getElementById('contentEl').innerHTML=pgPubMapping();
 }
 function openCpMappingForm(presetGameId){
-  const gameOpts=games.map(g=>`<option value="${g.id}" ${presetGameId===g.id?'selected':''}>${g.name}</option>`).join('');
+  const gameOpts=games.map(g=>{
+    const rel=cpMappings.find(c=>c.gameId===g.id);
+    const tag=rel?` ✓ 已绑定 ${rel.cp}`:'';
+    return `<option value="${g.id}" ${presetGameId===g.id?'selected':''}>${g.name}${tag}</option>`;
+  }).join('');
+  const cpOpts=cps.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
   openModal('配置游戏-CP关系',`
-    <div class="notice">一个游戏只能绑定一个CP（REQ-R-104）。重复配置时系统提示确认覆盖。</div>
+    <div class="notice"><b>规则：</b>一个游戏只能绑定一个 CP；一个 CP 可绑定多个游戏。<br/>选择已绑定 CP 的游戏会触发<b style="color:var(--orange)">覆盖确认</b>。</div>
     <div class="fgrid">
-      <div class="field"><label>所属游戏 <span class="req">*</span></label><select class="select" style="width:100%"><option value="">-- 选择 --</option>${gameOpts}</select></div>
-      <div class="field"><label>CP主体 <span class="req">*</span></label><select class="select" style="width:100%"><option value="">-- 选择 --</option>${cps.map(c=>`<option>${c.name}</option>`).join('')}</select></div>
+      <div class="field"><label>所属游戏 <span class="req">*</span></label><select id="cpf_game" class="select" style="width:100%"><option value="">-- 选择 --</option>${gameOpts}</select></div>
+      <div class="field"><label>CP主体 <span class="req">*</span></label><select id="cpf_cp" class="select" style="width:100%"><option value="">-- 选择 --</option>${cpOpts}</select></div>
     </div>`,
-    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：游戏-CP关系已配置。');closeModal()">保存</button>`)
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="submitCpMappingForm()">保存</button>`)
+}
+function submitCpMappingForm(){
+  const gameId=document.getElementById('cpf_game').value;
+  const cpId=document.getElementById('cpf_cp').value;
+  if(!gameId||!cpId){alert('请选择游戏和 CP 主体');return;}
+  const game=games.find(g=>g.id===gameId);
+  const cp=cps.find(c=>c.id===cpId);
+  const existed=cpMappings.find(c=>c.gameId===gameId);
+  if(existed){
+    if(existed.cpId===cpId){alert('该游戏已绑定该 CP，无需重复配置');return;}
+    closeModal();
+    confirmDialog(`覆盖现有 CP 关系`,
+      `《${game.name}》当前已绑定 CP：<b>${existed.cp}</b><br/>是否替换为新 CP：<b style="color:var(--primary)">${cp.name}</b>？<br/><span style="color:var(--muted);font-size:12px">替换后旧关系将解除，仅保留新关系。</span>`,
+      function(){
+        existed.cpId=cpId;existed.cp=cp.name;
+        document.getElementById('contentEl').innerHTML=pgCpMapping();
+        alert('原型展示：CP 关系已覆盖更新。');
+      },'确认覆盖','d');
+    return;
+  }
+  cpMappings.push({gameId,game:game.name,cpId,cp:cp.name});
+  closeModal();
+  document.getElementById('contentEl').innerHTML=pgCpMapping();
+  alert('原型展示：游戏-CP关系已配置。');
 }
 function openCpMappingEdit(gameId){
   const g=games.find(x=>x.id===gameId);
   const rel=cpMappings.find(c=>c.gameId===gameId);
+  const cpOpts=cps.map(c=>`<option value="${c.id}" ${rel&&rel.cpId===c.id?'selected':''}>${c.name}</option>`).join('');
   openModal(`修改游戏-CP关系：《${g.name}》`,`
     <div class="notice">修改将覆盖现有关系，请确认后操作。</div>
     <div class="kv" style="margin-bottom:12px">
       <span class="k">当前CP</span><span class="v">${rel?rel.cp:'—'}</span>
     </div>
-    <div class="field"><label>新CP主体 <span class="req">*</span></label><select class="select" style="width:100%"><option value="">-- 选择 --</option>${cps.map(c=>`<option>${c.name}</option>`).join('')}</select></div>`,
-    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：关系已更新。');closeModal()">确认修改</button>`)
+    <div class="field"><label>新CP主体 <span class="req">*</span></label><select id="cpe_cp" class="select" style="width:100%"><option value="">-- 选择 --</option>${cpOpts}</select></div>`,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="submitCpMappingEdit('${gameId}')">确认修改</button>`)
+}
+function submitCpMappingEdit(gameId){
+  const cpId=document.getElementById('cpe_cp').value;
+  if(!cpId){alert('请选择新的 CP 主体');return;}
+  const rel=cpMappings.find(c=>c.gameId===gameId);
+  const cp=cps.find(c=>c.id===cpId);
+  if(rel&&rel.cpId===cpId){alert('与当前 CP 相同，无需修改');return;}
+  closeModal();
+  confirmDialog('覆盖 CP 关系',
+    `将《${rel?rel.game:''}》的 CP 由 <b>${rel?rel.cp:'—'}</b> 替换为 <b style="color:var(--primary)">${cp.name}</b>？<br/><span style="color:var(--muted);font-size:12px">替换后旧关系将解除。</span>`,
+    function(){
+      if(rel){rel.cpId=cpId;rel.cp=cp.name;}
+      document.getElementById('contentEl').innerHTML=pgCpMapping();
+      alert('原型展示：CP 关系已覆盖更新。');
+    },'确认覆盖','d');
 }
 
 // 解析 FILTER_ENTITY → {type:'pub'|'cp'|'all', id, name}
@@ -1143,7 +1251,7 @@ function pgPubMapping(){
     const jl=!r.isWx&&m.jlIds.length
       ?`<ul style="padding-left:16px;margin:0">${m.jlIds.map((id,j)=>`<li style="margin:2px 0"><span style="font-family:monospace;color:#31557d">${id}</span><span style="color:var(--muted);margin-left:6px">${m.jlNames[j]||''}</span></li>`).join('')}</ul>`
       :'—';
-    const acts=`<button class="link" onclick="openPubMappingDetail('${m.id}')">查看</button>${canBizMapping()?`<button class="link" onclick="openPubMappingEdit('${m.id}')">编辑</button>`:''}${(!r.isWx&&canBizMapping())?`<button class="link" style="color:#7a52b3" onclick="openJlIdsConfig('${m.id}')">配置巨量ID</button>`:''}`;
+    const acts=`<button class="link" onclick="openPubMappingDetail('${m.id}')">查看</button>${isAdmin()?`<button class="link" style="color:#a04000" onclick="openPubMappingEdit('${m.id}')">编辑</button>`:''}${(!r.isWx&&canBizMapping())?`<button class="link" style="color:#7a52b3" onclick="openJlIdsConfig('${m.id}')">配置巨量ID</button>`:''}`;
     return `<tr>
       <td>${gameCell}</td>
       <td>${tag}</td>
@@ -1796,12 +1904,11 @@ function pgCashRevDashboard(){
   <div class="card" style="margin-bottom:16px">
     <div class="card-hd"><div class="card-title">账期汇总</div><div class="card-sub">各账期现金收入小计</div></div>
     <div class="tw"><table class="table" style="min-width:480px">
-      <thead><tr><th>账期</th><th>现金收入小计</th><th>条目数</th></tr></thead>
+      <thead><tr><th>账期</th><th>现金收入小计</th></tr></thead>
       <tbody>${periodSummaries.length?periodSummaries.map(p=>`<tr>
         <td style="font-weight:800;color:var(--primary)">${p.period}</td>
         <td style="font-weight:700">${mn(p.cashRev)}</td>
-        <td style="color:var(--muted)">${p.cnt}</td>
-      </tr>`).join(''):`<tr><td colspan="3" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
+      </tr>`).join(''):`<tr><td colspan="2" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
     </table></div>
   </div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>财务确认机制：</b>财务核对每条账期的现金收入无误后点击「财务确认」。仅已确认的账期现金收入会同步到「发行商分账明细」。</div>
@@ -1860,12 +1967,11 @@ function pgVRevDashboard(){
   <div class="card" style="margin-bottom:16px">
     <div class="card-hd"><div class="card-title">账期汇总</div><div class="card-sub">各账期广告金收入小计</div></div>
     <div class="tw"><table class="table" style="min-width:480px">
-      <thead><tr><th>账期</th><th>广告金收入小计</th><th>条目数</th></tr></thead>
+      <thead><tr><th>账期</th><th>广告金收入小计</th></tr></thead>
       <tbody>${periodSummaries.length?periodSummaries.map(p=>`<tr>
         <td style="font-weight:800;color:var(--primary)">${p.period}</td>
         <td style="font-weight:700;color:var(--purple)">${fmt(p.vRev)}</td>
-        <td style="color:var(--muted)">${p.cnt}</td>
-      </tr>`).join(''):`<tr><td colspan="3" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
+        </tr>`).join(''):`<tr><td colspan="2" style="text-align:center;color:var(--weak);padding:20px">暂无数据</td></tr>`}</tbody>
     </table></div>
   </div>
   <div class="notice" style="border-color:#e9dfff;background:#f7f3ff;color:#5a3a8a">📋 <b>业务运营确认机制：</b>业务运营核对每条账期的广告金收入无误后点击「业务运营确认」。仅已确认的账期广告金收入会同步到「发行商分账明细」。</div>
