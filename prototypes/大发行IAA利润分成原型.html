@@ -624,7 +624,7 @@ function openGameForm(){
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400"><input type="checkbox" style="width:14px;height:14px"/> 抖音小游戏</label>
         </div>
       </div>
-      <div class="field"><label>浑天仪项目ID</label><input class="input" style="width:100%" placeholder="如：HTY-PROJ-001"/><div class="hint">用于关联云服务成本，按月归属至该游戏</div></div>
+      <div class="field"><label>浑天仪项目ID</label><input class="input" style="width:100%" placeholder="如：HTY-PROJ-001"/><div class="hint">1:1 关联：每个游戏唯一对应一个浑天仪项目，云服务成本以游戏为单位归集</div></div>
       <div class="field"><label>浑天仪项目名称</label><input class="input" style="width:100%" placeholder="如：幻境传说-公共项目"/></div>
       <div class="field" style="grid-column:1/-1"><label>备注</label><textarea class="input" style="width:100%;height:60px;resize:vertical" placeholder="可选说明"></textarea></div>
     </div>`,
@@ -643,7 +643,7 @@ function openGameEditForm(id){
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400"><input type="checkbox" ${g.platforms.includes('抖音小游戏')?'checked':''} style="width:14px;height:14px"/> 抖音小游戏</label>
         </div>
       </div>
-      <div class="field"><label>浑天仪项目ID</label><input class="input" style="width:100%" value="${g.cloudProjectId||''}" placeholder="如：HTY-PROJ-001"/><div class="hint">用于关联云服务成本，按月归属至该游戏</div></div>
+      <div class="field"><label>浑天仪项目ID</label><input class="input" style="width:100%" value="${g.cloudProjectId||''}" placeholder="如：HTY-PROJ-001"/><div class="hint">1:1 关联：每个游戏唯一对应一个浑天仪项目，云服务成本以游戏为单位归集</div></div>
       <div class="field"><label>浑天仪项目名称</label><input class="input" style="width:100%" value="${g.cloudProjectName||''}" placeholder="如：幻境传说-公共项目"/></div>
       <div class="field" style="grid-column:1/-1"><label>备注</label><textarea class="input" style="width:100%;height:60px;resize:vertical">${g.remark||''}</textarea></div>
     </div>`,
@@ -1835,19 +1835,19 @@ function pgCloudCost(){
   const allPeriodsAsc=[...new Set(settle.map(r=>r.period))].sort();
   const startF=window._ccStart||'2026-04';
   const endF=window._ccEnd||'2026-04';
-  const projF=window._ccProj||'all';
-  const projMap={};
+  const gameF=window._ccGame||'all';
+  // 按账期 × 游戏聚合云服务成本（一个游戏对应一个浑天仪项目，1:1）
+  const rowMap={};
   settle.forEach(r=>{
     if(r.period<startF||r.period>endF)return;
     const g=games.find(x=>x.name===r.game);
     if(!g||!g.cloudProjectId)return;
-    if(projF!=='all'&&g.cloudProjectId!==projF)return;
+    if(gameF!=='all'&&g.id!==gameF)return;
     const k=`${r.period}__${g.cloudProjectId}`;
-    if(!projMap[k])projMap[k]={key:k,period:r.period,projectId:g.cloudProjectId,projectName:g.cloudProjectName||'—',cost:0,games:new Set()};
-    projMap[k].cost+=(r.serverCost||0);
-    projMap[k].games.add(r.game);
+    if(!rowMap[k])rowMap[k]={key:k,period:r.period,gameId:g.id,gameName:g.name,projectId:g.cloudProjectId,projectName:g.cloudProjectName||'—',cost:0};
+    rowMap[k].cost+=(r.serverCost||0);
   });
-  const rows=Object.values(projMap).sort((a,b)=>b.period.localeCompare(a.period)||a.projectId.localeCompare(b.projectId));
+  const rows=Object.values(rowMap).sort((a,b)=>b.period.localeCompare(a.period)||a.gameId.localeCompare(b.gameId));
   const totalCost=rows.reduce((s,r)=>s+r.cost,0);
   const confirmedCnt=rows.filter(r=>(window._cloudCostConfirmed||new Set()).has(r.key)).length;
   const pendingCnt=rows.length-confirmedCnt;
@@ -1862,18 +1862,19 @@ function pgCloudCost(){
           :`<span class="tag" style="background:#fff3e0;color:var(--orange);font-size:11px">待财务确认</span>`);
     return `<tr style="${ck?'':'background:#fffbf5'}">
       <td style="font-family:monospace">${r.period}</td>
+      <td style="font-family:monospace">${r.gameId}</td>
+      <td><b>《${r.gameName}》</b></td>
       <td style="font-family:monospace">${r.projectId}</td>
-      <td>${r.projectName}</td>
-      <td>${[...r.games].map(g=>`《${g}》`).join('、')||'<span style="color:var(--muted)">—</span>'}</td>
+      <td style="color:var(--muted)">${r.projectName}</td>
       <td style="font-weight:800;color:#7a52b3">${fmt(r.cost)}</td>
       <td>${confirmCell}</td>
     </tr>`;
   });
 
-  const allProjects=[...new Map(games.filter(g=>g.cloudProjectId).map(g=>[g.cloudProjectId,g])).values()];
+  const allGames=games.filter(g=>g.cloudProjectId);
 
-  return `<div class="ph"><div><div class="pt">账期云服务成本</div><div class="pd">每月从浑天仪同步项目级云服务成本，按账期 × 浑天仪项目展示。<b style="color:var(--primary)">由财务对账后确认</b>；确认后该账期对应游戏的 CP 分账方可正常出账。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
-  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>云服务成本归属：</b>云服务成本以「浑天仪项目」为单位归集，每个游戏可在「游戏管理」中关联一个浑天仪项目；同一项目可服务多个游戏。未关联项目的游戏不会产生云服务成本归属。</div>
+  return `<div class="ph"><div><div class="pt">账期云服务成本</div><div class="pd">每月从浑天仪同步云服务成本，按账期 × 游戏应用展示（一个游戏对应一个浑天仪项目）。<b style="color:var(--primary)">由财务对账后确认</b>；确认后该账期对应游戏的 CP 分账方可正常出账。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>云服务成本归属：</b>云服务成本以「游戏应用」为单位归集，每个游戏在「游戏管理」中关联唯一的浑天仪项目（1:1）。未关联浑天仪项目的游戏不会产生云服务���本归属。</div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0">
     <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">云服务成本合计</div><div style="font-size:20px;font-weight:800;margin-top:4px;color:#7a52b3">${fmt(totalCost)}</div></div>
     <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">已确认</div><div style="font-size:20px;font-weight:800;margin-top:4px;color:var(--green)">${confirmedCnt} 条</div></div>
@@ -1884,14 +1885,14 @@ function pgCloudCost(){
     <select class="select" onchange="window._ccStart=this.value;document.getElementById('contentEl').innerHTML=pgCloudCost()">${allPeriodsAsc.map(p=>`<option value="${p}" ${startF===p?'selected':''}>${p}</option>`).join('')}</select>
     <span style="font-size:12px;color:var(--muted)">结束账期</span>
     <select class="select" onchange="window._ccEnd=this.value;document.getElementById('contentEl').innerHTML=pgCloudCost()">${[...allPeriodsAsc].reverse().map(p=>`<option value="${p}" ${endF===p?'selected':''}>${p}</option>`).join('')}</select>
-    <span style="font-size:12px;color:var(--muted);margin-left:12px">浑天仪项目</span>
-    <select class="select" onchange="window._ccProj=this.value;document.getElementById('contentEl').innerHTML=pgCloudCost()">
-      <option value="all" ${projF==='all'?'selected':''}>全部项目</option>
-      ${allProjects.map(g=>`<option value="${g.cloudProjectId}" ${projF===g.cloudProjectId?'selected':''}>${g.cloudProjectId} · ${g.cloudProjectName}</option>`).join('')}
+    <span style="font-size:12px;color:var(--muted);margin-left:12px">游戏</span>
+    <select class="select" onchange="window._ccGame=this.value;document.getElementById('contentEl').innerHTML=pgCloudCost()">
+      <option value="all" ${gameF==='all'?'selected':''}>全部游戏</option>
+      ${allGames.map(g=>`<option value="${g.id}" ${gameF===g.id?'selected':''}>《${g.name}》</option>`).join('')}
     </select>
-    <button class="btn g sm" onclick="window._ccStart='2026-04';window._ccEnd='2026-04';window._ccProj='all';document.getElementById('contentEl').innerHTML=pgCloudCost()">重置</button>
+    <button class="btn g sm" onclick="window._ccStart='2026-04';window._ccEnd='2026-04';window._ccGame='all';document.getElementById('contentEl').innerHTML=pgCloudCost()">重置</button>
   </div>
-  ${tbl(['账期','浑天仪项目ID','项目名称','涉及游戏','云服务成本','确认状态'],tableRows.length?tableRows:[`<tr><td colspan="6" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`])}`;
+  ${tbl(['账期','游戏ID','游戏名称','浑天仪项目ID','项目名称','云服务成本','确认状态'],tableRows.length?tableRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`])}`;
 }
 
 /* PAGE: 每日收支对账（每日 T+1 数据，发行商/业务运营对账用）
