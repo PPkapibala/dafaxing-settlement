@@ -1251,7 +1251,7 @@ function pgPubMapping(){
     const jl=!r.isWx&&m.jlIds.length
       ?`<ul style="padding-left:16px;margin:0">${m.jlIds.map((id,j)=>`<li style="margin:2px 0"><span style="font-family:monospace;color:#31557d">${id}</span><span style="color:var(--muted);margin-left:6px">${m.jlNames[j]||''}</span></li>`).join('')}</ul>`
       :'—';
-    const acts=`<button class="link" onclick="openPubMappingDetail('${m.id}')">查看</button>${isAdmin()?`<button class="link" style="color:#a04000" onclick="openPubMappingEdit('${m.id}')">编辑</button>`:''}${(!r.isWx&&canBizMapping())?`<button class="link" style="color:#7a52b3" onclick="openJlIdsConfig('${m.id}')">配置巨量ID</button>`:''}`;
+    const acts=`<button class="link" onclick="openPubMappingDetail('${m.id}')">查看</button>${isAdmin()?`<button class="link" style="color:#a04000" onclick="openPubMappingEdit('${m.id}')">编辑</button>`:''}${(!r.isWx&&canConfigJl())?`<button class="link" style="color:#7a52b3" onclick="openJlIdsConfig('${m.id}')">配置巨量ID</button>`:''}`;
     return `<tr>
       <td>${gameCell}</td>
       <td>${tag}</td>
@@ -2026,6 +2026,7 @@ function openRevDailyDetail(game,platform,period){
     <td colspan="2"></td>
   </tr>`;
   openModal(`每日收入明细 · 《${game}》${platform} · ${period}`,`
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn g sm" onclick="alert('原型展示：导出每日收入明细 — 《${game}》${platform} · ${period}')">↓ 导出</button></div>
     <div class="kv" style="margin-bottom:14px">
       <span class="k">发行商</span><span class="v">${monthData.pub}</span>
       <span class="k">月度现金收入</span><span class="v" style="font-size:14px;font-weight:800">${mn(monthData.cashRev)}</span>
@@ -2216,6 +2217,7 @@ function openCostDailyDetail(game,platform,period){
     <td colspan="2"></td>
   </tr>`;
   openModal(`每日成本明细 · 《${game}》${platform} · ${period}`,`
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn g sm" onclick="alert('原型展示：导出每日成本明细 — 《${game}》${platform} · ${period}')">↓ 导出</button></div>
     <div class="kv" style="margin-bottom:14px">
       <span class="k">发行商</span><span class="v">${monthData.pub}</span>
       <span class="k">月度总成本</span><span class="v" style="font-size:14px;font-weight:800">${mn(monthData.cost)}</span>
@@ -2546,6 +2548,7 @@ function openDailyDetail(key,period,game,platform,pub){
   });
   const totCash=Math.round(monthPs.pubCash);
   openModal(`每日分账明细 · 《${game}》${platform} · ${period}`,`
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn g sm" onclick="alert('原型展示：导出每日分账明细 — 《${game}》${platform} · ${period}')">↓ 导出</button></div>
     <div class="kv" style="margin-bottom:14px">
       <span class="k">发行商</span><span class="v">${pub}</span>
       <span class="k">分成比例</span><span class="v">${monthPs.rate}%${monthPs.tierApplied?'（阶梯Ⅱ）':(monthPs.rule&&monthPs.rule.tierEnabled?'（阶梯Ⅰ）':'')}</span>
