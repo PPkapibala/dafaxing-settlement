@@ -261,7 +261,13 @@ const pays=[
   {id:'PAY-202603-007',period:'2026-03',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:137760,approval:'已通过',exec:'打款成功',time:'2026-04-05 16:08',bpm:'BPM-PAY-0992',flow:'YQ-20260405004',bkFlow:'BK-846505',reason:'—',invoiceFile:'发票_光速传媒_137760.pdf',billFile:'对账单_光速传媒_2026-03_137760.pdf'},
   {id:'PAY-202604-002',period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:90000,approval:'已通过',exec:'打款中',time:'2026-04-18 14:05',bpm:'BPM-PAY-1007',flow:'YQ-20260418002',bkFlow:'—',reason:'—'},
   {id:'PAY-202604-003',period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',amount:30000,approval:'已驳回',exec:'待执行',time:'2026-04-19 09:40',bpm:'BPM-PAY-1010',flow:'—',bkFlow:'—',reason:'本期可提款金额为负，不允许提款'},
-  {id:'PAY-202604-004',period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:25000,approval:'已通过',exec:'打款失败',time:'2026-04-21 16:33',bpm:'BPM-PAY-1012',flow:'YQ-20260421009',bkFlow:'BK-851002',reason:'联行号与开户支行不匹配'}
+  {id:'PAY-202604-004',period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:25000,approval:'已通过',exec:'打款失败',time:'2026-04-21 16:33',bpm:'BPM-PAY-1012',flow:'YQ-20260421009',bkFlow:'BK-851002',reason:'联行号与开户支行不匹配'},
+  // —— 终止流程示例：账户错填 → 失败 → 财务终止 → 发行商修正账户 → 同账期重新发起 → 成功 ——
+  {id:'PAY-202602-005',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:118000,approval:'已通过',exec:'已终止',time:'2026-03-04 10:22',bpm:'BPM-PAY-0830',flow:'YQ-20260304005',bkFlow:'BK-840117',reason:'收款账户名称与开户行不一致',terminatedAt:'2026-03-05 09:15',terminatedBy:'李四（财务）',invoiceFile:'发票_光速传媒_118000.pdf',billFile:'对账单_光速传媒_2026-02_118000.pdf'},
+  {id:'PAY-202602-009',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:118000,approval:'已通过',exec:'打款成功',time:'2026-03-06 14:08',bpm:'BPM-PAY-0838',flow:'YQ-20260306011',bkFlow:'BK-840205',reason:'—',invoiceFile:'发票_光速传媒_118000.pdf',billFile:'对账单_光速传媒_2026-02_118000.pdf',prevTerminatedId:'PAY-202602-005'},
+  // —— 重新打款示例：失败（非账户问题）→ 财务点重新打款生成关联新单 → 成功 ——
+  {id:'PAY-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款失败',time:'2026-04-08 09:55',bpm:'BPM-PAY-0995',flow:'YQ-20260408007',bkFlow:'BK-846930',reason:'对方银行系统繁忙，超时未响应',invoiceFile:'发票_灵犀互娱_54200.pdf',billFile:'对账单_灵犀互娱_2026-03_54200.pdf'},
+  {id:'PAY-R-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款成功',time:'2026-04-08 16:30',bpm:'BPM-PAY-0996',flow:'YQ-20260408022',bkFlow:'BK-847105',reason:'—',relateId:'PAY-202603-008',invoiceFile:'发票_灵犀互娱_54200.pdf',billFile:'对账单_灵犀互娱_2026-03_54200.pdf'}
 ];
 const syncs=[
   {game:'幻境传说',platform:'微信小游戏',date:'2026-04-27',status:'成功',reason:'—',syncTime:'2026-04-28 06:10'},
@@ -273,7 +279,7 @@ const syncs=[
 /* ──────────── HELPERS ──────────── */
 function fmt(n){return '¥ '+Number(n).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function mn(n){const cls=n<0?'neg':'pos';return `<span class="money ${cls}">${fmt(n)}</span>`}
-function ts(s){const m={'生效中':'green','审批中':'orange','已到期':'gray','已驳回':'red','草稿':'blue','成功':'green','失败':'red','打款成功':'green','打款中':'orange','打款失败':'red','待执行':'gray','已通过':'green','待审批':'orange','合作中':'green','已授权':'green','待授权':'orange'};return `<span class="tag ${m[s]||'gray'}">${s}</span>`}
+function ts(s){const m={'生效中':'green','审批中':'orange','已到期':'gray','已驳回':'red','草稿':'blue','成功':'green','失败':'red','打款成功':'green','打款中':'orange','打款失败':'red','已终止':'gray','已终止 · 待重新发起':'gray','待执行':'gray','已通过':'green','待审批':'orange','合作中':'green','已授权':'green','待授权':'orange'};return `<span class="tag ${m[s]||'gray'}">${s}</span>`}
 function tbl(ths,rows,opts){
   opts=opts||{};
   const pageKey=opts.pageKey;
@@ -1601,9 +1607,9 @@ function isBillConfirmed(period,game,platform){
   const k=`${period}__${game}__${platform}`;
   return (window._billConfirmed||new Set()).has(k);
 }
-// 找该(账期/游戏/平台/发行商)的"占用中"打款单（已驳回不算占用）
+// 找该(账期/游戏/平台/发行商)的"占用中"打款单（已驳回 / 已终止 不算占用）
 function activePayFor(r){
-  return pays.find(p=>p.period===r.period&&p.game===r.game&&p.platform===r.platform&&p.pub===r.pub&&p.approval!=='已驳回');
+  return pays.find(p=>p.period===r.period&&p.game===r.game&&p.platform===r.platform&&p.pub===r.pub&&p.approval!=='已驳回'&&p.exec!=='已终止');
 }
 // 操作列发起/查看打款按钮：根据 pays 状态切换文案、颜色，点击进入审批详情
 function renderPayActionBtn(r){
@@ -1615,7 +1621,7 @@ function renderPayActionBtn(r){
   }
   const detailFn=isPublisher()?'openMyPayDetail':'openPayDetail';
   // 失败对所有角色在此入口统一脱敏为"打款中"
-  const masked=p.exec==='打款失败'?'打款中':p.exec;
+  const masked=p.exec==='打款失败'?'打款中':(p.exec==='已终止'?'已终止 · 待重新发起':p.exec);
   let label,color;
   if(p.approval==='待审批'){label='审批中';color='var(--orange)';}
   else if(masked==='打款中'){label='打款中';color='var(--orange)';}
@@ -2793,7 +2799,7 @@ function openPayNewModal(){
   const selPub=publishers.find(p=>p.id===selPubId)||visiblePubs[0];
   const pubReady=selPub?settle.filter(r=>r.pub===selPub.name&&isSettleReady(r.period,r.game,r.platform)&&isBillConfirmed(r.period,r.game,r.platform)):[];
   // 已存在的申请（除"已驳回"以外都视为该账期已占用）
-  const hasPayApplied=(period,game,platform,pub)=>pays.some(p=>p.period===period&&p.game===game&&p.platform===platform&&p.pub===pub&&p.approval!=='已驳回');
+  const hasPayApplied=(period,game,platform,pub)=>pays.some(p=>p.period===period&&p.game===game&&p.platform===platform&&p.pub===pub&&p.approval!=='已驳回'&&p.exec!=='已终止');
   const periodUnits=pubReady.map(r=>{
     const ps=calcPubSettle(r);
     const settleAmt=Math.round(ps.pubCash*100)/100;
@@ -2952,11 +2958,11 @@ function pgPayments(){
 
   const opCol=(p)=>{
     const view=`<button class="link" onclick="openPayDetail('${p.id}')">查看</button>`;
-    if(p.exec==='打款失败'&&finView)return view+`<button class="link" style="color:var(--red);margin-left:8px" onclick="openRepay('${p.id}')">重新打款</button>`;
+    if(p.exec==='打款失败'&&finView)return view+`<button class="link" style="color:var(--red);margin-left:8px" onclick="openRepay('${p.id}')">重新打款</button><button class="link" style="color:#a04000;margin-left:8px" onclick="terminatePay('${p.id}')">终止流程</button>`;
     if(p.exec==='打款成功'&&finView)return view+`<button class="link" style="margin-left:8px" onclick="alert('下载电子回单（Mock）：'+'${p.id}')">回单</button>`;
     return view;
   };
-  const rows=data.map(p=>`<tr style="${p.exec==='打款失败'?'background:#fff8f8':''}"><td style="font-family:monospace;font-size:12px">${p.id}${p.relateId?`<div style="font-size:10px;color:var(--muted)">↻ 关联 ${p.relateId}</div>`:''}</td><td>《${p.game}》</td><td>${p.platform}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(p.exec)}</td><td style="color:var(--muted)">${p.time}</td><td>${opCol(p)}</td></tr>`);
+  const rows=data.map(p=>`<tr style="${p.exec==='打款失败'?'background:#fff8f8':(p.exec==='已终止'?'background:#f5f5f5;color:var(--muted)':'')}"><td style="font-family:monospace;font-size:12px">${p.id}${p.relateId?`<div style="font-size:10px;color:var(--muted)">↻ 关联 ${p.relateId}</div>`:''}</td><td>《${p.game}》</td><td>${p.platform}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(p.exec)}</td><td style="color:var(--muted)">${p.time}</td><td>${opCol(p)}</td></tr>`);
 
   return `<div class="ph"><div><div class="pt">打款申请单${finView?'（财务内部视图）':''}</div><div class="pd">展示所有打款申请的真实审批状态与执行状态；打款失败条目标红，可查看失败原因。${ent.type==='cp'?'<b style="color:var(--orange)">（Phase 1 中CP不参与直接打款，由财务线下处理）</b>':''}</div></div><div class="acts"><button class="btn g" onclick="alert('导出申请单列表（含失败处理记录）')">↓ 导出</button></div></div>
   ${banner}
@@ -2976,7 +2982,8 @@ function pgMyPayments(){
   data=data.filter(p=>!p.relateId);
 
   // 脱敏映射：失败 → 打款中（在视图层做，不改底层数据）
-  const maskExec=(s)=>s==='打款失败'?'打款中':s;
+  // 脱敏映射：失败 → 打款中（财务内部处理中）；已终止 → 已终止 · 待重新发起（明确告知发行商）
+  const maskExec=(s)=>s==='打款失败'?'打款中':(s==='已终止'?'已终止 · 待重新发起':s);
 
   const rows=data.map(p=>{
     const shown=maskExec(p.exec);
@@ -3097,7 +3104,7 @@ function openInvoicePreview(payId,type){
 function openMyPayDetail(id){
   const p=pays.find(x=>x.id===id);
   const pub=publishers.find(x=>x.name===p.pub);
-  const masked=p.exec==='打款失败'?'打款中':p.exec;
+  const masked=p.exec==='打款失败'?'打款中':(p.exec==='已终止'?'已终止 · 待重新发起':p.exec);
   const isProcessing=masked==='打款中';
   openModal(`打款详情：${p.id}`,`
   <div class="stepper">
@@ -3107,6 +3114,8 @@ function openMyPayDetail(id){
   <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">游戏</span><span class="v">《${p.game}》</span><span class="k">平台类型</span><span class="v">${p.platform}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(masked)}</span><span class="k">发起时间</span><span class="v">${p.time}</span></div>
   <div class="sec-title">收款账户</div>
   <div class="kv"><span class="k">账户名称</span><span class="v">${pub?pub.accName:'—'}</span><span class="k">开户银行</span><span class="v">${pub?pub.bank:'—'}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">${pub?'****'+pub.acc:'—'}</span></div>
+  <div class="sec-title">附件文件</div>
+  ${_renderPayAttachments(p)}
   ${masked==='打款成功'?'<div style="margin-top:14px"><button class="btn g" onclick="alert(\'下载电子回单（Mock）\')">↓ 下载电子回单</button></div>':''}`)
 }
 
@@ -3114,13 +3123,17 @@ function openPayDetail(id){
   const p=pays.find(x=>x.id===id);
   const pub=publishers.find(x=>x.name===p.pub);
   const isFail=p.exec==='打款失败';
+  const isTerm=p.exec==='已终止';
   const finView=canFin();
   const failBanner=isFail
-    ?`<div class="alert">⚠ 打款失败原因：${p.reason}<div style="margin-top:6px;font-size:12px;color:var(--muted)">⚠ 此状态对发行商<b>不可见</b>（脱敏为「打款中」）。财务可发起「重新打款」生成新单（自动关联本单号），新单成功后发行商视图自动翻转为「打款成功」。</div></div>`
-    :'';
+    ?`<div class="alert">⚠ 打款失败原因：${p.reason}<div style="margin-top:6px;font-size:12px;color:var(--muted)">⚠ 此状态对发行商<b>不可见</b>（脱敏为「打款中」）。财务可发起「重新打款」生成新单（自动关联本单号），新单成功后发行商视图自动翻转为「打款成功」；如失败需修改申请单内容（账户/金额等），可点击「终止流程」释放该账期占用，修正后重新发起。</div></div>`
+    :(isTerm?`<div class="alert" style="background:#f0f0f0;border-color:#ccc;color:#444">🛑 该申请单已被终止${p.terminatedBy?`（操作人：${p.terminatedBy}`:''}${p.terminatedAt?` · ${p.terminatedAt}）`:'）'}<div style="margin-top:6px;font-size:12px;color:var(--muted)">该账期占用已释放，可重新发起申请。原失败原因：${p.reason||'—'}</div></div>`:'');
   const footActs=[];
   if(p.exec==='打款成功')footActs.push(`<button class="btn g" onclick="alert('下载电子回单（Mock）')">↓ 下载电子回单</button>`);
-  if(isFail&&finView)footActs.push(`<button class="btn p" onclick="closeModal();openRepay('${p.id}')">↻ 重新打款</button>`);
+  if(isFail&&finView){
+    footActs.push(`<button class="btn p" onclick="closeModal();openRepay('${p.id}')">↻ 重新打款</button>`);
+    footActs.push(`<button class="btn g" style="border-color:#a04000;color:#a04000" onclick="closeModal();terminatePay('${p.id}')">🛑 终止流程</button>`);
+  }
 
   openModal(`打款申请详情：${p.id}（财务内部视图）`,`${failBanner}
   <div class="stepper">
@@ -3129,10 +3142,58 @@ function openPayDetail(id){
   <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">游戏</span><span class="v">《${p.game}》</span><span class="k">平台类型</span><span class="v">${p.platform}</span><span class="k">发行商主体</span><span class="v">${p.pub}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(p.exec)}</span><span class="k">发起时间</span><span class="v">${p.time}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${p.bpm}</span><span class="k">打款流水号</span><span class="v" style="font-family:monospace">${p.flow}</span><span class="k">银行交易流水</span><span class="v" style="font-family:monospace">${p.bkFlow}</span>${p.relateId?`<span class="k">关联原单</span><span class="v" style="font-family:monospace">${p.relateId}</span>`:''}</div>
   <div class="sec-title">收款账户快照（提交时锁定）</div>
   <div class="kv"><span class="k">账户名称</span><span class="v">${pub?pub.accName:'—'}</span><span class="k">开户银行</span><span class="v">${pub?pub.bank:'—'}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">${pub?'****'+pub.acc:'—'}</span><span class="k">联行号</span><span class="v" style="font-family:monospace">${pub?pub.bankNo:'—'}</span></div>
+  <div class="sec-title">附件文件</div>
+  ${_renderPayAttachments(p)}
   ${footActs.length?`<div style="margin-top:14px;display:flex;gap:8px">${footActs.join('')}</div>`:''}`)
 }
 
+function _renderPayAttachments(p){
+  const item=(label,filename,type,color)=>{
+    if(!filename){return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px dashed var(--line2);border-radius:6px;background:#fafbfc;color:var(--weak);font-size:12.5px">
+      <span style="font-size:18px">📄</span>
+      <span style="flex:1"><b style="color:var(--muted)">${label}</b><div style="font-size:11.5px;color:var(--weak);margin-top:2px">未上传</div></span>
+    </div>`;}
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid ${color.border};border-radius:6px;background:${color.bg}">
+      <span style="font-size:20px">${type==='invoice'?'🧾':'📋'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;color:${color.label};font-weight:700">${label}</div>
+        <div style="font-family:monospace;font-size:12px;color:${color.file};margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${filename}</div>
+      </div>
+      <button class="btn g sm" onclick="openInvoicePreview('${p.id}','${type}')">预览</button>
+      <button class="btn g sm" onclick="alert('下载（Mock）：${filename}')">下载</button>
+    </div>`;
+  };
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    ${item('发票文件',p.invoiceFile,'invoice',{border:'#cfe0f5',bg:'#f0f7ff',label:'#1a4a80',file:'#31557d'})}
+    ${item('对账单文件',p.billFile,'bill',{border:'#c6e6d6',bg:'#f0faf5',label:'#0d4a2e',file:'#1a6a3e'})}
+  </div>`;
+}
+
 /* 财务：失败单重新打款 */
+function terminatePay(payId){
+  if(!canFin()){alert('当前角色无权终止打款流程');return}
+  const p=pays.find(x=>x.id===payId);
+  if(!p){alert('未找到打款单');return}
+  if(p.exec!=='打款失败'){alert('仅「打款失败」的申请单可以终止');return}
+  closeModal();
+  confirmDialog('确认终止打款流程',
+    `即将终止打款申请单 <b style="font-family:monospace">${p.id}</b>。<br/><br/>
+     <div style="background:#fff8f0;border:1px solid #ffe0b2;color:#a05000;padding:10px;border-radius:6px;font-size:12.5px">
+       <b>失败原因：</b>${p.reason||'—'}<br/>
+       <b>失败金额：</b>${fmt(p.amount)}
+     </div>
+     <div style="margin-top:10px;font-size:12.5px;color:#444">
+       适用于<b>需要修正申请单内容</b>的失败场景（如对方账户/联行号填错、金额需调整等）。终止后该账期占用将释放，可重新发起申请。<br/>
+       <span style="color:var(--orange)">⚠ 请先到「发行商主体管理」修正账户/对账材料后，再到「发行商分账明细」对应账期重新发起。</span>
+     </div>`,
+    function(){
+      p.exec='已终止';
+      p.terminatedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+      p.terminatedBy=(SESSION&&SESSION.display)||ROLE;
+      document.getElementById('contentEl').innerHTML=pgPayments();
+      alert(`原型展示：申请单 ${p.id} 已终止。\n该账期占用已释放，请先修正账户信息后重新发起申请。`);
+    },'确认终止','d');
+}
 function openRepay(origId){
   if(!canFin()){alert('当前角色无权处理失败打款');return}
   const p=pays.find(x=>x.id===origId);
