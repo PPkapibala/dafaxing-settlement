@@ -1595,6 +1595,12 @@ function syncRevConfirmed(){
   if(!window._vRevConfirmed)window._vRevConfirmed=new Set();
   window._revConfirmed=new Set([...window._cashRevConfirmed].filter(k=>window._vRevConfirmed.has(k)));
 }
+// 投放成本：发行商 + 业务 双方都确认才算"已确认"
+function syncCostConfirmed(){
+  if(!window._costPubConfirmed)window._costPubConfirmed=new Set();
+  if(!window._costBizConfirmed)window._costBizConfirmed=new Set();
+  window._costConfirmed=new Set([...window._costPubConfirmed].filter(k=>window._costBizConfirmed.has(k)));
+}
 function isSettleReady(period,game,platform){
   const k=`${period}__${game}__${platform}`;
   const cash=window._cashRevConfirmed||new Set();
@@ -2087,18 +2093,30 @@ function pgCostDashboard(){
     byPeriod[r.period].cnt++;
   });
   const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
-  // 明细行
-  const costConfirmedSet=window._costConfirmed||new Set();
-  const canConfirmCost=isPublisher();
+  // 明细行（成本需发行商 + 业务双方确认）
+  syncCostConfirmed();
+  const pubSet=window._costPubConfirmed;
+  const bizSet=window._costBizConfirmed;
+  const isPub=isPublisher();
+  const isBiz=['业务运营','业务负责人','系统管理员'].includes(ROLE);
   const detailRows=data.map(r=>{
     const cashRatio=r.cost?(r.cashCost/r.cost*100):0;
     const ckey=`${r.period}__${r.game}__${r.platform}`;
-    const ck=costConfirmedSet.has(ckey);
-    const confirmCell=ck
-      ?`<span class="tag green" style="font-size:11px">✓ 发行商已确认</span>`
-      :(canConfirmCost
-          ?`<button class="btn p sm" onclick="confirmCost('${ckey}')">确认无异议</button>`
-          :`<span class="tag" style="background:#fff3e0;color:var(--orange);font-size:11px">待发行商确认</span>`);
+    const pubOk=pubSet.has(ckey);
+    const bizOk=bizSet.has(ckey);
+    const badge=(ok,label,color)=>ok
+      ?`<span style="display:inline-flex;align-items:center;gap:3px;background:${color.bg};color:${color.text};border:1px solid ${color.border};border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700">✓ ${label}</span>`
+      :`<span style="display:inline-flex;align-items:center;gap:3px;background:#fafafa;color:var(--muted);border:1px solid #e5e7eb;border-radius:10px;padding:1px 8px;font-size:11px">待${label}</span>`;
+    const pubBadge=badge(pubOk,'发行商',{bg:'#fff7ec',text:'#a05000',border:'#ffd9b3'});
+    const bizBadge=badge(bizOk,'业务',{bg:'#fff3e0',text:'#7a4a00',border:'#ffd9b3'});
+    const actBtns=[];
+    if(isPub&&!pubOk)actBtns.push(`<button class="btn p sm" onclick="confirmCostPub('${ckey}')">发行商确认</button>`);
+    if(isBiz&&!bizOk)actBtns.push(`<button class="btn p sm" style="background:#b25a00;border-color:#b25a00" onclick="confirmCostBiz('${ckey}')">业务确认</button>`);
+    const allOk=pubOk&&bizOk;
+    const confirmCell=`<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start">
+      <div style="display:flex;gap:4px;flex-wrap:wrap">${pubBadge}${bizBadge}</div>
+      ${allOk?'<span style="font-size:11px;color:var(--green);font-weight:700">✓ 双方已确认</span>':(actBtns.length?`<div style="display:flex;gap:4px;flex-wrap:wrap">${actBtns.join('')}</div>`:'')}
+    </div>`;
     return `<tr>
       <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
       <td style="font-weight:800">${mn(r.cost)}</td>
@@ -2110,7 +2128,7 @@ function pgCostDashboard(){
     </tr>`;
   });
   return `<div class="ph">
-    <div><div class="pt">账期投放成本</div><div class="pd">展示各游戏现金成本与广告金成本。<b style="color:var(--orange)">由发行商对账后确认</b>；与「财务·现金收入」「业务运营·广告金收入」共同构成三方确认，三方全部确认后该账期自动出账。${SESSION?.role==='发行商'?`<span style="color:var(--orange);font-weight:650">仅可查看本主体下的游戏数据</span>`:''}</div></div>
+    <div><div class="pt">账期投放成本</div><div class="pd">展示各游戏现金成本与广告金成本。<b style="color:var(--orange)">需发行商 + 业务双方确认</b>；与「财务·现金收入」「业务运营·广告金收入」共同构成完整三方确认，全部完成后该账期自动出账。${SESSION?.role==='发行商'?`<span style="color:var(--orange);font-weight:650">仅可查看本主体下的游戏数据</span>`:''}</div></div>
     <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
   </div>
   <div class="g3" style="margin-bottom:20px">
@@ -2187,16 +2205,30 @@ function pgCostDashboard(){
     detailRows.length?detailRows:[`<tr><td colspan="10" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
   ,{pageKey:'costDashboard'})}`;
 }
-function confirmCost(key){
+function confirmCostPub(key){
   const [p,g,pl]=key.split('__');
-  confirmDialog('确认成本数据',
-    `确认账期 <b>${p}</b> · 《${g}》· ${pl} 的<b style="color:var(--orange)">成本数据</b>无异议？<br/>确认后该条记录将参与利润分账计算。`,
+  confirmDialog('发行商确认成本',
+    `确认账期 <b>${p}</b> · 《${g}》· ${pl} 的<b style="color:var(--orange)">投放成本</b>数据无异议（发行商方）？<br/>需双方都确认后该账期才会出账。`,
     function(){
-      if(!window._costConfirmed)window._costConfirmed=new Set();
-      window._costConfirmed.add(key);
+      if(!window._costPubConfirmed)window._costPubConfirmed=new Set();
+      window._costPubConfirmed.add(key);
+      syncCostConfirmed();
       document.getElementById('contentEl').innerHTML=pgCostDashboard();
     },'确认无异议');
 }
+function confirmCostBiz(key){
+  const [p,g,pl]=key.split('__');
+  confirmDialog('业务确认成本',
+    `确认账期 <b>${p}</b> · 《${g}》· ${pl} 的<b style="color:var(--orange)">投放成本</b>数据无异议（业务方）？<br/>需双方都确认后该账期才会出账。`,
+    function(){
+      if(!window._costBizConfirmed)window._costBizConfirmed=new Set();
+      window._costBizConfirmed.add(key);
+      syncCostConfirmed();
+      document.getElementById('contentEl').innerHTML=pgCostDashboard();
+    },'确认无异议');
+}
+// 兼容：旧代码仍可能引用 confirmCost
+function confirmCost(key){confirmCostPub(key);}
 function openCostDailyDetail(game,platform,period){
   const monthData=settle.find(r=>r.game===game&&r.platform===platform&&r.period===period);
   if(!monthData)return;
@@ -2475,7 +2507,14 @@ function pgSettlePubClosed(){
       const miss=[];
       if(!cashOk)miss.push('<span style="color:var(--primary)">财务现金</span>');
       if(!vOk)miss.push('<span style="color:var(--purple)">业务广告金</span>');
-      if(!costOk)miss.push('<span style="color:var(--orange)">成本</span>');
+      if(!costOk){
+        const pubCostOk=(window._costPubConfirmed||new Set()).has(key);
+        const bizCostOk=(window._costBizConfirmed||new Set()).has(key);
+        const missCost=[];
+        if(!pubCostOk)missCost.push('发行商');
+        if(!bizCostOk)missCost.push('业务');
+        miss.push(`<span style="color:var(--orange)">成本(${missCost.join('+')})</span>`);
+      }
       confirmCell=`<span class="tag" style="font-size:11px;background:#fff8f0;color:#a05000;border:1px solid #ffe0b2">待${miss.join(' / ')}确认</span>`;
     }
     const dash='<span style="color:var(--weak)">—</span>';
@@ -2498,7 +2537,7 @@ function pgSettlePubClosed(){
       <td style="font-weight:800">${ready?mn(ps.pubCash)+lossTag(ps.cashIsLossTransfer):dash}</td>
       <td>${ready?mn(ps.pubV)+lossTag(ps.vIsLossTransfer):dash}</td>
       <td>${confirmCell}</td>
-      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${key}')">确认对账单</button>`:''}${ready&&billOk?`<button class="link" style="margin-left:8px" onclick="openBillStatement('${key}')">查看对账单</button>`:''}${ready&&billOk&&['发行商','财务人员','系统管理员'].includes(ROLE)?renderPayActionBtn(r):''}</td>
+      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${key}')">确认对账单</button>`:''}${ready&&billOk?`<button class="link" style="margin-left:8px" onclick="openBillStatement('${key}')">查看对账单</button>`:''}</td>
     </tr>`;
   });
   return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
@@ -2964,7 +3003,7 @@ function pgPayments(){
   };
   const rows=data.map(p=>`<tr style="${p.exec==='打款失败'?'background:#fff8f8':(p.exec==='已终止'?'background:#f5f5f5;color:var(--muted)':'')}"><td style="font-family:monospace;font-size:12px">${p.id}${p.relateId?`<div style="font-size:10px;color:var(--muted)">↻ 关联 ${p.relateId}</div>`:''}</td><td>《${p.game}》</td><td>${p.platform}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(p.exec)}</td><td style="color:var(--muted)">${p.time}</td><td>${opCol(p)}</td></tr>`);
 
-  return `<div class="ph"><div><div class="pt">打款申请单${finView?'（财务内部视图）':''}</div><div class="pd">展示所有打款申请的真实审批状态与执行状态；打款失败条目标红，可查看失败原因。${ent.type==='cp'?'<b style="color:var(--orange)">（Phase 1 中CP不参与直接打款，由财务线下处理）</b>':''}</div></div><div class="acts"><button class="btn g" onclick="alert('导出申请单列表（含失败处理记录）')">↓ 导出</button></div></div>
+  return `<div class="ph"><div><div class="pt">打款申请单${finView?'（财务内部视图）':''}</div><div class="pd">展示所有打款申请的真实审批状态与执行状态；打款失败条目标红，可查看失败原因。${ent.type==='cp'?'<b style="color:var(--orange)">（Phase 1 中CP不参与直接打款，由财务线下处理）</b>':''}</div></div><div class="acts">${canFin()?`<button class="btn p" onclick="openPayApplyModal()">＋ 发起打款申请</button>`:''}<button class="btn g" style="margin-left:6px" onclick="alert('导出申请单列表（含失败处理记录）')">↓ 导出</button></div></div>
   ${banner}
   <div class="filter"><select class="select"><option>全部审批状态</option><option>待审批</option><option>已通过</option><option>已驳回</option></select><select class="select"><option>全部执行状态</option><option>待执行</option><option>打款中</option><option>打款成功</option><option>打款失败</option></select></div>
   ${tbl(['申请单号','游戏','平台','发行商','打款金额','审批状态','执行状态','发起时间','操作'],rows,{pageKey:'payments'})}`;
@@ -3533,10 +3572,14 @@ function confirmGrantData(uid){
   const seedKey='2026-04__幻境传说__微信小游戏';
   window._cashRevConfirmed=window._cashRevConfirmed||new Set();
   window._vRevConfirmed=window._vRevConfirmed||new Set();
+  window._costPubConfirmed=window._costPubConfirmed||new Set();
+  window._costBizConfirmed=window._costBizConfirmed||new Set();
   window._costConfirmed=window._costConfirmed||new Set();
   window._billConfirmed=window._billConfirmed||new Set();
   window._cashRevConfirmed.add(seedKey);
   window._vRevConfirmed.add(seedKey);
+  window._costPubConfirmed.add(seedKey);
+  window._costBizConfirmed.add(seedKey);
   window._costConfirmed.add(seedKey);
   window._billConfirmed.add(seedKey);
   syncRevConfirmed();
