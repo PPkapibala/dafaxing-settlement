@@ -255,19 +255,19 @@ const settle=[
   {period:'2026-01',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:98000,vRev:19000,cost:61000,cashCost:49410,vCost:11590,serverCost:9150,cashP:48590,vP:7410,pubRate:65,cpRate:15}
 ];
 const pays=[
-  {id:'PAY-202604-001',period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',amount:60000,approval:'已通过',exec:'打款成功',time:'2026-04-10 11:20',bpm:'BPM-PAY-1001',flow:'YQ-20260410001',bkFlow:'BK-849201',reason:'—',invoiceFile:'发票_星辰网络_60000.pdf',billFile:'对账单_星辰网络_2026-04_60000.pdf'},
-  {id:'PAY-202603-005',period:'2026-03',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',amount:93936,approval:'已通过',exec:'打款成功',time:'2026-04-02 10:18',bpm:'BPM-PAY-0985',flow:'YQ-20260402001',bkFlow:'BK-846108',reason:'—',invoiceFile:'发票_星辰网络_93936.pdf',billFile:'对账单_星辰网络_2026-03_93936.pdf'},
-  {id:'PAY-202603-006',period:'2026-03',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:46313,approval:'已通过',exec:'打款成功',time:'2026-04-03 14:42',bpm:'BPM-PAY-0987',flow:'YQ-20260403002',bkFlow:'BK-846210',reason:'—',invoiceFile:'发票_星辰网络_46313.pdf',billFile:'对账单_星辰网络_2026-03_46313.pdf'},
-  {id:'PAY-202603-007',period:'2026-03',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:137760,approval:'已通过',exec:'打款成功',time:'2026-04-05 16:08',bpm:'BPM-PAY-0992',flow:'YQ-20260405004',bkFlow:'BK-846505',reason:'—',invoiceFile:'发票_光速传媒_137760.pdf',billFile:'对账单_光速传媒_2026-03_137760.pdf'},
-  {id:'PAY-202604-002',period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:90000,approval:'已通过',exec:'打款中',time:'2026-04-18 14:05',bpm:'BPM-PAY-1007',flow:'YQ-20260418002',bkFlow:'—',reason:'—'},
-  {id:'PAY-202604-003',period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',amount:30000,approval:'已驳回',exec:'待执行',time:'2026-04-19 09:40',bpm:'BPM-PAY-1010',flow:'—',bkFlow:'—',reason:'本期可提款金额为负，不允许提款'},
-  {id:'PAY-202604-004',period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:25000,approval:'已通过',exec:'打款失败',time:'2026-04-21 16:33',bpm:'BPM-PAY-1012',flow:'YQ-20260421009',bkFlow:'BK-851002',reason:'联行号与开户支行不匹配'},
+  {id:'PAY-202604-001',period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',amount:60000,approval:'已通过',exec:'打款成功',time:'2026-04-10 11:20',bpm:'BPM-PAY-1001',flow:'YQ-20260410001',bkFlow:'BK-849201',reason:'—',invoiceFile:'发票_星辰网络_60000.pdf',billFile:'对账单_星辰网络_2026-04_60000.pdf',items:[{game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',amount:60000}]},
+  // —— 2026-03 星辰网络汇总打款示例：两个游戏×平台合开一张申请 ——
+  {id:'PAY-202603-B01',period:'2026-03',game:'多游戏(2)',platform:'多平台',pub:'星辰网络',amount:140249,approval:'已通过',exec:'打款成功',time:'2026-04-03 14:42',bpm:'BPM-PAY-0985',flow:'YQ-20260403002',bkFlow:'BK-846210',reason:'—',invoiceFile:'发票_星辰网络_2026-03_140249.pdf',billFile:'对账单_星辰网络_2026-03_140249.pdf',items:[{game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',amount:93936},{game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',amount:46313}]},
+  {id:'PAY-202603-007',period:'2026-03',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:137760,approval:'已通过',exec:'打款成功',time:'2026-04-05 16:08',bpm:'BPM-PAY-0992',flow:'YQ-20260405004',bkFlow:'BK-846505',reason:'—',invoiceFile:'发票_光速传媒_137760.pdf',billFile:'对账单_光速传媒_2026-03_137760.pdf',items:[{game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:137760}]},
+  {id:'PAY-202604-002',period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:90000,approval:'已通过',exec:'打款中',time:'2026-04-18 14:05',bpm:'BPM-PAY-1007',flow:'YQ-20260418002',bkFlow:'—',reason:'—',items:[{game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:90000}]},
+  {id:'PAY-202604-003',period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',amount:30000,approval:'已驳回',exec:'待执行',time:'2026-04-19 09:40',bpm:'BPM-PAY-1010',flow:'—',bkFlow:'—',reason:'本期可提款金额为负，不允许提款',items:[{game:'幻境传说',gameId:'G-1001',platform:'抖音小游戏',amount:30000}]},
+  {id:'PAY-202604-004',period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:25000,approval:'已通过',exec:'打款失败',time:'2026-04-21 16:33',bpm:'BPM-PAY-1012',flow:'YQ-20260421009',bkFlow:'BK-851002',reason:'联行号与开户支行不匹配',items:[{game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',amount:25000}]},
   // —— 终止流程示例：账户错填 → 失败 → 财务终止 → 发行商修正账户 → 同账期重新发起 → 成功 ——
-  {id:'PAY-202602-005',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:118000,approval:'已通过',exec:'已终止',time:'2026-03-04 10:22',bpm:'BPM-PAY-0830',flow:'YQ-20260304005',bkFlow:'BK-840117',reason:'收款账户名称与开户行不一致',terminatedAt:'2026-03-05 09:15',terminatedBy:'李四（财务）',invoiceFile:'发票_光速传媒_118000.pdf',billFile:'对账单_光速传媒_2026-02_118000.pdf'},
-  {id:'PAY-202602-009',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:118000,approval:'已通过',exec:'打款成功',time:'2026-03-06 14:08',bpm:'BPM-PAY-0838',flow:'YQ-20260306011',bkFlow:'BK-840205',reason:'—',invoiceFile:'发票_光速传媒_118000.pdf',billFile:'对账单_光速传媒_2026-02_118000.pdf',prevTerminatedId:'PAY-202602-005'},
+  {id:'PAY-202602-005',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:118000,approval:'已通过',exec:'已终止',time:'2026-03-04 10:22',bpm:'BPM-PAY-0830',flow:'YQ-20260304005',bkFlow:'BK-840117',reason:'收款账户名称与开户行不一致',terminatedAt:'2026-03-05 09:15',terminatedBy:'李四（财务）',invoiceFile:'发票_光速传媒_118000.pdf',billFile:'对账单_光速传媒_2026-02_118000.pdf',items:[{game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:118000}]},
+  {id:'PAY-202602-009',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:118000,approval:'已通过',exec:'打款成功',time:'2026-03-06 14:08',bpm:'BPM-PAY-0838',flow:'YQ-20260306011',bkFlow:'BK-840205',reason:'—',invoiceFile:'发票_光速传媒_118000.pdf',billFile:'对账单_光速传媒_2026-02_118000.pdf',prevTerminatedId:'PAY-202602-005',items:[{game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:118000}]},
   // —— 重新打款示例：失败（非账户问题）→ 财务点重新打款生成关联新单 → 成功 ——
-  {id:'PAY-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款失败',time:'2026-04-08 09:55',bpm:'BPM-PAY-0995',flow:'YQ-20260408007',bkFlow:'BK-846930',reason:'对方银行系统繁忙，超时未响应',invoiceFile:'发票_灵犀互娱_54200.pdf',billFile:'对账单_灵犀互娱_2026-03_54200.pdf'},
-  {id:'PAY-R-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款成功',time:'2026-04-08 16:30',bpm:'BPM-PAY-0996',flow:'YQ-20260408022',bkFlow:'BK-847105',reason:'—',relateId:'PAY-202603-008',invoiceFile:'发票_灵犀互娱_54200.pdf',billFile:'对账单_灵犀互娱_2026-03_54200.pdf'}
+  {id:'PAY-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款失败',time:'2026-04-08 09:55',bpm:'BPM-PAY-0995',flow:'YQ-20260408007',bkFlow:'BK-846930',reason:'对方银行系统繁忙，超时未响应',invoiceFile:'发票_灵犀互娱_54200.pdf',billFile:'对账单_灵犀互娱_2026-03_54200.pdf',items:[{game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',amount:54200}]},
+  {id:'PAY-R-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款成功',time:'2026-04-08 16:30',bpm:'BPM-PAY-0996',flow:'YQ-20260408022',bkFlow:'BK-847105',reason:'—',relateId:'PAY-202603-008',invoiceFile:'发票_灵犀互娱_54200.pdf',billFile:'对账单_灵犀互娱_2026-03_54200.pdf',items:[{game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',amount:54200}]}
 ];
 const syncs=[
   {game:'幻境传说',platform:'微信小游戏',date:'2026-04-27',status:'成功',reason:'—',syncTime:'2026-04-28 06:10'},
@@ -324,6 +324,11 @@ function copyText(text){
     else{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}
     alert(`已复制：${text}`);
   }catch(e){alert('复制失败，请手动复制：'+text);}
+}
+function togglePayRow(key){
+  if(!window._payExpanded)window._payExpanded={};
+  window._payExpanded[key]=!window._payExpanded[key];
+  renderPage();
 }
 function openModal(title,body,foot){document.getElementById('mTitle').innerHTML=title;document.getElementById('mBody').innerHTML=body;document.getElementById('mFoot').innerHTML=foot||'<button class="btn g" onclick="closeModal()">关闭</button>';document.getElementById('mask').classList.add('open')}
 function closeModal(){document.getElementById('mask').classList.remove('open')}
@@ -1613,28 +1618,7 @@ function isBillConfirmed(period,game,platform){
   const k=`${period}__${game}__${platform}`;
   return (window._billConfirmed||new Set()).has(k);
 }
-// 找该(账期/游戏/平台/发行商)的"占用中"打款单（已驳回 / 已终止 不算占用）
-function activePayFor(r){
-  return pays.find(p=>p.period===r.period&&p.game===r.game&&p.platform===r.platform&&p.pub===r.pub&&p.approval!=='已驳回'&&p.exec!=='已终止');
-}
-// 操作列发起/查看打款按钮：根据 pays 状态切换文案、颜色，点击进入审批详情
-function renderPayActionBtn(r){
-  const pubObj=publishers.find(p=>p.name===r.pub)||{};
-  const key=`${r.period}__${r.game}__${r.platform}`;
-  const p=activePayFor(r);
-  if(!p){
-    return `<button class="link" style="margin-left:8px;color:var(--primary);font-weight:700" onclick="window._payPubId='${pubObj.id||''}';window._payInitKey='${key}';openPayNewModal()">发起提款</button>`;
-  }
-  const detailFn=isPublisher()?'openMyPayDetail':'openPayDetail';
-  // 失败对所有角色在此入口统一脱敏为"打款中"
-  const masked=p.exec==='打款失败'?'打款中':(p.exec==='已终止'?'已终止 · 待重新发起':p.exec);
-  let label,color;
-  if(p.approval==='待审批'){label='审批中';color='var(--orange)';}
-  else if(masked==='打款中'){label='打款中';color='var(--orange)';}
-  else if(masked==='打款成功'){label='已到账 ✓';color='var(--green)';}
-  else {label='处理中';color='var(--orange)';}
-  return `<button class="link" style="margin-left:8px;color:${color};font-weight:700" onclick="${detailFn}('${p.id}')" title="点击查看审批与打款进度">${label}</button>`;
-}
+// 旧函数已废弃：分账明细行不再提供发起入口，统一在「打款申请单」页发起汇总申请。
 function confirmBill(key){
   const [p,g,pl]=key.split('__');
   confirmDialog('确认对账单',
@@ -2713,11 +2697,15 @@ function pgBalance(){
   if(ent.type==='cp')lpdata=[];
   if(platF!=='all')lpdata=lpdata.filter(p=>p.platform===platF);
   lpdata.forEach(p=>{
-    let type,dir,style='',remark='';
-    if(p.exec==='打款成功'){type='打款成功';dir=-1;style='color:var(--red)';remark=`申请单号 ${p.id}`;}
-    else if(p.exec==='打款中'){type='打款申请（冻结）';dir=-1;style='color:var(--orange)';remark=`申请单号 ${p.id}`;}
+    let type,dir,style='';
+    if(p.exec==='打款成功'){type='打款成功';dir=-1;style='color:var(--red)';}
+    else if(p.exec==='打款中'){type='打款申请（冻结）';dir=-1;style='color:var(--orange)';}
     else return;
-    ledgerEntries.push({date:p.time,pub:p.pub,type,amount:p.amount,dir,remark,sortKey:p.time,style});
+    const items=Array.isArray(p.items)&&p.items.length?p.items:[{game:p.game,platform:p.platform,amount:p.amount}];
+    items.forEach(it=>{
+      if(platF!=='all'&&it.platform!==platF)return;
+      ledgerEntries.push({date:p.time,pub:p.pub,type,amount:it.amount,dir,remark:`申请单号 ${p.id} · 《${it.game}》${it.platform}${items.length>1?' [汇总单]':''}`,sortKey:p.time,style});
+    });
   });
   // 按时间正序排序
   ledgerEntries.sort((a,b)=>a.sortKey<b.sortKey?-1:a.sortKey>b.sortKey?1:0);
@@ -2830,95 +2818,153 @@ function pgBalance(){
   ${vTable}`}`;
 }
 
-/* MODAL: 发起打款（按"账期+平台+发行商"粒度发起，每账期仅可申请一次） */
-function openPayNewModal(){
-  if(!['发行商','财务人员','系统管理员'].includes(ROLE)){alert('当前角色无权发起打款');return;}
-  const {visiblePubs}=visibleEntities();
-  const selPubId=window._payPubId||(visiblePubs[0]?.id||'');
-  const selPub=publishers.find(p=>p.id===selPubId)||visiblePubs[0];
-  const pubReady=selPub?settle.filter(r=>r.pub===selPub.name&&isSettleReady(r.period,r.game,r.platform)&&isBillConfirmed(r.period,r.game,r.platform)):[];
-  // 已存在的申请（除"已驳回"以外都视为该账期已占用）
-  const hasPayApplied=(period,game,platform,pub)=>pays.some(p=>p.period===period&&p.game===game&&p.platform===platform&&p.pub===pub&&p.approval!=='已驳回'&&p.exec!=='已终止');
-  const periodUnits=pubReady.map(r=>{
-    const ps=calcPubSettle(r);
-    const settleAmt=Math.round(ps.pubCash*100)/100;
-    const applied=hasPayApplied(r.period,r.game,r.platform,r.pub);
-    return {key:`${r.period}__${r.game}__${r.platform}`,period:r.period,game:r.game,platform:r.platform,pub:r.pub,settleAmt,applied};
+/* ──────── 占用判定（兼容旧单子项 + 新汇总单 items） ──────── */
+function isItemOccupied(period,game,platform,pub){
+  return pays.some(p=>{
+    if(p.period!==period||p.pub!==pub)return false;
+    if(p.approval==='已驳回'||p.exec==='已终止')return false;
+    if(Array.isArray(p.items)&&p.items.length){
+      return p.items.some(it=>it.game===game&&it.platform===platform);
+    }
+    return p.game===game&&p.platform===platform;
   });
-  const initKey=window._payInitKey||(periodUnits.find(u=>!u.applied&&u.settleAmt>0)?.key||periodUnits[0]?.key||'');
-  window._payInitKey=undefined;
-  const selKey=window._paySelKey&&periodUnits.find(u=>u.key===window._paySelKey)?window._paySelKey:initKey;
-  window._paySelKey=selKey;
-  const selUnit=periodUnits.find(u=>u.key===selKey)||null;
-  const settleAmt=selUnit?selUnit.settleAmt:0;
-  const alreadyApplied=!!(selUnit&&selUnit.applied);
-  window._paySettleAmt=settleAmt;
-  const pubUnconfirmedCnt=selPub?settle.filter(r=>r.pub===selPub.name&&!isSettleReady(r.period,r.game,r.platform)).length:0;
-  const pubBillPendingCnt=selPub?settle.filter(r=>r.pub===selPub.name&&isSettleReady(r.period,r.game,r.platform)&&!isBillConfirmed(r.period,r.game,r.platform)).length:0;
-  const periodOpts=periodUnits.length
-    ?periodUnits.map(u=>`<option value="${u.key}" ${u.key===selKey?'selected':''}>${u.period} · 《${u.game}》 · ${u.platform}${u.applied?'（已申请）':(u.settleAmt<=0?'（金额为0）':'')}</option>`).join('')
-    :'<option>暂无可提款账期</option>';
+}
+function findOccupiedPay(period,game,platform,pub){
+  return pays.find(p=>{
+    if(p.period!==period||p.pub!==pub)return false;
+    if(p.approval==='已驳回'||p.exec==='已终止')return false;
+    if(Array.isArray(p.items)&&p.items.length){
+      return p.items.some(it=>it.game===game&&it.platform===platform);
+    }
+    return p.game===game&&p.platform===platform;
+  });
+}
+
+/* MODAL: 发起打款申请（发行商发起，按主体汇总；选游戏→账期→勾选可结算明细→上传） */
+function openPayApplyModal(){
+  if(!isPublisher()){alert('仅发行商角色可发起提款申请');return;}
+  const {visiblePubs}=visibleEntities();
+  if(!visiblePubs.length){openModal('发起提款申请','<div class="notice">未关联可发起提款的主体，请联系系统管理员检查数据权限</div>','<button class="btn g" onclick="closeModal()">关闭</button>');return;}
+  // 发行商只能为自己主体发起：锁定为可见主体的第一个（数据权限保证只有一个）
+  const selPubId=visiblePubs[0].id;
+  window._payPubId=selPubId;
+  const selPub=publishers.find(p=>p.id===selPubId)||visiblePubs[0];
+  // 该发行商关联的游戏（基于 pubMappings）
+  const pubGameIds=[...new Set(pubMappings.filter(m=>m.pubId===selPub.id).map(m=>m.gameId))];
+  const pubGames=games.filter(g=>pubGameIds.includes(g.id));
+  const selGameId=window._payGameId&&(window._payGameId==='all'||pubGameIds.includes(window._payGameId))?window._payGameId:'all';
+  window._payGameId=selGameId;
+  // 账期下拉
+  const allPeriods=[...new Set(settle.filter(r=>r.pub===selPub.name).map(r=>r.period))].sort().reverse();
+  const selPeriod=window._payPeriod&&allPeriods.includes(window._payPeriod)?window._payPeriod:(allPeriods[0]||'');
+  window._payPeriod=selPeriod;
+  // 当 发行商×账期 下所有 settle，按游戏筛选
+  let detailRecs=settle.filter(r=>r.pub===selPub.name&&r.period===selPeriod);
+  if(selGameId!=='all'){
+    const g=games.find(x=>x.id===selGameId);
+    if(g)detailRecs=detailRecs.filter(r=>r.game===g.name);
+  }
+  // 计算每行可勾选状态，仅保留"可申请"的明细
+  const detailList=detailRecs.map(r=>{
+    const ready=isSettleReady(r.period,r.game,r.platform);
+    const billOk=isBillConfirmed(r.period,r.game,r.platform);
+    const ps=calcPubSettle(r);
+    const amount=Math.round(ps.pubCash*100)/100;
+    const occ=findOccupiedPay(r.period,r.game,r.platform,selPub.name);
+    let blockReason='';
+    if(!ready)blockReason='三方未确认';
+    else if(!billOk)blockReason='对账单未确认';
+    else if(amount<=0)blockReason='金额≤0';
+    else if(occ)blockReason=`已在 ${occ.id}`;
+    const gameRec=games.find(x=>x.name===r.game);
+    return {game:r.game,gameId:gameRec?gameRec.id:r.game,platform:r.platform,amount,selectable:!blockReason,blockReason};
+  }).filter(it=>it.selectable);
+  // 勾选状态
+  if(!window._payChecked)window._payChecked={};
+  const ck=window._payChecked;
+  if(!window._payCheckedInited){
+    detailList.forEach(it=>{if(it.selectable)ck[`${selPub.id}__${selPeriod}__${it.gameId}__${it.platform}`]=true;});
+    window._payCheckedInited=true;
+  }
+  const keyOf=(it)=>`${selPub.id}__${selPeriod}__${it.gameId}__${it.platform}`;
+  const checkedItems=detailList.filter(it=>it.selectable&&ck[keyOf(it)]);
+  const totalAmt=Math.round(checkedItems.reduce((s,it)=>s+it.amount,0)*100)/100;
+  window._paySettleAmt=totalAmt;
+  // 下拉
+  const gameOptsHtml=`<option value="all" ${selGameId==='all'?'selected':''}>全部游戏</option>`+pubGames.map(g=>`<option value="${g.id}" ${selGameId===g.id?'selected':''}>《${g.name}》</option>`).join('');
+  const periodOptsHtml=allPeriods.length?allPeriods.map(p=>`<option value="${p}" ${selPeriod===p?'selected':''}>${p}</option>`).join(''):'<option>暂无</option>';
+  // 子项表格
+  const rowsHtml=detailList.length?detailList.map(it=>{
+    const k=keyOf(it);
+    const checked=it.selectable&&ck[k];
+    const trStyle=it.selectable?'':'background:#fafafa;color:var(--muted)';
+    return `<tr style="${trStyle}">
+      <td style="width:36px"><input type="checkbox" data-key="${k}" ${checked?'checked':''} ${it.selectable?'':'disabled'} onchange="onPayItemToggle(this)" style="width:14px;height:14px;accent-color:var(--primary);cursor:${it.selectable?'pointer':'not-allowed'}" /></td>
+      <td>${selPeriod}</td>
+      <td>《${it.game}》</td>
+      <td>${it.platform==='微信小游戏'?'<span class="tag green" style="font-size:11px">微信小游戏</span>':'<span class="tag blue" style="font-size:11px">抖音小游戏</span>'}</td>
+      <td style="text-align:right;font-weight:700;color:${it.amount<0?'var(--red)':(it.selectable?'var(--primary)':'var(--muted)')}">${fmt(it.amount)}</td>
+      <td>${it.selectable?'<span class="tag green" style="font-size:11px">可申请</span>':`<span class="tag" style="font-size:11px;background:#f0f0f0;color:#888">${it.blockReason}</span>`}</td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="6" style="text-align:center;color:var(--weak);padding:20px">所选账期下暂无可申请的明细（需三方确认 + 对账单确认 + 金额>0 + 未在其他申请单中）</td></tr>`;
   const body=`
     <div class="stepper" style="margin-bottom:14px">
-      <div class="step act"><span class="sc">1</span>选择账期</div><div class="sline"></div>
-      <div class="step"><span class="sc">2</span>上传材料</div><div class="sline"></div>
-      <div class="step"><span class="sc">3</span>金额校验</div><div class="sline"></div>
+      <div class="step act"><span class="sc">1</span>选择范围</div><div class="sline"></div>
+      <div class="step"><span class="sc">2</span>勾选明细</div><div class="sline"></div>
+      <div class="step"><span class="sc">3</span>上传材料</div><div class="sline"></div>
       <div class="step"><span class="sc">4</span>BPM审批</div><div class="sline"></div>
       <div class="step"><span class="sc">5</span>银企打款</div>
     </div>
     <div class="fgrid" style="margin-bottom:10px">
-      <div class="field"><label>发行商 <span class="req">*</span></label>
-        <select class="select" style="width:100%" onchange="window._payPubId=this.value;window._paySelKey=undefined;openPayNewModal()">
-          ${visiblePubs.map(p=>`<option value="${p.id}" ${p.id===selPubId?'selected':''}>${p.name}</option>`).join('')}
-        </select>
+      <div class="field"><label>发行商主体</label>
+        <input class="input" style="width:100%;background:#f5f7fa;color:var(--muted)" value="${selPub.name}" readonly title="按数据权限锁定" />
       </div>
-      <div class="field"><label>账期（账期 · 游戏 · 平台）<span class="req">*</span></label>
-        <select class="select" style="width:100%" ${periodUnits.length?'':'disabled'} onchange="window._paySelKey=this.value;openPayNewModal()">
-          ${periodOpts}
-        </select>
+      <div class="field"><label>游戏</label>
+        <select class="select" style="width:100%" onchange="window._payGameId=this.value;openPayApplyModal()">${gameOptsHtml}</select>
+      </div>
+      <div class="field"><label>账期 <span class="req">*</span></label>
+        <select class="select" style="width:100%" onchange="window._payPeriod=this.value;window._payChecked={};window._payCheckedInited=false;openPayApplyModal()">${periodOptsHtml}</select>
       </div>
     </div>
-    ${selPub&&selUnit?`<div style="background:#f8fbff;border:1px solid var(--line2);border-radius:var(--r2);padding:12px;margin:10px 0">
-      <div class="kv" style="margin-bottom:8px">
-        <span class="k">账期</span><span class="v">${selUnit.period}</span>
-        <span class="k">游戏</span><span class="v">《${selUnit.game}》</span>
-        <span class="k">投放平台</span><span class="v">${selUnit.platform}</span>
-        <span class="k">发行商</span><span class="v">${selUnit.pub}</span>
-      </div>
-      <div style="border-top:1px dashed var(--line);padding-top:10px;color:var(--muted);font-size:12px;margin-bottom:8px">收款账户（系统自动关联，只读）</div>
+    <div style="background:#f8fbff;border:1px solid var(--line2);border-radius:var(--r2);padding:10px 12px;margin-bottom:10px">
+      <div style="color:var(--muted);font-size:12px;margin-bottom:6px">收款账户（系统自动关联，只读）</div>
       <div class="kv">
         <span class="k">收款账户名称</span><span class="v">${selPub.accName||selPub.name}</span>
         <span class="k">开户银行</span><span class="v">${selPub.bank||'招商银行深圳科技园支行'}</span>
         <span class="k">银行账号</span><span class="v" style="font-family:monospace">${selPub.acc?'****'+selPub.acc.slice(-4):'****8126'}</span>
         <span class="k">联行号</span><span class="v" style="font-family:monospace">${selPub.bankNo||'308584000013'}</span>
       </div>
-      <div style="margin-top:10px;display:flex;gap:16px;flex-wrap:wrap">
-        <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 14px;min-width:220px">
-          <div style="color:var(--muted);font-size:12px">本次提款金额（已确认可结算金额）</div>
-          <div style="font-size:20px;font-weight:800;margin-top:5px;color:${settleAmt<=0?'var(--red)':'var(--primary)'}">${fmt(settleAmt)}</div>
-          <div style="color:var(--weak);font-size:11px;margin-top:3px">每账期仅可发起一次，���额固定为已确认可结算金额</div>
-        </div>
-      </div>
-      ${alreadyApplied?`<div style="margin-top:10px;font-size:12px;color:#a05000;background:#fff8f0;border:1px solid #ffe0b2;border-radius:var(--r2);padding:8px 10px">⚠ 该账期已存在打款申请，不能重复发起。请前往「打款申请单」查看处理进度。</div>`:''}
-      ${pubUnconfirmedCnt>0?`<div style="margin-top:10px;font-size:12px;color:#a05000;background:#fff8f0;border:1px solid #ffe0b2;border-radius:var(--r2);padding:8px 10px">⚠ 该发行商还有 <b>${pubUnconfirmedCnt}</b> 条分账记录三方未确认，未出账部分不在可申请列表内。</div>`:''}
-      ${pubBillPendingCnt>0?`<div style="margin-top:6px;font-size:12px;color:#1a4a80;background:#f0f7ff;border:1px solid #d0e8ff;border-radius:var(--r2);padding:8px 10px">📋 还有 <b>${pubBillPendingCnt}</b> 条已出账但<b>发行商对账单未确认</b>，未确认账期不在可申请列表内（请在「发行商分账明细」中点击「确认对账单」）。</div>`:''}
     </div>
-    <div class="fgrid" style="margin-top:6px">
+    <div style="font-size:13px;font-weight:700;margin:10px 0 6px">可结算明细（共 ${detailList.length} 项）</div>
+    <div class="card" style="margin-bottom:8px"><div class="tw"><table class="table" style="margin:0">
+      <thead><tr><th style="width:36px"></th><th>账期</th><th>游戏</th><th>平台</th><th style="text-align:right">可结算金额</th><th>状态</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table></div></div>
+    <div style="display:flex;align-items:center;gap:14px;padding:10px 14px;background:#f0f6ff;border:1px solid #c9e0f7;border-radius:6px;margin-bottom:10px">
+      <span style="color:var(--muted);font-size:13px">已勾选 <b style="color:var(--primary)">${checkedItems.length}</b> 项</span>
+      <span style="margin-left:auto;font-size:13px">合计申请金额：<b style="color:var(--primary);font-size:18px;font-family:monospace">${fmt(totalAmt)}</b></span>
+    </div>
+    <div class="fgrid">
       <div class="field">
         <label>发票文件 <span class="req">*</span></label>
-        <input class="input" type="file" id="payInvoice" accept=".pdf,.jpg,.jpeg,.png,.ofd" style="width:100%" onchange="onPayFileChange('payInvoice','payInvoiceHint')" ${alreadyApplied?'disabled':''} />
-        <div class="hint" id="payInvoiceHint">需在文件名中包含本次金额（如 <b>发票_${settleAmt}.pdf</b>），系统将比对解析金额</div>
+        <input class="input" type="file" id="payInvoice" accept=".pdf,.jpg,.jpeg,.png,.ofd" style="width:100%" onchange="onPayFileChange('payInvoice','payInvoiceHint')" />
+        <div class="hint" id="payInvoiceHint">合开一张发票，金额=合计 <b>${fmt(totalAmt)}</b>；文件名需含金额（如 <b>发票_${totalAmt}.pdf</b>）</div>
       </div>
       <div class="field">
         <label>盖章对账单 <span class="req">*</span></label>
-        <input class="input" type="file" id="payBill" accept=".pdf,.jpg,.jpeg,.png" style="width:100%" onchange="onPayFileChange('payBill','payBillHint')" ${alreadyApplied?'disabled':''} />
-        <div class="hint" id="payBillHint">需在文件名中包含本次金额（如 <b>对账单_${settleAmt}.pdf</b>），系统将比对解析金额</div>
+        <input class="input" type="file" id="payBill" accept=".pdf,.jpg,.jpeg,.png" style="width:100%" onchange="onPayFileChange('payBill','payBillHint')" />
+        <div class="hint" id="payBillHint">合开一张对账单，金额=合计 <b>${fmt(totalAmt)}</b>；文件名需含金额</div>
       </div>
     </div>
-    <div class="notice" style="margin-top:8px">⚠️ 提交规则：<b>每账期仅可申请一次</b>；提款金额固定为该账期已确认可结算金额；发票与盖章对账单<b>金额必须与本次提款金额一致</b>，否则不允许提交。</div>`:'<div class="notice">该发行商暂无可提款账期（需账期三方确认 + 发行商确认对账单）。</div>'}`;
-  const canSubmit=!!selUnit&&!alreadyApplied&&settleAmt>0;
+    <div class="notice" style="margin-top:8px">⚠️ 规则：按发行商汇总申请，一张申请＝一张发票＝一笔银企打款；本列表仅展示<b>当前可申请</b>的明细，三方未确认 / 对账单未确认 / 金额≤0 / 已在申请单中的明细不会出现。</div>`;
+  const canSubmit=checkedItems.length>0&&totalAmt>0;
   const foot=`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" ${canSubmit?'':'disabled'} onclick="submitPay()">提交申请</button>`;
-  openModal('发起打款申请',body,foot);
+  openModal('发起提款申请',body,foot);
+}
+function onPayItemToggle(cb){
+  if(!window._payChecked)window._payChecked={};
+  window._payChecked[cb.dataset.key]=cb.checked;
+  openPayApplyModal();
 }
 // 文件名金额解析：取文件名（去后缀）中最后一个数字 token（支持千分位与小数）
 function parseAmtFromFilename(name){
@@ -2940,13 +2986,13 @@ function onPayFileChange(inputId,hintId){
   if(f.size>10*1024*1024){hint.style.color='var(--red)';hint.textContent=`⚠ ${f.name} 超出 10MB 限制（${sizeMb}MB）`;return;}
   const expect=Number(window._paySettleAmt||0);
   const parsed=parseAmtFromFilename(f.name);
-  if(parsed===null){hint.style.color='var(--red)';hint.textContent=`⚠ 未能从文件名识别金额：${f.name}（请在文件名中包含 ${fmt(expect)}）`;return;}
-  if(Math.abs(parsed-expect)>0.01){hint.style.color='var(--red)';hint.textContent=`⚠ 文件金额 ${fmt(parsed)} 与本次提款金额 ${fmt(expect)} 不一致：${f.name}`;return;}
+  if(parsed===null){hint.style.color='var(--red)';hint.textContent=`⚠ 未能从文件名识别金额：${f.name}（请在文件名中包含合计 ${fmt(expect)}）`;return;}
+  if(Math.abs(parsed-expect)>0.01){hint.style.color='var(--red)';hint.textContent=`⚠ 文件金额 ${fmt(parsed)} 与合计 ${fmt(expect)} 不一致：${f.name}`;return;}
   hint.style.color='var(--green)';hint.textContent=`✓ 已选择：${f.name}（${sizeMb}MB） · 金额校验通过 ${fmt(parsed)}`;
 }
 function submitPay(){
   const expect=Number(window._paySettleAmt||0);
-  if(expect<=0){alert('当期可结算金额为 0，无法发起提款');return}
+  if(expect<=0){alert('合计金额为 0，无法提交申请');return}
   const inv=document.getElementById('payInvoice');
   const bill=document.getElementById('payBill');
   if(!inv||!inv.files||!inv.files[0]){alert('请上传发票文件');return}
@@ -2954,30 +3000,46 @@ function submitPay(){
   const invAmt=parseAmtFromFilename(inv.files[0].name);
   const billAmt=parseAmtFromFilename(bill.files[0].name);
   if(invAmt===null||Math.abs(invAmt-expect)>0.01){
-    alert(`发票文件金额与本次提款金额不一致：\n发票文件：${inv.files[0].name}\n解析金额：${invAmt===null?'未识别':fmt(invAmt)}\n本次提款金额：${fmt(expect)}\n\n请在文件名中正确标注金额后重新上传。`);
+    alert(`发票文件金额与合计不一致：\n发票文件：${inv.files[0].name}\n解析金额：${invAmt===null?'未识别':fmt(invAmt)}\n合计：${fmt(expect)}`);
     return;
   }
   if(billAmt===null||Math.abs(billAmt-expect)>0.01){
-    alert(`盖章对账单金额与本次提款金额不一致：\n对账单文件：${bill.files[0].name}\n解析金额：${billAmt===null?'未识别':fmt(billAmt)}\n本次提款金额：${fmt(expect)}\n\n请在文件名中正确标注金额后重新上传。`);
+    alert(`盖章对账单金额与合计不一致：\n对账单文件：${bill.files[0].name}\n解析金额：${billAmt===null?'未识别':fmt(billAmt)}\n合计：${fmt(expect)}`);
     return;
   }
-  // 写入 pays（带 period），实现"每账期仅一次"
-  const selKey=window._paySelKey||'';
-  const [period,game,platform]=selKey.split('__');
-  const r=settle.find(x=>x.period===period&&x.game===game&&x.platform===platform);
-  if(r){
-    pays.unshift({
-      id:`PAY-${period.replace('-','')}-${String(pays.length+1).padStart(3,'0')}`,
-      period,game,platform,pub:r.pub,
-      amount:expect,approval:'待审批',exec:'待执行',
-      time:new Date().toISOString().slice(0,16).replace('T',' '),
-      bpm:'BPM-PAY-NEW',flow:'—',bkFlow:'—',reason:'—',
-      invoiceFile:inv.files[0].name,billFile:bill.files[0].name
-    });
-  }
+  const selPubId=window._payPubId;
+  const selPub=publishers.find(p=>p.id===selPubId);
+  const selPeriod=window._payPeriod;
+  if(!selPub||!selPeriod){alert('请选择发行商和账期');return}
+  const ck=window._payChecked||{};
+  const items=[];
+  Object.keys(ck).forEach(k=>{
+    if(!ck[k])return;
+    const [pubId,period,gameId,platform]=k.split('__');
+    if(pubId!==selPubId||period!==selPeriod)return;
+    const g=games.find(x=>x.id===gameId);if(!g)return;
+    const r=settle.find(x=>x.period===period&&x.game===g.name&&x.platform===platform&&x.pub===selPub.name);
+    if(!r)return;
+    const amt=Math.round(calcPubSettle(r).pubCash*100)/100;
+    if(amt<=0)return;
+    items.push({game:g.name,gameId,platform,amount:amt});
+  });
+  if(!items.length){alert('请至少勾选一条明细');return}
+  pays.unshift({
+    id:`PAY-${selPeriod.replace('-','')}-${String(pays.length+1).padStart(3,'0')}`,
+    period:selPeriod,pub:selPub.name,
+    game:items.length>1?`多游戏(${items.length})`:items[0].game,
+    platform:items.length>1?'多平台':items[0].platform,
+    items,
+    amount:expect,approval:'待审批',exec:'待执行',
+    time:new Date().toISOString().slice(0,16).replace('T',' '),
+    bpm:'BPM-PAY-NEW',flow:'—',bkFlow:'—',reason:'—',
+    invoiceFile:inv.files[0].name,billFile:bill.files[0].name
+  });
+  window._payChecked={};window._payCheckedInited=false;
   closeModal();
-  alert(`原型展示：打款申请已提交 ${fmt(expect)}\n发票：${inv.files[0].name}\n盖章对账单：${bill.files[0].name}\n金额校验通过 ✓\n系统将发起 BPM 审批流程，审批通过后银企直联自动转账。`);
-  go('payments');
+  alert(`原型展示：打款申请已提交 ${fmt(expect)}\n含 ${items.length} 项：\n${items.map(it=>'· 《'+it.game+'》 '+it.platform+' '+fmt(it.amount)).join('\n')}\n\n发票：${inv.files[0].name}\n对账单：${bill.files[0].name}\n\n系统将发起 BPM 审批，审批通过后银企直联自动转账。`);
+  go(isPublisher()?'myPayments':'payments');
 }
 
 /* PAGE: 打款申请单（财务/管理员/业务角色可见 — 真实状态 + 失败处理）
@@ -3001,9 +3063,26 @@ function pgPayments(){
     if(p.exec==='打款成功'&&finView)return view+`<button class="link" style="margin-left:8px" onclick="alert('下载电子回单（Mock）：'+'${p.id}')">回单</button>`;
     return view;
   };
-  const rows=data.map(p=>`<tr style="${p.exec==='打款失败'?'background:#fff8f8':(p.exec==='已终止'?'background:#f5f5f5;color:var(--muted)':'')}"><td style="font-family:monospace;font-size:12px">${p.id}${p.relateId?`<div style="font-size:10px;color:var(--muted)">↻ 关联 ${p.relateId}</div>`:''}</td><td>《${p.game}》</td><td>${p.platform}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(p.exec)}</td><td style="color:var(--muted)">${p.time}</td><td>${opCol(p)}</td></tr>`);
+  const rows=[];
+  data.forEach(p=>{
+    const trStyle=p.exec==='打款失败'?'background:#fff8f8':(p.exec==='已终止'?'background:#f5f5f5;color:var(--muted)':'');
+    const items=Array.isArray(p.items)&&p.items.length?p.items:[{game:p.game,platform:p.platform,amount:p.amount}];
+    const isBatch=items.length>1;
+    const expandKey=`payList_${p.id}`;
+    const expanded=window._payExpanded&&window._payExpanded[expandKey];
+    const gameCell=isBatch
+      ?`<button class="link" onclick="togglePayRow('${expandKey}')" style="display:inline-flex;align-items:center;gap:4px">${expanded?'▾':'▸'} 多游戏</button><div style="font-size:11px;color:var(--muted);margin-top:2px">含 ${items.length} 项</div>`
+      :`《${items[0].game}》`;
+    const platCell=isBatch?'<span style="color:var(--muted)">—</span>':items[0].platform;
+    rows.push(`<tr style="${trStyle}"><td style="font-family:monospace;font-size:12px">${p.id}${p.relateId?`<div style="font-size:10px;color:var(--muted)">↻ 关联 ${p.relateId}</div>`:''}${p.prevTerminatedId?`<div style="font-size:10px;color:var(--muted)">↩ 续 ${p.prevTerminatedId}</div>`:''}</td><td>${gameCell}</td><td>${platCell}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(p.exec)}</td><td style="color:var(--muted)">${p.time}</td><td>${opCol(p)}</td></tr>`);
+    if(isBatch&&expanded){
+      items.forEach(it=>{
+        rows.push(`<tr style="background:#fafbfc;color:#555"><td></td><td style="padding-left:24px;color:var(--muted);font-size:12px">└ 《${it.game}》</td><td>${it.platform}</td><td style="color:var(--muted)">—</td><td style="font-family:monospace">${fmt(it.amount)}</td><td colspan="4" style="color:var(--weak)"></td></tr>`);
+      });
+    }
+  });
 
-  return `<div class="ph"><div><div class="pt">打款申请单${finView?'（财务内部视图）':''}</div><div class="pd">展示所有打款申请的真实审批状态与执行状态；打款失败条目标红，可查看失败原因。${ent.type==='cp'?'<b style="color:var(--orange)">（Phase 1 中CP不参与直接打款，由财务线下处理）</b>':''}</div></div><div class="acts">${canFin()?`<button class="btn p" onclick="openPayApplyModal()">＋ 发起打款申请</button>`:''}<button class="btn g" style="margin-left:6px" onclick="alert('导出申请单列表（含失败处理记录）')">↓ 导出</button></div></div>
+  return `<div class="ph"><div><div class="pt">打款申请单${finView?'（财务内部视图）':''}</div><div class="pd">展示所有打款申请的真实审批状态与执行状态；打款失败条目标红，可查看失败原因。<b>申请由发行商在「发行商打款申请单」发起</b>，财务在此审核与执行。${ent.type==='cp'?'<b style="color:var(--orange)">（Phase 1 中CP不参与直接打款，由财务线下处理）</b>':''}</div></div><div class="acts"><button class="btn g" onclick="alert('导出申请单列表（含失败处理记录）')">↓ 导出</button></div></div>
   ${banner}
   <div class="filter"><select class="select"><option>全部审批状态</option><option>待审批</option><option>已通过</option><option>已驳回</option></select><select class="select"><option>全部执行状态</option><option>待执行</option><option>打款中</option><option>打款成功</option><option>打款失败</option></select></div>
   ${tbl(['申请单号','游戏','平台','发行商','打款金额','审批状态','执行状态','发起时间','操作'],rows,{pageKey:'payments'})}`;
@@ -3024,13 +3103,25 @@ function pgMyPayments(){
   // 脱敏映射：失败 → 打款中（财务内部处理中）；已终止 → 已终止 · 待重新发起（明确告知发行商）
   const maskExec=(s)=>s==='打款失败'?'打款中':(s==='已终止'?'已终止 · 待重新发起':s);
 
-  const rows=data.map(p=>{
+  const rows=[];
+  data.forEach(p=>{
     const shown=maskExec(p.exec);
     const ops=`<button class="link" onclick="openMyPayDetail('${p.id}')">查看</button>${shown==='打款成功'?`<button class="link" style="margin-left:8px" onclick="alert('下载电子回单（Mock）：${p.id}')">下载回单</button>`:''}`;
-    return `<tr><td style="font-family:monospace;font-size:12px">${p.id}</td><td>《${p.game}》</td><td>${p.platform}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(shown)}</td><td style="color:var(--muted)">${p.time}</td><td>${ops}</td></tr>`;
+    const items=Array.isArray(p.items)&&p.items.length?p.items:[{game:p.game,platform:p.platform,amount:p.amount}];
+    const isBatch=items.length>1;
+    const expandKey=`myPayList_${p.id}`;
+    const expanded=window._payExpanded&&window._payExpanded[expandKey];
+    const gameCell=isBatch?`<button class="link" onclick="togglePayRow('${expandKey}')" style="display:inline-flex;align-items:center;gap:4px">${expanded?'▾':'▸'} 多游戏</button><div style="font-size:11px;color:var(--muted);margin-top:2px">含 ${items.length} 项</div>`:`《${items[0].game}》`;
+    const platCell=isBatch?'<span style="color:var(--muted)">—</span>':items[0].platform;
+    rows.push(`<tr><td style="font-family:monospace;font-size:12px">${p.id}</td><td>${gameCell}</td><td>${platCell}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(shown)}</td><td style="color:var(--muted)">${p.time}</td><td>${ops}</td></tr>`);
+    if(isBatch&&expanded){
+      items.forEach(it=>{
+        rows.push(`<tr style="background:#fafbfc;color:#555"><td></td><td style="padding-left:24px;color:var(--muted);font-size:12px">└ 《${it.game}》</td><td>${it.platform}</td><td style="color:var(--muted)">—</td><td style="font-family:monospace">${fmt(it.amount)}</td><td colspan="4"></td></tr>`);
+      });
+    }
   });
 
-  return `<div class="ph"><div><div class="pt">发行商打款申请单</div><div class="pd">查看本主体名下所有打款申请的进度。打款成功后可下载电子回单。</div></div><div class="acts"><button class="btn g" onclick="alert('导出发行商打款申请单')">↓ 导出</button></div></div>
+  return `<div class="ph"><div><div class="pt">发行商打款申请单</div><div class="pd">查看本主体名下所有打款申请的进度。打款成功后可下载电子回单。可对已确认对账的可结算明细按需汇总，发起一笔提款申请。</div></div><div class="acts">${isPublisher()?`<button class="btn p" onclick="openPayApplyModal()">＋ 发起提款申请</button>`:''}<button class="btn g" style="margin-left:6px" onclick="alert('导出发行商打款申请单')">↓ 导出</button></div></div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">👁 <b>只读视图：</b>本页面仅展示与本发行商主体相关的打款单。如对结果有疑问，请联系结算财务对接人。</div>
   <div class="filter"><select class="select"><option>全部审批状态</option><option>待审批</option><option>已通过</option><option>已驳回</option></select><select class="select"><option>全部执行状态</option><option>待执行</option><option>打款中</option><option>打款成功</option></select></div>
   ${tbl(['申请单号','游戏','平台','发行商','打款金额','审批状态','执行状态','发起时间','操作'],rows,{pageKey:'myPayments'})}`;
@@ -3073,23 +3164,37 @@ function pgInvoices(){
 
   // 每条申请单一行：账期 / 发行商 / 游戏 / 平台 / 申请单号 / 打款时间 / 银行流水号 / 打款金额 / 票据
   data.sort((a,b)=>a.period<b.period?1:a.period>b.period?-1:(a.pub<b.pub?-1:a.pub>b.pub?1:(a.time<b.time?1:-1)));
-  const rows=data.length===0
-    ?[`<tr><td colspan="9" style="text-align:center;color:var(--weak);padding:24px">所选条件下暂无已打款成功记录</td></tr>`]
-    :data.map(p=>{
+  const rows=[];
+  if(data.length===0){
+    rows.push(`<tr><td colspan="9" style="text-align:center;color:var(--weak);padding:24px">所选条件下暂无已打款成功记录</td></tr>`);
+  }else{
+    data.forEach(p=>{
       const invBtn=p.invoiceFile?`<button class="link" onclick="openInvoicePreview('${p.id}','invoice')">查看发票</button>`:'<span style="color:var(--weak)">—</span>';
       const billBtn=p.billFile?`<button class="link" style="margin-left:6px" onclick="openInvoicePreview('${p.id}','bill')">查看对账单</button>`:'';
-      return `<tr>
+      const items=Array.isArray(p.items)&&p.items.length?p.items:[{game:p.game,platform:p.platform,amount:p.amount}];
+      const isBatch=items.length>1;
+      const expandKey=`inv_${p.id}`;
+      const expanded=window._payExpanded&&window._payExpanded[expandKey];
+      const gameCell=isBatch?`<button class="link" onclick="togglePayRow('${expandKey}')">${expanded?'▾':'▸'} 多游戏</button><div style="font-size:11px;color:var(--muted);margin-top:2px">含 ${items.length} 项</div>`:`《${items[0].game}》`;
+      const platCell=isBatch?'<span style="color:var(--muted)">—</span>':items[0].platform;
+      rows.push(`<tr>
         <td>${p.period}</td>
         <td>${p.pub}</td>
-        <td>《${p.game}》</td>
-        <td>${p.platform}</td>
+        <td>${gameCell}</td>
+        <td>${platCell}</td>
         <td style="font-family:monospace;font-size:12px;color:var(--muted)">${p.id}</td>
         <td style="color:var(--muted)">${p.time}</td>
         <td style="font-family:monospace;font-size:12px;color:var(--muted)">${p.bkFlow||'—'}</td>
         <td style="text-align:right;font-weight:700">${fmt(p.amount)}</td>
         <td>${invBtn}${billBtn}<button class="link" style="margin-left:6px" onclick="openPayDetail('${p.id}')">申请单详情</button></td>
-      </tr>`;
+      </tr>`);
+      if(isBatch&&expanded){
+        items.forEach(it=>{
+          rows.push(`<tr style="background:#fafbfc;color:#555"><td colspan="2"></td><td style="padding-left:16px;color:var(--muted);font-size:12px">└ 《${it.game}》</td><td>${it.platform}</td><td colspan="3" style="color:var(--weak)"></td><td style="text-align:right;font-family:monospace">${fmt(it.amount)}</td><td></td></tr>`);
+        });
+      }
     });
+  }
 
   return `<div class="ph">
     <div><div class="pt">票据管理</div><div class="pd">按账期查看每个发行商已完成结算的金额，并查看打款申请单中提交的发票与盖章对账单。<b style="color:var(--primary)">仅展示「打款成功」的记录</b>。</div></div>
@@ -3150,7 +3255,8 @@ function openMyPayDetail(id){
     ${[['提交申请','done'],['审批',p.approval==='待审批'?'act':'done'],['银企打款',isProcessing?'act':masked==='打款成功'?'done':''],['完成',masked==='打款成功'?'done':'']].map((s,i)=>(i>0?'<div class="sline"></div>':'')+`<div class="step ${s[1]}"><span class="sc">${s[1]==='done'?'✓':(i+1)}</span>${s[0]}</div>`).join('')}
   </div>
   ${isProcessing?'<div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">⏳ 打款处理中，到账时间以银行实际为准。如超过 3 个工作日仍未到账，请联系结算财务。</div>':''}
-  <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">游戏</span><span class="v">《${p.game}》</span><span class="k">平台类型</span><span class="v">${p.platform}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(masked)}</span><span class="k">发起时间</span><span class="v">${p.time}</span></div>
+  <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">账期</span><span class="v">${p.period||'—'}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(masked)}</span><span class="k">发起时间</span><span class="v">${p.time}</span></div>
+  ${_renderPayItems(p)}
   <div class="sec-title">收款账户</div>
   <div class="kv"><span class="k">账户名称</span><span class="v">${pub?pub.accName:'—'}</span><span class="k">开户银行</span><span class="v">${pub?pub.bank:'—'}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">${pub?'****'+pub.acc:'—'}</span></div>
   <div class="sec-title">附件文件</div>
@@ -3178,12 +3284,27 @@ function openPayDetail(id){
   <div class="stepper">
     ${[['提交申请','done'],['BPM审批',p.approval==='待审批'?'act':'done'],['银企打款',p.exec==='打款中'?'act':p.exec==='打款成功'?'done':p.exec==='打款失败'?'done':''],['完成',p.exec==='打款成功'?'done':'']].map((s,i)=>(i>0?'<div class="sline"></div>':'')+`<div class="step ${s[1]}"><span class="sc">${s[1]==='done'?'✓':(i+1)}</span>${s[0]}</div>`).join('')}
   </div>
-  <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">游戏</span><span class="v">《${p.game}》</span><span class="k">平台类型</span><span class="v">${p.platform}</span><span class="k">发行商主体</span><span class="v">${p.pub}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(p.exec)}</span><span class="k">发起时间</span><span class="v">${p.time}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${p.bpm}</span><span class="k">打款流水号</span><span class="v" style="font-family:monospace">${p.flow}</span><span class="k">银行交易流水</span><span class="v" style="font-family:monospace">${p.bkFlow}</span>${p.relateId?`<span class="k">关联原单</span><span class="v" style="font-family:monospace">${p.relateId}</span>`:''}</div>
+  <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">账期</span><span class="v">${p.period||'—'}</span><span class="k">发行商主体</span><span class="v">${p.pub}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(p.exec)}</span><span class="k">发起时间</span><span class="v">${p.time}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${p.bpm}</span><span class="k">打款流水号</span><span class="v" style="font-family:monospace">${p.flow}</span><span class="k">银行交易流水</span><span class="v" style="font-family:monospace">${p.bkFlow}</span>${p.relateId?`<span class="k">关联原单</span><span class="v" style="font-family:monospace">${p.relateId}</span>`:''}${p.prevTerminatedId?`<span class="k">续接终止单</span><span class="v" style="font-family:monospace">${p.prevTerminatedId}</span>`:''}</div>
+  ${_renderPayItems(p)}
   <div class="sec-title">收款账户快照（提交时锁定）</div>
   <div class="kv"><span class="k">账户名称</span><span class="v">${pub?pub.accName:'—'}</span><span class="k">开户银行</span><span class="v">${pub?pub.bank:'—'}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">${pub?'****'+pub.acc:'—'}</span><span class="k">联行号</span><span class="v" style="font-family:monospace">${pub?pub.bankNo:'—'}</span></div>
   <div class="sec-title">附件文件</div>
   ${_renderPayAttachments(p)}
   ${footActs.length?`<div style="margin-top:14px;display:flex;gap:8px">${footActs.join('')}</div>`:''}`)
+}
+function _renderPayItems(p){
+  const items=Array.isArray(p.items)&&p.items.length?p.items:[{game:p.game,platform:p.platform,amount:p.amount}];
+  const isBatch=items.length>1;
+  const rows=items.map(it=>`<tr>
+    <td>《${it.game}》</td>
+    <td>${it.platform==='微信小游戏'?'<span class="tag green" style="font-size:11px">微信小游戏</span>':(it.platform==='抖音小游戏'?'<span class="tag blue" style="font-size:11px">抖音小游戏</span>':it.platform)}</td>
+    <td style="text-align:right;font-family:monospace;font-weight:700">${fmt(it.amount)}</td>
+  </tr>`).join('');
+  return `<div class="sec-title">${isBatch?`汇总子项（${items.length} 项）`:'打款明细'}</div>
+  <div class="card" style="margin-bottom:6px"><div class="tw"><table class="table" style="margin:0">
+    <thead><tr><th>游戏</th><th>平台</th><th style="text-align:right">金额</th></tr></thead>
+    <tbody>${rows}${isBatch?`<tr style="background:#f0f6ff"><td colspan="2" style="font-weight:800;color:var(--primary)">合计</td><td style="text-align:right;font-family:monospace;font-weight:800;color:var(--primary)">${fmt(p.amount)}</td></tr>`:''}</tbody>
+  </table></div></div>`;
 }
 
 function _renderPayAttachments(p){
