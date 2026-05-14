@@ -189,19 +189,20 @@ let FILTER_GAME='all';
 let FILTER_ENTITY='all';
 
 /* ──────────── MOCK DATA ──────────── */
-// 浑天仪项目候选（来自浑天仪后台同步），下拉选择，不允许在本系统手填
+// 浑天仪项目候选（来自浑天仪后台同步），可多选关联到游戏（1:N）；已绑定不可解绑
 const cloudProjects=[
   {id:'HTY-PROJ-001',name:'幻境传说-公共项目'},
   {id:'HTY-PROJ-002',name:'星际争霸'},
   {id:'HTY-PROJ-003',name:'萌宠大陆'},
   {id:'HTY-PROJ-004',name:'弹球传奇-公共项目'},
-  {id:'HTY-PROJ-005',name:'雪山远征'}
+  {id:'HTY-PROJ-005',name:'雪山远征'},
+  {id:'HTY-PROJ-006',name:'幻境传说-海外服'}
 ];
 const games=[
-  {id:'G-1001',name:'幻境传说',platforms:['微信小游戏','抖音小游戏'],cloudProjectId:'HTY-PROJ-001',cloudProjectName:'幻境传说-公共项目',remark:'微信/抖音双平台投放',created:'2026-04-01 10:22',creator:'系统管理员'},
-  {id:'G-1002',name:'星际争霸',platforms:['抖音小游戏'],cloudProjectId:'HTY-PROJ-002',cloudProjectName:'星际争霸',remark:'抖音小游戏重点项目',created:'2026-04-03 14:05',creator:'系统管理员'},
-  {id:'G-1003',name:'萌宠大陆',platforms:['微信小游戏'],cloudProjectId:'HTY-PROJ-003',cloudProjectName:'萌宠大陆',remark:'微信小游戏自然量较高',created:'2026-04-08 09:11',creator:'系统管理员'},
-  {id:'G-1004',name:'弹球传奇',platforms:['微信小游戏'],cloudProjectId:'',cloudProjectName:'',remark:'多发行商分渠道运营，每个渠道独立AppID',created:'2026-04-15 10:30',creator:'系统管理员'}
+  {id:'G-1001',name:'幻境传说',platforms:['微信小游戏','抖音小游戏'],cloudProjectIds:['HTY-PROJ-001','HTY-PROJ-006'],remark:'微信/抖音双平台投放；海外服共用',created:'2026-04-01 10:22',creator:'系统管理员'},
+  {id:'G-1002',name:'星际争霸',platforms:['抖音小游戏'],cloudProjectIds:['HTY-PROJ-002'],remark:'抖音小游戏重点项目',created:'2026-04-03 14:05',creator:'系统管理员'},
+  {id:'G-1003',name:'萌宠大陆',platforms:['微信小游戏'],cloudProjectIds:['HTY-PROJ-003'],remark:'微信小游戏自然量较高',created:'2026-04-08 09:11',creator:'系统管理员'},
+  {id:'G-1004',name:'弹球传奇',platforms:['微信小游戏'],cloudProjectIds:[],remark:'多发行商分渠道运营，每个渠道独立AppID',created:'2026-04-15 10:30',creator:'系统管理员'}
 ];
 // 平台-发行商-ID 映射子表（REQ-R-101）
 // 微信：必填 wxAppId（可多条）；抖音：必填 dyAppId + 多选 jlIds（一游戏一发行商）
@@ -318,6 +319,14 @@ function tbl(ths,rows,opts){
 }
 function goPage(key,no){if(!window._pageMap)window._pageMap={};window._pageMap[key+'__no']=Math.max(1,Number(no)||1);renderPage();}
 function setPageSize(key,size){if(!window._pageMap)window._pageMap={};window._pageMap[key+'__size']=Number(size)||10;window._pageMap[key+'__no']=1;renderPage();}
+// 统一读取游戏绑定的浑天仪项目 ID 列表（兼容老字段 cloudProjectId）
+function getGameCloudIds(g){
+  if(!g)return [];
+  if(Array.isArray(g.cloudProjectIds))return g.cloudProjectIds.slice();
+  if(g.cloudProjectId)return [g.cloudProjectId];
+  return [];
+}
+function getCloudProjectName(id){const p=cloudProjects.find(x=>x.id===id);return p?p.name:'';}
 function copyText(text){
   try{
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text);}
@@ -602,9 +611,12 @@ function pgGames(){
   });
   const rows=data.map(g=>{
     const cpRel=cpMappings.find(c=>c.gameId===g.id);
-    const cloudTag=g.cloudProjectId
-      ?`<div style="font-family:monospace;font-size:12px">${g.cloudProjectId}</div><div style="font-size:11px;color:var(--muted)">${g.cloudProjectName||'—'}</div>`
-      :`<span style="color:var(--red);font-size:12px">未关联</span>`;
+    const cloudIds=getGameCloudIds(g);
+    const cloudTag=cloudIds.length===0
+      ?`<span style="color:var(--red);font-size:12px">未关联</span>`
+      :(cloudIds.length===1
+        ?`<div style="font-family:monospace;font-size:12px">${cloudIds[0]}</div><div style="font-size:11px;color:var(--muted)">${getCloudProjectName(cloudIds[0])||'—'}</div>`
+        :`<div style="font-family:monospace;font-size:12px">${cloudIds[0]} <span style="background:#eef4fb;color:var(--primary);border-radius:8px;padding:1px 6px;font-size:10.5px;margin-left:4px;font-weight:700">+${cloudIds.length-1}</span></div><div style="font-size:11px;color:var(--muted)" title="${cloudIds.map(id=>id+(getCloudProjectName(id)?' '+getCloudProjectName(id):'')).join('；')}">${getCloudProjectName(cloudIds[0])||'—'} · 共 ${cloudIds.length} 个</div>`);
     return `<tr>
       <td style="font-family:monospace;font-size:12px">${g.id}</td>
       <td><b>《${g.name}》</b></td>
@@ -684,73 +696,132 @@ function licenseCell(e,entityType){
   return `<button class="link" onclick="openLicensePreview('${e.id}','${entityType}')">查看营业执照</button>`;
 }
 /* 浑天仪项目：自定义"可搜索下拉"，展示 项目ID + 项目名称，最终落库为 项目ID */
-function renderCloudProjCombo(initId,scope){
-  const sel=cloudProjects.find(p=>p.id===initId);
-  const display=sel?`${sel.id}　${sel.name}`:'';
-  return `<div class="cpcombo" data-scope="${scope}" style="position:relative">
-    <input type="hidden" class="cpcombo-id" value="${initId||''}" />
-    <input type="text" class="input cpcombo-input" autocomplete="off" style="width:100%;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 14px) center,calc(100% - 9px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:30px"
-      placeholder="点击选择 / 输入 项目ID 或 名称 搜索…"
-      value="${display.replace(/"/g,'&quot;')}"
-      onfocus="openCpCombo(this)"
-      onclick="openCpCombo(this)"
-      oninput="filterCpCombo(this)"
-      onblur="setTimeout(()=>closeCpCombo(this),150)" />
-    <div class="cpcombo-menu" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:2px;background:#fff;border:1px solid var(--line2);border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.08);max-height:240px;overflow:auto;z-index:1000">
-      ${renderCpOptions(initId)}
+/**
+ * 浑天仪项目"标签式多选"
+ * @param scope         作用域 ID（用于 DOM 区分，'new' | 'edit'）
+ * @param boundIds      已绑定的项目 ID 数组（这些不可删除）
+ * @param newIds        本次新增勾选的项目 ID 数组（可删）
+ * 保存时取并集 boundIds ∪ newIds。
+ */
+function renderCloudProjCombo(scope,boundIds,newIds){
+  const safe=(s)=>String(s||'').replace(/"/g,'&quot;');
+  const stateKey='_cpcomboNew__'+scope;
+  if(!window[stateKey])window[stateKey]=Array.isArray(newIds)?newIds.slice():[];
+  const bound=Array.isArray(boundIds)?boundIds:[];
+  const news=window[stateKey];
+  const renderChip=(id,locked)=>{
+    const p=cloudProjects.find(x=>x.id===id);
+    const name=p?p.name:'';
+    return `<span class="cpchip" data-id="${id}" style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:14px;background:${locked?'#f0f6ff':'#fff4e0'};border:1px solid ${locked?'#c9e0f7':'#ffd9a0'};font-size:12px;margin:2px">
+      <span style="font-family:monospace;color:${locked?'var(--primary)':'#a05000'};font-weight:600">${id}</span>
+      <span style="color:var(--muted)">${name}</span>
+      ${locked
+        ?'<span style="font-size:10.5px;color:#1a5b9a;background:#e8f3ff;padding:1px 6px;border-radius:8px">已绑定</span>'
+        :`<button type="button" class="cpchip-rm" data-scope="${safe(scope)}" data-id="${id}" onclick="removeCpComboNew(this)" style="background:none;border:none;cursor:pointer;color:#a05000;font-size:14px;line-height:1;padding:0">×</button>`}
+    </span>`;
+  };
+  const chips=[...bound.map(id=>renderChip(id,true)),...news.map(id=>renderChip(id,false))];
+  const hidden=`<input type="hidden" class="cpcombo-bound" value="${safe(bound.join(','))}" /><input type="hidden" class="cpcombo-new" value="${safe(news.join(','))}" />`;
+  return `<div class="cpcombo" data-scope="${safe(scope)}" style="position:relative">
+    ${hidden}
+    <div class="cpcombo-chips" style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;min-height:38px;padding:4px 6px;border:1px solid var(--line2);border-radius:var(--r2);background:#fff;cursor:text" onclick="(function(el){const wrap=el.closest('.cpcombo');const inp=wrap.querySelector('.cpcombo-add-input');inp.focus();openCpCombo(inp);})(this)">
+      ${chips.length?chips.join(''):'<span style="color:var(--weak);font-size:12.5px;padding:6px 4px">未关联浑天仪项目 — 点击下方"添加"</span>'}
+    </div>
+    <div style="position:relative;margin-top:6px">
+      <input type="text" class="input cpcombo-add-input" autocomplete="off" style="width:100%;padding-right:80px" placeholder="点击或输入 项目ID / 名称 搜索后选择…"
+        onfocus="openCpCombo(this)"
+        onclick="openCpCombo(this)"
+        oninput="filterCpCombo(this)"
+        onblur="setTimeout(()=>closeCpCombo(this),150)" />
+      <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:11px;pointer-events:none">+ 添加</span>
+      <div class="cpcombo-menu" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:2px;background:#fff;border:1px solid var(--line2);border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.08);max-height:240px;overflow:auto;z-index:1000"></div>
     </div>
   </div>`;
 }
-function renderCpOptions(activeId,keyword){
+function renderCpOptions(wrap,keyword){
   const kw=(keyword||'').trim().toLowerCase();
-  const list=kw?cloudProjects.filter(p=>p.id.toLowerCase().includes(kw)||p.name.toLowerCase().includes(kw)):cloudProjects;
-  const empty=`<div style="padding:10px 12px;color:var(--weak);font-size:12px;text-align:center">无匹配项目</div>`;
-  const items=list.map(p=>`<div class="cpcombo-opt" data-id="${p.id}" data-name="${p.name}" onmousedown="pickCpOption(this)" style="padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;gap:12px;${p.id===activeId?'background:#f0f6ff':''}">
-    <span style="font-family:monospace;font-size:12.5px;color:${p.id===activeId?'var(--primary)':'var(--text)'};font-weight:${p.id===activeId?'700':'500'}">${p.id}</span>
-    <span style="color:var(--muted);font-size:12.5px">${p.name}</span>
-  </div>`).join('');
-  return `<div class="cpcombo-clear" onmousedown="pickCpOption(this)" data-id="" data-name="" style="padding:8px 12px;cursor:pointer;color:var(--weak);font-size:12px;border-bottom:1px solid var(--line)">— 清除选择 —</div>${list.length?items:empty}`;
+  const boundIds=(wrap.querySelector('.cpcombo-bound').value||'').split(',').filter(Boolean);
+  const newIds=(wrap.querySelector('.cpcombo-new').value||'').split(',').filter(Boolean);
+  const selected=new Set([...boundIds,...newIds]);
+  const list=cloudProjects.filter(p=>{
+    if(kw&&!p.id.toLowerCase().includes(kw)&&!p.name.toLowerCase().includes(kw))return false;
+    return true;
+  });
+  if(!list.length)return '<div style="padding:10px 12px;color:var(--weak);font-size:12px;text-align:center">无匹配项目</div>';
+  return list.map(p=>{
+    const isSel=selected.has(p.id);
+    return `<div class="cpcombo-opt" data-id="${p.id}" onmousedown="pickCpOption(this)" style="padding:8px 12px;cursor:${isSel?'not-allowed':'pointer'};display:flex;justify-content:space-between;gap:12px;${isSel?'background:#fafafa;color:var(--muted)':''}">
+      <span style="font-family:monospace;font-size:12.5px">${p.id}</span>
+      <span style="color:var(--muted);font-size:12.5px">${p.name}${isSel?' · 已添加':''}</span>
+    </div>`;
+  }).join('');
 }
 function openCpCombo(input){
   const wrap=input.closest('.cpcombo');if(!wrap)return;
   const menu=wrap.querySelector('.cpcombo-menu');if(!menu)return;
+  menu.innerHTML=renderCpOptions(wrap,input.value);
   menu.style.display='block';
 }
 function closeCpCombo(input){
   const wrap=input.closest('.cpcombo');if(!wrap)return;
   const menu=wrap.querySelector('.cpcombo-menu');if(!menu)return;
-  // 关闭前，如果当前输入文本无对应 ID，则尝试模糊匹配回填；否则保持上次的 ID
-  const idEl=wrap.querySelector('.cpcombo-id');
-  const text=input.value.trim();
-  if(!text){idEl.value='';}
-  else{
-    const exact=cloudProjects.find(p=>`${p.id}　${p.name}`===text||p.id===text||p.name===text);
-    if(exact){idEl.value=exact.id;input.value=`${exact.id}　${exact.name}`;}
-    else{
-      const fuzzy=cloudProjects.find(p=>p.id.toLowerCase().includes(text.toLowerCase())||p.name.toLowerCase().includes(text.toLowerCase()));
-      if(fuzzy){idEl.value=fuzzy.id;input.value=`${fuzzy.id}　${fuzzy.name}`;}
-      else if(idEl.value){const cur=cloudProjects.find(p=>p.id===idEl.value);if(cur)input.value=`${cur.id}　${cur.name}`;}
-    }
-  }
+  input.value='';
   menu.style.display='none';
 }
 function filterCpCombo(input){
   const wrap=input.closest('.cpcombo');if(!wrap)return;
   const menu=wrap.querySelector('.cpcombo-menu');if(!menu)return;
-  const idEl=wrap.querySelector('.cpcombo-id');
-  menu.innerHTML=renderCpOptions(idEl.value,input.value);
+  menu.innerHTML=renderCpOptions(wrap,input.value);
   menu.style.display='block';
 }
 function pickCpOption(el){
   const wrap=el.closest('.cpcombo');if(!wrap)return;
-  const id=el.getAttribute('data-id')||'';
-  const name=el.getAttribute('data-name')||'';
-  const idEl=wrap.querySelector('.cpcombo-id');
-  const input=wrap.querySelector('.cpcombo-input');
-  idEl.value=id;
-  input.value=id?`${id}　${name}`:'';
-  wrap.querySelector('.cpcombo-menu').style.display='none';
+  const id=el.getAttribute('data-id');if(!id)return;
+  const boundIds=(wrap.querySelector('.cpcombo-bound').value||'').split(',').filter(Boolean);
+  const newInp=wrap.querySelector('.cpcombo-new');
+  const newIds=(newInp.value||'').split(',').filter(Boolean);
+  if(boundIds.includes(id)||newIds.includes(id))return;
+  newIds.push(id);
+  newInp.value=newIds.join(',');
+  const scope=wrap.getAttribute('data-scope');
+  window['_cpcomboNew__'+scope]=newIds;
+  // 在 chips 区追加新 chip
+  const chipsEl=wrap.querySelector('.cpcombo-chips');
+  const p=cloudProjects.find(x=>x.id===id);
+  if(chipsEl.querySelector('span[style*="color:var(--weak)"]'))chipsEl.innerHTML='';
+  chipsEl.insertAdjacentHTML('beforeend',`<span class="cpchip" data-id="${id}" style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:14px;background:#fff4e0;border:1px solid #ffd9a0;font-size:12px;margin:2px">
+    <span style="font-family:monospace;color:#a05000;font-weight:600">${id}</span>
+    <span style="color:var(--muted)">${p?p.name:''}</span>
+    <button type="button" class="cpchip-rm" data-scope="${scope}" data-id="${id}" onclick="removeCpComboNew(this)" style="background:none;border:none;cursor:pointer;color:#a05000;font-size:14px;line-height:1;padding:0">×</button>
+  </span>`);
+  // 刷新菜单（让该项显示"已添加"）
+  const input=wrap.querySelector('.cpcombo-add-input');
+  wrap.querySelector('.cpcombo-menu').innerHTML=renderCpOptions(wrap,input.value);
 }
+function removeCpComboNew(btn){
+  const wrap=btn.closest('.cpcombo');if(!wrap)return;
+  const id=btn.getAttribute('data-id');
+  const scope=btn.getAttribute('data-scope');
+  const newInp=wrap.querySelector('.cpcombo-new');
+  const newIds=(newInp.value||'').split(',').filter(Boolean).filter(x=>x!==id);
+  newInp.value=newIds.join(',');
+  window['_cpcomboNew__'+scope]=newIds;
+  btn.closest('.cpchip').remove();
+  // 若全空显示占位
+  const chipsEl=wrap.querySelector('.cpcombo-chips');
+  if(!chipsEl.querySelector('.cpchip')){
+    chipsEl.innerHTML='<span style="color:var(--weak);font-size:12.5px;padding:6px 4px">未关联浑天仪项目 — 点击下方"添加"</span>';
+  }
+}
+// 读取 combo 当前选中的所有 ID（保存时调用）
+function readCpComboIds(scope){
+  const wrap=document.querySelector(`.cpcombo[data-scope="${scope}"]`);
+  if(!wrap)return [];
+  const boundIds=(wrap.querySelector('.cpcombo-bound').value||'').split(',').filter(Boolean);
+  const newIds=(wrap.querySelector('.cpcombo-new').value||'').split(',').filter(Boolean);
+  return [...boundIds,...newIds];
+}
+
 
 function openGameDetail(id){
   const g=games.find(x=>x.id===id);
@@ -763,13 +834,16 @@ function openGameDetail(id){
     <td style="font-family:monospace">${m.dyAppId||'—'}</td>
     <td style="font-family:monospace;font-size:12px">${m.jlIds.join(', ')||'—'}</td>
   </tr>`).join('');
+  const detailCloudIds=getGameCloudIds(g);
+  const cloudListHtml=detailCloudIds.length===0
+    ?'<span style="color:var(--red)">未关联</span>'
+    :`<div style="display:flex;flex-direction:column;gap:4px">${detailCloudIds.map(id=>{const nm=getCloudProjectName(id);return `<div style="display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:14px;background:#f0f6ff;border:1px solid #c9e0f7;width:fit-content"><span style="font-family:monospace;font-size:12px;color:var(--primary);font-weight:600">${id}</span><span style="color:var(--muted);font-size:12px">${nm||'—'}</span></div>`;}).join('')}</div>`;
   openModal(`《${g.name}》游戏详情`,`
     <div class="kv">
       <span class="k">游戏ID</span><span class="v" style="font-family:monospace">${g.id}</span>
       <span class="k">游戏名称</span><span class="v">《${g.name}》</span>
       <span class="k">上架平台</span><span class="v">${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</span>
-      <span class="k">浑天仪项目ID</span><span class="v" style="font-family:monospace">${g.cloudProjectId||'<span style="color:var(--red)">未关联</span>'}</span>
-      <span class="k">浑天仪项目名称</span><span class="v">${g.cloudProjectName||'—'}</span>
+      <span class="k">浑天仪项目（${detailCloudIds.length}）</span><span class="v">${cloudListHtml}</span>
       <span class="k">备注</span><span class="v">${g.remark||'—'}</span>
       <span class="k">创建人</span><span class="v">${g.creator}</span>
       <span class="k">创建时间</span><span class="v">${g.created}</span>
@@ -788,6 +862,8 @@ function openGameDetail(id){
 }
 
 function openGameForm(){
+  // 重置 combo 状态
+  window._cpcomboNew__new=[];
   openModal('新建游戏',`
     <div class="fgrid">
       <div class="field" style="grid-column:1/-1"><label>游戏名称 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="如：幻境传说" /></div>
@@ -798,9 +874,9 @@ function openGameForm(){
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400"><input type="checkbox" style="width:14px;height:14px"/> 抖音小游戏</label>
         </div>
       </div>
-      <div class="field"><label>浑天仪项目</label>
-        ${renderCloudProjCombo('','new')}
-        <div class="hint">从浑天仪同步的项目列表中选择（按项目ID或名称搜索），1:1 关联，云服务成本以游戏为单位归集</div>
+      <div class="field" style="grid-column:1/-1"><label>浑天仪项目（可多选）</label>
+        ${renderCloudProjCombo('new',[],[])}
+        <div class="hint">一个游戏可关联多个浑天仪项目（1:N）；保存后<b>已绑定的项目不可解绑</b>，仅可继续追加。</div>
       </div>
       <div class="field" style="grid-column:1/-1"><label>备注</label><textarea class="input" style="width:100%;height:60px;resize:vertical" placeholder="可选说明"></textarea></div>
     </div>`,
@@ -808,26 +884,12 @@ function openGameForm(){
 }
 
 function _renderCloudFieldForEdit(g){
-  const st=getGameCloudStatus(g.id);
-  const sel=cloudProjects.find(p=>p.id===g.cloudProjectId);
-  const display=sel?`${sel.id}　${sel.name}`:(g.cloudProjectId||'');
-  if(st.state==='locked'){
-    return `<div class="field"><label>浑天仪项目</label>
-      <input type="hidden" id="edtCloudId" value="${g.cloudProjectId||''}" />
-      <input class="input" style="width:100%;background:#f5f5f5;color:var(--muted);cursor:not-allowed" disabled value="${display.replace(/"/g,'&quot;')}" />
-      <div style="margin-top:6px;font-size:12px;color:var(--red);background:#fff5f5;border:1px solid #ffcdcd;border-radius:6px;padding:6px 10px">🔒 <b>已有确认账期，无法更改</b>：该游戏在 ${st.confirmedPeriods.join(' / ')} 已完成云服务成本财务确认。如需变更，请联系系统管理员走线下变更流程。</div>
-    </div>`;
-  }
-  if(st.state==='pending'){
-    return `<div class="field"><label>浑天仪项目</label>
-      ${renderCloudProjCombo(g.cloudProjectId||'','edit')}
-      <div style="margin-top:6px;font-size:12px;color:#8a4b00;background:#fff7ec;border:1px solid #ffd9b3;border-radius:6px;padding:6px 10px">⚠️ <b>提示</b>：该游戏已有 <b>${st.pendingCnt}</b> 个未确认账期的云成本数据正在归属当前项目，修改将影响这些账期的成本归属，保存时需二次确认。</div>
-    </div>`;
-  }
-  // free
-  return `<div class="field"><label>浑天仪项目</label>
-    ${renderCloudProjCombo(g.cloudProjectId||'','edit')}
-    <div class="hint">从浑天仪同步的项目列表中选择（按项目ID或名称搜索），1:1 关联，云服务成本以游戏为单位归集</div>
+  const boundIds=getGameCloudIds(g);
+  // 重置 combo 状态（新增的清空，已绑的在 chip 里展示为不可删）
+  window._cpcomboNew__edit=[];
+  return `<div class="field" style="grid-column:1/-1"><label>浑天仪项目（已绑定 ${boundIds.length} 个，可追加）</label>
+    ${renderCloudProjCombo('edit',boundIds,[])}
+    <div class="hint">绑定关系为多对一（1:N）；<b>已绑定的项目不可解绑</b>，仅可新增追加。如需解绑请联系系统管理员走线下变更流程。</div>
   </div>`;
 }
 function openGameEditForm(id){
@@ -849,33 +911,24 @@ function openGameEditForm(id){
 }
 function saveGameEdit(id){
   const g=games.find(x=>x.id===id);if(!g)return;
-  const st=getGameCloudStatus(id);
-  if(st.state==='locked'){
-    // 只读字段，直接保存（云项目字段不会变）
-    alert('原型展示：游戏信息已更新（浑天仪项目未变更）。');
+  // 读取 combo 当前所有 ID（含已绑 + 新增）
+  const allIds=readCpComboIds('edit');
+  const oldIds=getGameCloudIds(g);
+  // 计算新增（已绑的肯定保留，因为 UI 上不可删；这里只关心追加部分）
+  const added=allIds.filter(x=>!oldIds.includes(x));
+  if(!added.length){
+    alert('原型展示：游戏信息已更新（浑天仪项目无追加）。');
     closeModal();renderPage();return;
   }
-  // 读取 combo 当前选中的浑天仪项目 ID
-  const newId=(document.querySelector('.cpcombo[data-scope="edit"] .cpcombo-id')||{}).value||'';
-  const changed=newId!==(g.cloudProjectId||'');
-  if(changed&&st.state==='pending'){
-    const oldDisp=g.cloudProjectId?`${g.cloudProjectId}（${g.cloudProjectName||'—'}）`:'未关联';
-    const newProj=cloudProjects.find(p=>p.id===newId);
-    const newDisp=newProj?`${newProj.id}（${newProj.name}）`:'未关联';
-    confirmDialog('确认修改浑天仪项目关联',
-      `游戏《${g.name}》已有 <b style="color:#8a4b00">${st.pendingCnt}</b> 个未确认账期的云成本数据正在归属当前项目。<br/><br/>原项目：<b>${oldDisp}</b><br/>新项目：<b style="color:var(--primary)">${newDisp}</b><br/><br/>修改后，这些未确认账期的云成本将切换至新项目下，相关 CP 分账归属同步变化。是否继续？`,
-      function(){
-        _commitGameEdit(g,newId);
-      },'确认修改');
-    return;
-  }
-  // free 状态：直接保存
-  _commitGameEdit(g,newId);
+  // 有追加：弹二次确认
+  const addedDisp=added.map(idd=>{const p=cloudProjects.find(x=>x.id===idd);return p?`${p.id}（${p.name}）`:idd;}).join('、');
+  confirmDialog('确认追加浑天仪项目关联',
+    `游戏《${g.name}》将追加关联以下 <b style="color:var(--primary)">${added.length}</b> 个浑天仪项目：<br/><br/><b>${addedDisp}</b><br/><br/>追加后云服务成本归属将扩展到这些新项目，后续账期将同步采集这些项目的成本。<br/><br/>⚠️ <b>已绑定的项目不可解绑</b>。是否继续？`,
+    function(){_commitGameEdit(g,allIds);},'确认追加');
 }
-function _commitGameEdit(g,newCloudId){
-  const newProj=cloudProjects.find(p=>p.id===newCloudId);
-  g.cloudProjectId=newCloudId||'';
-  g.cloudProjectName=newProj?newProj.name:'';
+function _commitGameEdit(g,allCloudIds){
+  g.cloudProjectIds=Array.isArray(allCloudIds)?allCloudIds.slice():[];
+  delete g.cloudProjectId;delete g.cloudProjectName;
   alert('原型展示：游戏信息已更新。');
   closeModal();renderPage();
 }
@@ -1627,7 +1680,6 @@ function confirmBill(key){
       if(!window._billConfirmed)window._billConfirmed=new Set();
       window._billConfirmed.add(key);
       document.getElementById('contentEl').innerHTML=pgSettlePub();
-      openBillStatement(key);
     },'确认无异议');
 }
 /* 财务·云服务成本确认（按账期 × 浑天仪项目）：确认后该账期下对应游戏的 CP 分账才正常出账 */
@@ -1642,21 +1694,14 @@ function confirmCloudCost(key){
   alert('云服务成本已确认，对应账期下 CP 分账将正常出账。');
   document.getElementById('contentEl').innerHTML=pgCloudCost();
 }
-/* 计算游戏当前的云成本状态：
- *  - 'free'    ：无 settle 数据 或 未关联浑天仪项目 → 可自由修改
- *  - 'pending' ：已关联，但所有相关账期的云成本均未财务确认 → 二次确认后可改
- *  - 'locked'  ：已存在「已确认」账期 → 不允许修改
+/* 计算游戏当前的云成本状态（多对一模型）：
+ *  - 'free' ：未绑定任何项目 → 可新增绑定
+ *  - 'bound'：已绑定项目，新增可继续追加；已绑不可解绑
  */
 function getGameCloudStatus(gameId){
   const g=games.find(x=>x.id===gameId);
-  if(!g)return {state:'free',pendingCnt:0,confirmedCnt:0,confirmedPeriods:[]};
-  if(!g.cloudProjectId)return {state:'free',pendingCnt:0,confirmedCnt:0,confirmedPeriods:[]};
-  const periods=[...new Set(settle.filter(r=>r.game===g.name).map(r=>r.period))];
-  if(!periods.length)return {state:'free',pendingCnt:0,confirmedCnt:0,confirmedPeriods:[]};
-  const conf=window._cloudCostConfirmed||new Set();
-  const confirmedPeriods=periods.filter(p=>conf.has(`${p}__${g.cloudProjectId}`));
-  if(confirmedPeriods.length>0)return {state:'locked',pendingCnt:periods.length-confirmedPeriods.length,confirmedCnt:confirmedPeriods.length,confirmedPeriods};
-  return {state:'pending',pendingCnt:periods.length,confirmedCnt:0,confirmedPeriods:[]};
+  const ids=getGameCloudIds(g);
+  return {state:ids.length?'bound':'free',count:ids.length,ids};
 }
 const SETTLEMENT_PREPARER='大发行结算平台';
 function buildBillStatementHtml(key,opts){
@@ -1811,6 +1856,7 @@ function _revBaseFilter(prefix){
   const platF=window['_'+prefix+'Plat']||'all';
   const gameF=window['_'+prefix+'Game']||'all';
   const entityF=window['_'+prefix+'Entity']||'all';
+  const appF=window['_'+prefix+'App']||'all'; // 后台游戏应用：pubMappings.id
   const allPeriods=[...new Set(settle.map(r=>r.period))].sort();
   const platforms=[...new Set(settle.map(r=>r.platform))].sort();
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -1821,22 +1867,38 @@ function _revBaseFilter(prefix){
     if(et==='cp'){const c=visibleCps.find(x=>x.id===eid);filterCpName=c?c.name:null;}
   }
   const filterGameName=gameF==='all'?null:visibleGames.find(g=>g.id===gameF)?.name||null;
+  // 后台游戏应用筛选：通过 pubMappings 锁定 game/platform/pub 三元组
+  const appMapping=appF==='all'?null:pubMappings.find(m=>m.id===appF);
+  // 可见 app 列表：按当前 游戏/平台/主体 筛选条件先过滤
+  const visibleApps=pubMappings.filter(m=>{
+    if(filterGameName&&m.game!==filterGameName)return false;
+    if(platF!=='all'&&m.platform!==platF)return false;
+    if(filterPubName&&m.pub!==filterPubName)return false;
+    if(filterCpName)return false; // CP 维度不影响应用列表
+    if(!visiblePubs.find(p=>p.id===m.pubId))return false;
+    return true;
+  });
   const data=settle.filter(r=>{
     if(r.period<startF||r.period>endF)return false;
     if(filterPubName&&r.pub!==filterPubName)return false;
     if(filterCpName&&r.cp!==filterCpName)return false;
     if(filterGameName&&r.game!==filterGameName)return false;
     if(platF!=='all'&&r.platform!==platF)return false;
+    if(appMapping&&(r.game!==appMapping.game||r.platform!==appMapping.platform||r.pub!==appMapping.pub))return false;
     const pubOk=visiblePubs.length===0||visiblePubs.find(p=>p.name===r.pub);
     if(!pubOk)return false;
     return true;
   });
-  return {startF,endF,platF,gameF,entityF,allPeriods,platforms,visiblePubs,visibleCps,visibleGames,data};
+  return {startF,endF,platF,gameF,entityF,appF,allPeriods,platforms,visiblePubs,visibleCps,visibleGames,visibleApps,data};
 }
 function _revFilterPanel(prefix,ctx,refreshFn){
-  const {startF,endF,platF,gameF,entityF,allPeriods,platforms,visiblePubs,visibleCps,visibleGames,data}=ctx;
+  const {startF,endF,platF,gameF,entityF,appF,allPeriods,platforms,visiblePubs,visibleCps,visibleGames,visibleApps,data}=ctx;
   const pubOpts=visiblePubs.map(p=>`<option value="pub:${p.id}" ${entityF==='pub:'+p.id?'selected':''}>[发行商] ${p.name}</option>`).join('');
   const cpOpts=visibleCps.map(c=>`<option value="cp:${c.id}" ${entityF==='cp:'+c.id?'selected':''}>[CP] ${c.name}</option>`).join('');
+  const appOptHtml=visibleApps.map(m=>{
+    const appId=m.platform==='微信小游戏'?(m.wxAppId||'—'):(m.dyAppId||'—');
+    return `<option value="${m.id}" ${appF===m.id?'selected':''}>${appId} · 《${m.game}》${m.platform==='微信小游戏'?'微小':'抖小'} · ${m.pub}</option>`;
+  }).join('');
   return `<div class="card" style="margin-bottom:20px;padding:16px 20px">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px 20px;align-items:end">
       <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">开始账期</div>
@@ -1848,24 +1910,29 @@ function _revFilterPanel(prefix,ctx,refreshFn){
           ${[...allPeriods].reverse().map(p=>`<option value="${p}" ${endF===p?'selected':''}>${p}</option>`).join('')}
         </select></div>
       <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">游戏</div>
-        <select class="select" style="width:100%" onchange="window._${prefix}Game=this.value;${refreshFn}">
+        <select class="select" style="width:100%" onchange="window._${prefix}Game=this.value;window._${prefix}App='all';${refreshFn}">
           <option value="all" ${gameF==='all'?'selected':''}>全部游戏</option>
           ${visibleGames.map(g=>`<option value="${g.id}" ${gameF===g.id?'selected':''}>${g.name}</option>`).join('')}
         </select></div>
       <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">平台</div>
-        <select class="select" style="width:100%" onchange="window._${prefix}Plat=this.value;${refreshFn}">
+        <select class="select" style="width:100%" onchange="window._${prefix}Plat=this.value;window._${prefix}App='all';${refreshFn}">
           <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
           ${platforms.map(p=>`<option value="${p}" ${platF===p?'selected':''}>${p}</option>`).join('')}
         </select></div>
       <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">主体</div>
-        <select class="select" style="width:100%" onchange="window._${prefix}Entity=this.value;${refreshFn}">
+        <select class="select" style="width:100%" onchange="window._${prefix}Entity=this.value;window._${prefix}App='all';${refreshFn}">
           <option value="all" ${entityF==='all'?'selected':''}>全部主体</option>
           ${pubOpts?`<optgroup label="发行商">${pubOpts}</optgroup>`:''}
           ${cpOpts?`<optgroup label="CP">${cpOpts}</optgroup>`:''}
         </select></div>
+      <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">后台游戏应用 <span title="即微信小游戏应用ID或抖音小游戏应用ID" style="color:var(--muted);cursor:help">ⓘ</span></div>
+        <select class="select" style="width:100%" onchange="window._${prefix}App=this.value;${refreshFn}">
+          <option value="all" ${appF==='all'?'selected':''}>全部应用</option>
+          ${appOptHtml}
+        </select></div>
       <div style="display:flex;align-items:flex-end;gap:8px;padding-bottom:1px">
         <button class="btn p sm" onclick="${refreshFn}">查询</button>
-        <button class="btn g sm" onclick="window._${prefix}Start='2026-01';window._${prefix}End='2026-04';window._${prefix}Plat='all';window._${prefix}Game='all';window._${prefix}Entity='all';${refreshFn}">重置</button>
+        <button class="btn g sm" onclick="window._${prefix}Start='2026-01';window._${prefix}End='2026-04';window._${prefix}Plat='all';window._${prefix}Game='all';window._${prefix}Entity='all';window._${prefix}App='all';${refreshFn}">重置</button>
         <span style="color:var(--muted);font-size:12px;margin-left:2px">共 ${data.length} 条</span>
       </div>
     </div>
@@ -2272,16 +2339,23 @@ function pgCloudCost(){
   const startF=window._ccStart||'2026-04';
   const endF=window._ccEnd||'2026-04';
   const gameF=window._ccGame||'all';
-  // 按账期 × 游戏聚合云服务成本（一个游戏对应一个浑天仪项目，1:1）
+  // 按账期 × 游戏 × 项目聚合（多对一：一个游戏可绑多个项目，则同账期同游戏拆为多行，每个项目分摊一份成本）
   const rowMap={};
   settle.forEach(r=>{
     if(r.period<startF||r.period>endF)return;
     const g=games.find(x=>x.name===r.game);
-    if(!g||!g.cloudProjectId)return;
+    if(!g)return;
+    const ids=getGameCloudIds(g);
+    if(!ids.length)return;
     if(gameF!=='all'&&g.id!==gameF)return;
-    const k=`${r.period}__${g.cloudProjectId}`;
-    if(!rowMap[k])rowMap[k]={key:k,period:r.period,gameId:g.id,gameName:g.name,projectId:g.cloudProjectId,projectName:g.cloudProjectName||'—',cost:0};
-    rowMap[k].cost+=(r.serverCost||0);
+    // 成本按项目数等分（mock：实际系统从浑天仪按项目拉取明细）
+    const perCost=(r.serverCost||0)/ids.length;
+    ids.forEach(pid=>{
+      const k=`${r.period}__${pid}`;
+      const pname=getCloudProjectName(pid)||'—';
+      if(!rowMap[k])rowMap[k]={key:k,period:r.period,gameId:g.id,gameName:g.name,projectId:pid,projectName:pname,cost:0};
+      rowMap[k].cost+=perCost;
+    });
   });
   const rows=Object.values(rowMap).sort((a,b)=>b.period.localeCompare(a.period)||a.gameId.localeCompare(b.gameId));
   const totalCost=rows.reduce((s,r)=>s+r.cost,0);
@@ -2307,7 +2381,7 @@ function pgCloudCost(){
     </tr>`;
   });
 
-  const allGames=games.filter(g=>g.cloudProjectId);
+  const allGames=games.filter(g=>getGameCloudIds(g).length>0);
 
   return `<div class="ph"><div><div class="pt">账期云服务成本</div><div class="pd">每月从浑天仪同步云服务成本，按账期 × 游戏应用展示（一个游戏对应一个浑天仪项目）。<b style="color:var(--primary)">由财务对账后确认</b>；确认后该账期对应游戏的 CP 分账方可正常出账。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>云服务成本归属：</b>云服务成本以「游戏应用」为单位归集，每个游戏在「游戏管理」中关联唯一的浑天仪项目（1:1）。未关联浑天仪项目的游戏不会产生云服务���本归属。</div>
@@ -2521,7 +2595,7 @@ function pgSettlePubClosed(){
       <td style="font-weight:800">${ready?mn(ps.pubCash)+lossTag(ps.cashIsLossTransfer):dash}</td>
       <td>${ready?mn(ps.pubV)+lossTag(ps.vIsLossTransfer):dash}</td>
       <td>${confirmCell}</td>
-      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${key}')">确认对账单</button>`:''}${ready&&billOk?`<button class="link" style="margin-left:8px" onclick="openBillStatement('${key}')">查看对账单</button>`:''}</td>
+      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${key}')">确认对账单</button>`:''}</td>
     </tr>`;
   });
   return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
@@ -2602,9 +2676,13 @@ function openDailyDetail(key,period,game,platform,pub){
 /* PAGE: CP分账明细 */
 function pgSettleCp(){
   const ent=parsedEntity();
+  const allPeriodsAsc=[...new Set(settle.map(r=>r.period))].sort();
+  const startF=window._cpStart||(allPeriodsAsc[allPeriodsAsc.length-1]||'2026-04');
+  const endF=window._cpEnd||(allPeriodsAsc[allPeriodsAsc.length-1]||'2026-04');
   let data=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
   if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
   if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
+  data=data.filter(r=>r.period>=startF&&r.period<=endF);
   const totalCpCash=data.reduce((s,r)=>s+calcCpSettle(r).cpCash,0);
   const totalCpV=data.reduce((s,r)=>s+calcCpSettle(r).cpV,0);
   const totalServer=data.reduce((s,r)=>s+(r.serverCost||0),0);
@@ -2612,31 +2690,54 @@ function pgSettleCp(){
   const rows=data.map(r=>{
     const cs=calcCpSettle(r);
     const noShare=cs.noShare;
+    const cpServerShared=cs.shareServer?(cs.cashServer||0)*cs.cpRemainShare/100:0; // CP 实际承担的服务器成本（池内占比折算后）
+    const actualCpRate=(!noShare&&cs.totalP>0)?((cs.cpCash+cs.cpV)/cs.totalP*100):0;
+    const nominalCpRate=cs.cpRate; // 合同名义占比（未扣服务器成本前对总利润的折算）
+    const rateDelta=nominalCpRate-actualCpRate;
     const g=games.find(x=>x.name===r.game);
-    const cloudOk=g&&g.cloudProjectId?isCloudCostConfirmed(r.period,g.cloudProjectId):true; // 未关联项目则视为不依赖云成本确认
+    const gCloudIds=g?getGameCloudIds(g):[];
+    const confirmedCloudCnt=gCloudIds.filter(pid=>isCloudCostConfirmed(r.period,pid)).length;
+    const cloudOk=gCloudIds.length===0?true:confirmedCloudCnt===gCloudIds.length;
     const dash='<span style="color:var(--weak)">—</span>';
     const lossTag='<span style="background:#ffe9e9;color:var(--red);border-radius:8px;padding:0 5px;font-size:10px;margin-left:3px;font-weight:700">总利润为负·不分账</span>';
-    const cloudTag=g&&!g.cloudProjectId
+    const cloudTag=gCloudIds.length===0
       ?'<span class="tag" style="background:#fff3e0;color:var(--orange);font-size:11px">未关联浑天仪项目</span>'
       :(cloudOk
-          ?'<span class="tag green" style="font-size:11px">✓ 云成本已确认</span>'
-          :'<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待财务确认云成本</span>');
+          ?`<span class="tag green" style="font-size:11px">✓ 云成本已确认${gCloudIds.length>1?'（'+gCloudIds.length+' 项）':''}</span>`
+          :`<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待财务确认（${confirmedCloudCnt}/${gCloudIds.length}）</span>`);
     return `<tr ${!cloudOk||noShare?'style="background:#fff8f8"':''}>
       <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.cp}</td>
       <td>${mn(r.cashRev)}</td><td>${mn(r.vRev)}</td>
       <td>${mn(r.cost)}</td>
+      <td style="color:var(--muted)">${mn(r.cashCost||0)}</td>
+      <td style="color:var(--muted)">${mn(r.vCost||0)}</td>
       <td style="color:#7a52b3">${cloudOk?(cs.shareServer?mn(r.serverCost||0):'<span style="color:var(--weak)">—（规则未配置承担）</span>'):dash}</td>
       <td>${mn(r.cashP)}</td><td>${mn(r.vP)}</td>
       <td style="color:${cs.totalP<0?'var(--red)':'var(--text)'};font-weight:700">${cloudOk?mn(cs.totalP):dash}</td>
       <td style="color:#7a52b3">${cloudOk?mn(cs.cashBase)+' / '+mn(cs.vBase):dash}</td>
-      <td style="font-weight:700">${cs.pubRate}% / ${cs.cpRate.toFixed(1)}%<div style="font-size:10.5px;color:var(--muted);font-weight:400;font-family:monospace">(1−${cs.pubRate}%)×${cs.cpRemainShare}%</div></td>
+      <td>
+        <div style="font-weight:700;color:var(--text)">发行 ${cs.pubRate}%</div>
+        <div style="font-size:11px;color:var(--muted);font-weight:500;margin-top:2px">剩余池 ${100-cs.pubRate}% · 池内 CP ${cs.cpRemainShare}%</div>
+        <div class="tip-trigger" style="font-size:10.5px;color:#999;font-family:monospace;margin-top:2px;cursor:help" title="合同名义占比 = (1−${cs.pubRate}%)×${cs.cpRemainShare}% = ${nominalCpRate.toFixed(1)}%（未扣服务器成本时 CP 对总利润的占比）">名义 ${nominalCpRate.toFixed(1)}% ⓘ</div>
+      </td>
       <td style="font-weight:700">${cloudOk?mn(cs.cpCash)+(noShare?lossTag:''):dash}</td>
       <td>${cloudOk?mn(cs.cpV)+(noShare?lossTag:''):dash}</td>
+      <td style="font-weight:700">${cloudOk&&!noShare?`<span style="color:${rateDelta>0.5?'var(--orange)':'var(--text)'}">${actualCpRate.toFixed(2)}%</span>${rateDelta>0.5?`<div style="font-size:10.5px;color:var(--muted);font-weight:400" title="名义 ${nominalCpRate.toFixed(1)}% − 服务器成本分摊 ¥${cpServerShared.toFixed(2)} ÷ 总利润 ¥${cs.totalP.toFixed(2)}">↓ 比名义低 ${rateDelta.toFixed(2)}pp</div>`:''}`:dash}</td>
       <td>${cloudTag}</td>
     </tr>`;
   });
   return `<div class="ph"><div><div class="pt">CP分账明细</div><div class="pd">CP 分账基数 = 利润 × (1 − 发行商占比%) − CP承担服务器成本；当期总利润（现金+广告金）为负则 CP 不参与分账。<b style="color:var(--primary)">需财务在「账期云服务成本」中确认对应账期的云成本后方可出账</b>。Phase 1 中 CP 不可主动提款，需由财务线下处理。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
-  <div class="filter"><select class="select"><option>账期：2026-04</option><option>2026-03</option></select></div>
+  <div class="filter" style="margin-bottom:16px">
+    <span style="font-size:12px;color:var(--muted);font-weight:650">开始账期</span>
+    <select class="select" onchange="window._cpStart=this.value;document.getElementById('contentEl').innerHTML=pgSettleCp()">
+      ${allPeriodsAsc.map(p=>`<option value="${p}" ${startF===p?'selected':''}>${p}</option>`).join('')}
+    </select>
+    <span style="font-size:12px;color:var(--muted);font-weight:650">结束账期</span>
+    <select class="select" onchange="window._cpEnd=this.value;document.getElementById('contentEl').innerHTML=pgSettleCp()">
+      ${allPeriodsAsc.map(p=>`<option value="${p}" ${endF===p?'selected':''}>${p}</option>`).join('')}
+    </select>
+    <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 条</span>
+  </div>
   <div class="g3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px">
     <div class="metric"><div class="lb">CP现金利润合计</div><div class="v ${totalCpCash<0?'neg':''}">${fmt(totalCpCash)}</div></div>
     <div class="metric"><div class="lb">CP广告金利润</div><div class="v">${fmt(totalCpV)}</div></div>
@@ -2646,9 +2747,10 @@ function pgSettleCp(){
     <span style="display:inline-block;margin:0 6px"><b>① 现金</b>：CP 现金分账 = [ 现金利润 × (1 − 发行商占比%) − 服务器成本 ] × <span style="color:var(--green);font-weight:700">CP剩余池占比%</span></span><br/>
     <span style="display:inline-block;margin:0 6px"><b>② 广告金</b>：CP 广告金分账 = [ 广告金利润 × (1 − 发行商占比%) ] × <span style="color:var(--green);font-weight:700">CP剩余池占比%</span><span style="color:var(--muted)">（不扣服务器成本）</span></span><br/>
     <span style="display:inline-block;margin:0 6px"><b>③ 总利润 &lt; 0</b>：CP 现金/广告金均为 0（「总利润为负·不分账」标记），亏损由发行商承担</span><br/>
+    <span style="display:inline-block;margin:0 6px;color:#a05000"><b>④ 名义 vs 实际占比</b>：合同条款里「池内 CP 占 50%」折算到总利润是<b>名义占比</b>（如 15%）；CP 承担服务器成本时实际拿到的会更低，<b>「CP 实际占比」</b>列按行动态计算 = (CP现金 + CP广告金) ÷ 总利润</span><br/>
     <span style="display:inline-block;margin:0 6px;color:var(--muted)">服务器成本是否扣减由「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置</button>」中每条规则的「CP 承担服务器成本」开关决定</span>
   </div>
-  ${tbl(['账期','游戏','平台','CP','现金收入','广告金收入','总消耗','服务器成本','现金利润','广告金利润','总利润','CP分账基数(现/广)','发行/CP 占比','CP现金分账','CP广告金分账','云成本状态'],rows,{pageKey:'settleCp'})}`;
+  ${tbl(['账期','游戏','平台','CP','现金收入','广告金收入','总消耗','现金成本','广告金成本','服务器成本','现金利润','广告金利润','总利润','CP分账基数(现/广)','合同分账条款','CP现金分账','CP广告金分账','CP实际占比','云成本状态'],rows,{pageKey:'settleCp'})}`;
 }
 
 /* PAGE: 账户打款流水 */
