@@ -1898,8 +1898,12 @@ function buildMultiBillStatementHtml(keys){
     .bs table{width:100%;border-collapse:collapse;font-size:13px}
     .bs th,.bs td{border:1px solid #c8c8c8;padding:6px 10px;text-align:right}
     .bs th{background:#f0f4fa;font-weight:700;text-align:center}
-    .bs .bs-foot{display:flex;justify-content:space-between;margin-top:18px;font-size:13px;color:#444}
-    .bs .bs-stamp{margin-top:18px;text-align:right;color:#999;font-size:12px}
+    .bs .bs-foot{margin-top:18px;font-size:13px;line-height:1.8;border-top:1px dashed #c8c8c8;padding-top:12px;color:#444}
+    .bs .bs-stamps{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:13px}
+    .bs .bs-stamp{border:1px solid #d8d8d8;padding:14px;min-height:110px;border-radius:4px;position:relative}
+    .bs .bs-stamp .lbl{color:#666;margin-bottom:8px}
+    .bs .bs-stamp .sig{height:60px;border-bottom:1px solid #ccc}
+    .bs .bs-stamp .dt{margin-top:8px;color:#666;font-size:12px}
   </style>
   <div class="bs">
     <h1>分 账 对 账 单</h1>
@@ -1909,11 +1913,13 @@ function buildMultiBillStatementHtml(keys){
       <div><span class="k">对账期间：</span><b>${periodRange}</b></div>
       <div><span class="k">明细条数：</span>${rows.length} 条</div>
       <div><span class="k">出具日期：</span>${today}</div>
+      <div><span class="k">填制单位：</span>${SETTLEMENT_PREPARER}</div>
+      <div><span class="k">对账单编号：</span>BS-${today.replace(/-/g,'')}-${(rows[0]&&rows[0].pub||'').slice(0,2)}</div>
     </div>
     <table>
       <thead><tr><th>账期</th><th>游戏</th><th>平台</th><th>现金收入</th><th>广告金收入</th><th>总消耗</th><th>分成比例</th><th>可结算（现金）</th><th>可结算（广告金）</th></tr></thead>
       <tbody>${lines}</tbody>
-      <tfoot><tr style="background:#fafbfc;font-weight:800">
+      <tfoot><tr style="background:#fff8e6;font-weight:800">
         <td colspan="3" style="text-align:center">合计</td>
         <td>${mn(sumCashRev)}</td>
         <td>${mn(sumVRev)}</td>
@@ -1923,11 +1929,11 @@ function buildMultiBillStatementHtml(keys){
         <td>${mn(sumPubV)}</td>
       </tr></tfoot>
     </table>
-    <div class="bs-foot">
-      <div>本对账单经发行商对账确认后生成，可作为打款依据。</div>
-      <div>制单方：大发行结算平台</div>
+    <div class="bs-foot">经核对，以上数据金额确认无误。本对账单双方盖章一式两份，双方各执一份。</div>
+    <div class="bs-stamps">
+      <div class="bs-stamp"><div class="lbl">填制单位（盖章）：</div><div class="sig"></div><div class="dt">${SETTLEMENT_PREPARER}　日期：${today}</div></div>
+      <div class="bs-stamp"><div class="lbl">发行商（盖章）：</div><div class="sig"></div><div class="dt">${pubLegal}　日期：　　年　月　日</div></div>
     </div>
-    <div class="bs-stamp">（此对账单由系统自动生成，仅供原型演示）</div>
   </div>`;
 }
 
