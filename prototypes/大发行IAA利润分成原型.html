@@ -1788,6 +1788,149 @@ function openBillStatement(key){
     `<button class="btn g" onclick="closeModal()">关闭</button><button class="btn p" onclick="downloadBillStatement('${key}')">↓ 下载对账单</button>`);
 }
 
+/* 生成对账单：发行商勾选多个已确认账期，合并生成一份对账单 */
+function _gbsState(){
+  if(!window._gbsSel)window._gbsSel=new Set();
+  return window._gbsSel;
+}
+function openGenBillStatement(){
+  if(!isPublisher()){alert('当前角色无权生成对账单');return;}
+  window._gbsSel=new Set();
+  _renderGenBillModal();
+}
+function _renderGenBillModal(){
+  const ent=parsedEntity();
+  // 只展示当前发行商主体的已确认账期数据
+  let data=settle.filter(r=>ent.type==='pub'?r.pub===ent.name:true);
+  data=data.filter(r=>isSettleReady(r.period,r.game,r.platform)&&isBillConfirmed(r.period,r.game,r.platform));
+  data.sort((a,b)=>b.period.localeCompare(a.period)||a.game.localeCompare(b.game));
+  const sel=_gbsState();
+  const totalPubCash=[...sel].reduce((s,k)=>{const [pe,g,pl]=k.split('__');const r=settle.find(x=>x.period===pe&&x.game===g&&x.platform===pl);return r?s+calcPubSettle(r).pubCash:s},0);
+  const totalPubV=[...sel].reduce((s,k)=>{const [pe,g,pl]=k.split('__');const r=settle.find(x=>x.period===pe&&x.game===g&&x.platform===pl);return r?s+calcPubSettle(r).pubV:s},0);
+  const allKeys=data.map(r=>`${r.period}__${r.game}__${r.platform}`);
+  const allChecked=allKeys.length>0&&allKeys.every(k=>sel.has(k));
+  const rows=data.length?data.map(r=>{
+    const ps=calcPubSettle(r);
+    const k=`${r.period}__${r.game}__${r.platform}`;
+    const checked=sel.has(k);
+    return `<tr style="${checked?'background:#f0f7ff':''}">
+      <td style="width:38px;text-align:center"><input type="checkbox" class="gbsCheck" value="${k}" ${checked?'checked':''} onchange="_gbsToggle(this)" style="accent-color:var(--primary)"></td>
+      <td>${r.period}</td>
+      <td>《${r.game}》</td>
+      <td>${r.platform}</td>
+      <td style="font-weight:700">${mn(ps.pubCash)}</td>
+      <td>${mn(ps.pubV)}</td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="6" style="text-align:center;color:var(--weak);padding:20px">暂无已确认的对账明细可用于生成</td></tr>`;
+  openModal('生成对账单',
+    `<div class="notice" style="margin-bottom:12px;border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 仅展示该发行商已完成「三方确认 + 发行商对账单确认」的账期数据。勾选后将合并生成一份对账单。</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12.5px;color:var(--muted)">
+      <div>共 <b>${data.length}</b> 条可选 · 已选 <b style="color:var(--primary)">${sel.size}</b> 条</div>
+      <div>合计：<b style="color:var(--primary)">现金 ${mn(totalPubCash)}</b> · 广告金 ${mn(totalPubV)}</div>
+    </div>
+    <div class="tw" style="max-height:340px;overflow:auto"><table class="table" style="margin:0">
+      <thead><tr>
+        <th style="width:38px;text-align:center"><input type="checkbox" ${allChecked?'checked':''} onchange="_gbsToggleAll(this)"></th>
+        <th>账期</th><th>游戏</th><th>平台</th>
+        <th>可结算（现金）</th><th>可结算（广告金）</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`,
+    `<button class="btn g" onclick="closeModal()">取消</button>
+     <button class="btn p" ${sel.size===0?'disabled':''} onclick="_gbsSubmit()">生成对账单</button>`);
+}
+function _gbsToggle(cb){const sel=_gbsState();if(cb.checked)sel.add(cb.value);else sel.delete(cb.value);_renderGenBillModal()}
+function _gbsToggleAll(cb){
+  const sel=_gbsState();
+  document.querySelectorAll('.gbsCheck').forEach(c=>{
+    if(cb.checked){c.checked=true;sel.add(c.value)}
+    else{c.checked=false;sel.delete(c.value)}
+  });
+  _renderGenBillModal();
+}
+function _gbsSubmit(){
+  const sel=_gbsState();
+  if(!sel.size){alert('请勾选至少一条账期数据');return}
+  const keys=[...sel];
+  const html=buildMultiBillStatementHtml(keys);
+  if(!html){alert('未找到匹配数据');return}
+  // 持久化已生成对账单（供「票据管理」复用）
+  if(!window._generatedStatements)window._generatedStatements=[];
+  const sn='BS-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+String(window._generatedStatements.length+1).padStart(3,'0');
+  window._generatedStatements.push({sn,keys,createdAt:new Date().toLocaleString('zh-CN',{hour12:false})});
+  openModal(`对账单预览 · ${sn}`,
+    `<div style="background:#f5f5f5;padding:14px;border-radius:6px">${html}</div>`,
+    `<button class="btn g" onclick="closeModal()">关闭</button><button class="btn p" onclick="alert('原型展示：对账单 ${sn} 已下载 PDF / Excel')">↓ 下载对账单</button>`);
+}
+
+function buildMultiBillStatementHtml(keys){
+  if(!keys||!keys.length)return '';
+  const rows=keys.map(k=>{const [period,game,platform]=k.split('__');return settle.find(x=>x.period===period&&x.game===game&&x.platform===platform)}).filter(Boolean);
+  if(!rows.length)return '';
+  const pub=publishers.find(p=>p.name===rows[0].pub);
+  const pubLegal=pub&&pub.accName?pub.accName:rows[0].pub;
+  const today=new Date().toISOString().slice(0,10);
+  const periods=[...new Set(rows.map(r=>r.period))].sort();
+  const periodRange=periods.length===1?periods[0]:`${periods[0]} ~ ${periods[periods.length-1]}`;
+  let sumCashRev=0,sumVRev=0,sumCost=0,sumPubCash=0,sumPubV=0;
+  const lines=rows.map(r=>{
+    const ps=calcPubSettle(r);
+    sumCashRev+=r.cashRev;sumVRev+=r.vRev;sumCost+=r.cost;sumPubCash+=ps.pubCash;sumPubV+=ps.pubV;
+    const tierTag=ps.tierApplied?'阶梯Ⅱ':(ps.rule&&ps.rule.tierEnabled?'阶梯Ⅰ':'—');
+    return `<tr>
+      <td style="text-align:center">${r.period}</td>
+      <td style="text-align:left">《${r.game}》</td>
+      <td style="text-align:center">${r.platform}</td>
+      <td>${mn(r.cashRev)}</td>
+      <td>${mn(r.vRev)}</td>
+      <td>${mn(r.cost)}</td>
+      <td style="text-align:center">${ps.rate}%<div style="font-size:10.5px;color:#888">${tierTag}</div></td>
+      <td style="font-weight:700">${mn(ps.pubCash)}</td>
+      <td>${mn(ps.pubV)}</td>
+    </tr>`;
+  }).join('');
+  return `<style>
+    .bs{font-family:"Microsoft YaHei",-apple-system,sans-serif;color:#222;max-width:880px;margin:0 auto;padding:24px;background:#fff}
+    .bs h1{text-align:center;font-size:22px;margin:0 0 6px;letter-spacing:4px}
+    .bs .bs-sub{text-align:center;color:#666;font-size:13px;margin-bottom:18px}
+    .bs .bs-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;font-size:13px;border:1px solid #d8d8d8;padding:10px 14px;border-radius:4px;margin-bottom:14px;background:#fafafa}
+    .bs .bs-meta .k{color:#666;display:inline-block;min-width:78px}
+    .bs table{width:100%;border-collapse:collapse;font-size:13px}
+    .bs th,.bs td{border:1px solid #c8c8c8;padding:6px 10px;text-align:right}
+    .bs th{background:#f0f4fa;font-weight:700;text-align:center}
+    .bs .bs-foot{display:flex;justify-content:space-between;margin-top:18px;font-size:13px;color:#444}
+    .bs .bs-stamp{margin-top:18px;text-align:right;color:#999;font-size:12px}
+  </style>
+  <div class="bs">
+    <h1>分 账 对 账 单</h1>
+    <div class="bs-sub">SETTLEMENT STATEMENT</div>
+    <div class="bs-meta">
+      <div><span class="k">发行商主体：</span><b>${pubLegal}</b></div>
+      <div><span class="k">对账期间：</span><b>${periodRange}</b></div>
+      <div><span class="k">明细条数：</span>${rows.length} 条</div>
+      <div><span class="k">出具日期：</span>${today}</div>
+    </div>
+    <table>
+      <thead><tr><th>账期</th><th>游戏</th><th>平台</th><th>现金收入</th><th>广告金收入</th><th>总消耗</th><th>分成比例</th><th>可结算（现金）</th><th>可结算（广告金）</th></tr></thead>
+      <tbody>${lines}</tbody>
+      <tfoot><tr style="background:#fafbfc;font-weight:800">
+        <td colspan="3" style="text-align:center">合计</td>
+        <td>${mn(sumCashRev)}</td>
+        <td>${mn(sumVRev)}</td>
+        <td>${mn(sumCost)}</td>
+        <td style="text-align:center">—</td>
+        <td>${mn(sumPubCash)}</td>
+        <td>${mn(sumPubV)}</td>
+      </tr></tfoot>
+    </table>
+    <div class="bs-foot">
+      <div>本对账单经发行商对账确认后生成，可作为打款依据。</div>
+      <div>制单方：大发行结算平台</div>
+    </div>
+    <div class="bs-stamp">（此对账单由系统自动生成，仅供原型演示）</div>
+  </div>`;
+}
+
 /* ── 阶梯分润 + 服务器成本 + 亏损划转（按规则配置） ── */
 // 找到一条 settle 记录对应的规则配置（生效中的优先；否则取同主键最近一条）
 function findRuleFor(r){
@@ -2598,7 +2741,7 @@ function pgSettlePubClosed(){
       <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${key}')">确认对账单</button>`:''}</td>
     </tr>`;
   });
-  return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
+  return `<div class="ph"><div><div class="pt">发行商分账明细</div><div class="pd">展示各发行商当期可结算金额（现金利润 × 发行商分成比例）。</div></div><div class="acts">${isPublisher()?`<button class="btn p" onclick="openGenBillStatement()">＋ 生成对账单</button>`:''}<button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
   <div class="filter" style="margin-bottom:16px">
     <span style="font-size:12px;color:var(--muted);font-weight:650">开始账期</span>
     <select class="select" onchange="window._spStart=this.value;document.getElementById('contentEl').innerHTML=pgSettlePub()">
