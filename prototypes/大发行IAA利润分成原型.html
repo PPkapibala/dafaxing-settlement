@@ -3162,13 +3162,13 @@ function pgSettleCp(){
       <td><b>《${a.gameName}》</b></td>
       <td>${a.cpName}</td>
       <td style="color:var(--muted)">${a.platCount||a.totalRows} 个平台</td>
-      <td>${mn(a.sumCashP)}</td>
-      <td>${mn(a.sumPubCash)}</td>
-      <td style="color:#7a52b3">${a.shareServer?mn(a.sumServerCost):'<span style="color:var(--weak)">—（规则未扣）</span>'}</td>
-      <td style="font-weight:700;color:${a.cashBase<0?'var(--red)':'var(--text)'}">${ready?mn(a.cashBase):dash}</td>
-      <td>${mn(a.sumVP)}</td>
-      <td>${mn(a.sumPubV)}</td>
-      <td style="font-weight:700;color:${a.vBase<0?'var(--red)':'var(--text)'}">${ready?mn(a.vBase):dash}</td>
+      <td>${ready?mn(a.sumCashP):dash}</td>
+      <td>${ready?mn(a.sumPubCash):dash}</td>
+      <td style="color:#7a52b3">${ready?(a.shareServer?mn(a.sumServerCost):'<span style="color:var(--weak)">—（规则未扣）</span>'):dash}</td>
+      <td style="font-weight:700;color:${ready&&a.cashBase<0?'var(--red)':'var(--text)'}">${ready?mn(a.cashBase):dash}</td>
+      <td>${ready?mn(a.sumVP):dash}</td>
+      <td>${ready?mn(a.sumPubV):dash}</td>
+      <td style="font-weight:700;color:${ready&&a.vBase<0?'var(--red)':'var(--text)'}">${ready?mn(a.vBase):dash}</td>
       <td><b>${a.cpRemainShare}%</b><div style="font-size:10.5px;color:var(--muted)">${a.cpRule?a.cpRule.id:'未配置规则'}</div></td>
       <td>${cpCashCell}</td>
       <td>${cpVCell}</td>
