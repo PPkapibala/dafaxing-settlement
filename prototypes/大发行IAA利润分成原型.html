@@ -205,16 +205,16 @@ const games=[
   {id:'G-1004',name:'弹球传奇',platforms:['微信小游戏'],cloudProjectIds:[],remark:'多发行商分渠道运营，每个渠道独立AppID',created:'2026-04-15 10:30',creator:'系统管理员'}
 ];
 // 平台-发行商-ID 映射子表（REQ-R-101）
-// 微信/抖音：同一发行商 × 同一游戏 × 同一平台下，应用ID 可多条（每个 appId 一行）；应用ID 全局唯一
+// 微信/抖音：同一发行商 × 同一游戏 × 同一平台下，媒体平台应用ID 可多条（每个 appId 一行）；媒体平台应用ID 全局唯一
 const pubMappings=[
-  {id:'M-001',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',pub:'星辰网络',pubId:'P-2001',wxAppId:'wx-hjcs-001',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-02'},
-  {id:'M-002',game:'幻境传说',gameId:'G-1001',platform:'抖音小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'',dyAppId:'tt-hjcs-009',jlIds:['881002','881003'],jlNames:['巨量-光速传媒-主账户','巨量-光速传媒-子账户A'],creator:'业务运营',created:'2026-04-02'},
-  {id:'M-002B',game:'幻境传说',gameId:'G-1001',platform:'抖音小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'',dyAppId:'tt-hjcs-010',jlIds:['881004'],jlNames:['巨量-光速传媒-子账户B'],creator:'业务运营',created:'2026-04-12'},
-  {id:'M-003',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'',dyAppId:'tt-xjzb-007',jlIds:['992011'],jlNames:['巨量-光速传媒-星际'],creator:'业务运营',created:'2026-04-04'},
-  {id:'M-004',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',pub:'星辰网络',pubId:'P-2001',wxAppId:'wx-mcdl-003',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-09'},
-  {id:'M-005',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',pub:'星辰网络',pubId:'P-2001',wxAppId:'wx-tqcq-011',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-16'},
-  {id:'M-006',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'wx-tqcq-028',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-16'},
-  {id:'M-007',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',pub:'灵犀互娱',pubId:'P-2003',wxAppId:'wx-tqcq-045',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-17'}
+  {id:'M-001',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',pub:'星辰网络',pubId:'P-2001',wxAppId:'wx-hjcs-001',appName:'幻境传说·星辰版',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-02'},
+  {id:'M-002',game:'幻境传说',gameId:'G-1001',platform:'抖音小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'',appName:'幻境传说·光速主版',dyAppId:'tt-hjcs-009',jlIds:['881002','881003'],jlNames:['巨量-光速传媒-主账户','巨量-光速传媒-子账户A'],creator:'业务运营',created:'2026-04-02'},
+  {id:'M-002B',game:'幻境传说',gameId:'G-1001',platform:'抖音小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'',appName:'幻境传说·光速子版B',dyAppId:'tt-hjcs-010',jlIds:['881004'],jlNames:['巨量-光速传媒-子账户B'],creator:'业务运营',created:'2026-04-12'},
+  {id:'M-003',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'',appName:'星际争霸·光速版',dyAppId:'tt-xjzb-007',jlIds:['992011'],jlNames:['巨量-光速传媒-星际'],creator:'业务运营',created:'2026-04-04'},
+  {id:'M-004',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',pub:'星辰网络',pubId:'P-2001',wxAppId:'wx-mcdl-003',appName:'萌宠大陆·星辰版',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-09'},
+  {id:'M-005',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',pub:'星辰网络',pubId:'P-2001',wxAppId:'wx-tqcq-011',appName:'弹球传奇·星辰版',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-16'},
+  {id:'M-006',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',pub:'光速传媒',pubId:'P-2002',wxAppId:'wx-tqcq-028',appName:'弹球传奇·光速版',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-16'},
+  {id:'M-007',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',pub:'灵犀互娱',pubId:'P-2003',wxAppId:'wx-tqcq-045',appName:'弹球传奇·灵犀版',dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:'2026-04-17'}
 ];
 // 游戏-CP关系子表（REQ-R-104：一个游戏只能配置一条）
 const cpMappings=[
@@ -828,13 +828,16 @@ function openGameDetail(id){
   const g=games.find(x=>x.id===id);
   const pms=pubMappings.filter(m=>m.gameId===id);
   const cpRel=cpMappings.find(c=>c.gameId===id);
-  const pmRows=pms.map(m=>`<tr>
-    <td>${m.platform==='微信小游戏'?`<span class="tag green">微信小游戏</span>`:`<span class="tag blue">抖音小游戏</span>`}</td>
-    <td>${m.pub}</td>
-    <td style="font-family:monospace">${m.wxAppId||'—'}</td>
-    <td style="font-family:monospace">${m.dyAppId||'—'}</td>
-    <td style="font-family:monospace;font-size:12px">${m.jlIds.join(', ')||'—'}</td>
-  </tr>`).join('');
+  const pmRows=pms.map(m=>{
+    const appId=m.platform==='微信小游戏'?(m.wxAppId||'—'):(m.dyAppId||'—');
+    return `<tr>
+      <td>${m.platform==='微信小游戏'?`<span class="tag green">微信小游戏</span>`:`<span class="tag blue">抖音小游戏</span>`}</td>
+      <td>${m.pub}</td>
+      <td style="font-family:monospace">${appId}</td>
+      <td>${m.appName||'<span style="color:var(--muted)">—</span>'}</td>
+      <td style="font-family:monospace;font-size:12px">${m.jlIds&&m.jlIds.length?m.jlIds.join(', '):'—'}</td>
+    </tr>`;
+  }).join('');
   const detailCloudIds=getGameCloudIds(g);
   const cloudListHtml=detailCloudIds.length===0
     ?'<span style="color:var(--red)">未关联</span>'
@@ -854,10 +857,10 @@ function openGameDetail(id){
       <span class="k">CP主体</span><span class="v">${cpRel?cpRel.cp:'<span style="color:var(--red)">未配置</span>'}</span>
       <span class="k">CP主体ID</span><span class="v" style="font-family:monospace">${cpRel?cpRel.cpId:'—'}</span>
     </div>
-    <div class="sec-title">平台-发行商-后台ID映射（${pms.length} 条）</div>
-    <div class="notice" style="margin-bottom:10px">微信小游戏以「微信小游戏应用ID」取数；抖音小游戏以「抖小应用ID」取收入，以「巨量账户ID」取投放成本。</div>
+    <div class="sec-title">平台-发行商-媒体应用映射（${pms.length} 条）</div>
+    <div class="notice" style="margin-bottom:10px">微信/抖音小游戏均以「媒体平台应用ID」取收入；抖音另外通过「巨量账户ID」取投放成本。</div>
     <div class="tw"><table class="table">
-      <thead><tr><th>平台</th><th>发行商</th><th>微信应用ID</th><th>抖音应用ID</th><th>巨量账户ID</th></tr></thead>
+      <thead><tr><th>平台</th><th>发行商</th><th>媒体平台应用ID</th><th>媒体应用名称</th><th>巨量账户ID</th></tr></thead>
       <tbody>${pmRows||'<tr><td colspan="5" style="color:var(--muted);text-align:center">暂无映射关系</td></tr>'}</tbody>
     </table></div>`)
 }
@@ -944,7 +947,7 @@ function confirmDeleteGame(id){
 function openPubMappingForm(presetGameId){
   const gameOpts=games.map(g=>`<option value="${g.id}" ${presetGameId===g.id?'selected':''}>${g.name}</option>`).join('');
   openModal('新增游戏-发行商关系',`
-    <div class="notice">一个游戏可被多家发行商运营；同一发行商在同一平台下可拥有多个外部应用ID（每个应用ID单独建一条映射）。<b>应用ID全局唯一</b>，重复将提示并阻止保存。巨量账户ID在创建完成后通过「配置巨量ID」入口管理。</div>
+    <div class="notice">一个游戏可被多家发行商运营；同一发行商在同一平台下可拥有多个媒体平台应用ID（每个应用ID单独建一条映射）。<b>媒体平台应用ID 全局唯一</b>，重复将提示并阻止保存。巨量账户ID在创建完成后通过「配置巨量ID」入口管理。</div>
     <div class="fgrid">
       <div class="field"><label>所属游戏 <span class="req">*</span></label><select class="select" id="pmGameSel" style="width:100%"><option value="">-- 选择 --</option>${gameOpts}</select></div>
       <div class="field"><label>平台类型 <span class="req">*</span></label>
@@ -955,16 +958,29 @@ function openPubMappingForm(presetGameId){
       <div class="field"><label>发行商主体 <span class="req">*</span></label><select class="select" id="pmPubSel" style="width:100%"><option value="">-- 选择 --</option>${publishers.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
     </div>
     <div id="pmWxFields" style="display:none">
-      <div class="field"><label>微信小游戏应用ID <span class="req">*</span></label>
-        <input id="pm_wxAppId" class="input" style="width:100%;font-family:monospace" placeholder="与微信后台应用ID一致" />
-        <div class="hint">同一应用ID只能归属于一个游戏。</div>
+      <div class="fgrid">
+        <div class="field"><label>媒体平台应用ID <span class="req">*</span></label>
+          <input id="pm_wxAppId" class="input" style="width:100%;font-family:monospace" placeholder="与微信小游戏后台应用ID一致" />
+          <div class="hint">同一应用ID只能归属于一个游戏-发行商组合。</div>
+        </div>
+        <div class="field"><label>媒体应用名称 <span class="req">*</span></label>
+          <input id="pm_wxAppName" class="input" style="width:100%" placeholder="如：幻境传说·星辰版" />
+          <div class="hint">在微信小游戏后台的应用名称，便于识别。</div>
+        </div>
       </div>
     </div>
     <div id="pmDyFields" style="display:none">
-      <div class="field"><label>抖音小游戏应用ID <span class="req">*</span></label>
-        <input id="pm_dyAppId" class="input" style="width:100%;font-family:monospace" placeholder="抖音小游戏后台应用ID" />
-        <div class="hint">保存后可在列表的「配置巨量ID」中绑定巨量账户，用于获取投放数据。</div>
+      <div class="fgrid">
+        <div class="field"><label>媒体平台应用ID <span class="req">*</span></label>
+          <input id="pm_dyAppId" class="input" style="width:100%;font-family:monospace" placeholder="抖音小游戏后台应用ID" />
+          <div class="hint">同一应用ID只能归属于一个游戏-发行商组合。</div>
+        </div>
+        <div class="field"><label>媒体应用名称 <span class="req">*</span></label>
+          <input id="pm_dyAppName" class="input" style="width:100%" placeholder="如：幻境传说·光速版" />
+          <div class="hint">在抖音小游戏后台的应用名称，便于识别。</div>
+        </div>
       </div>
+      <div class="hint" style="margin-top:6px">保存后可在列表的「配置巨量ID」中绑定巨量账户，用于获取投放数据。</div>
     </div>`,
     `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="submitPubMapping()">保存映射</button>`)
 }
@@ -982,37 +998,42 @@ function submitPubMapping(){
   const pub=publishers.find(p=>p.id===pubId);
   if(platform==='微信小游戏'){
     const appId=(document.getElementById('pm_wxAppId').value||'').trim();
-    if(!appId){alert('请填写微信小游戏应用ID');return;}
+    const appName=(document.getElementById('pm_wxAppName').value||'').trim();
+    if(!appId){alert('请填写媒体平台应用ID');return;}
+    if(!appName){alert('请填写媒体应用名称');return;}
     const existed=pubMappings.find(m=>m.platform==='微信小游戏'&&m.wxAppId===appId);
     if(existed){
-      alert(`微信应用ID「${appId}」已被《${existed.game}》占用（发行商：${existed.pub}），同一应用ID只能归属于一个游戏-发行商组合。请检查后重新填写。`);
+      alert(`媒体平台应用ID「${appId}」已被《${existed.game}》占用（发行商：${existed.pub}），同一应用ID只能归属于一个游戏-发行商组合。请检查后重新填写。`);
       return;
     }
-    pubMappings.push({id:'M-'+String(pubMappings.length+1).padStart(3,'0'),game:game.name,gameId:game.id,platform,pub:pub.name,pubId:pub.id,wxAppId:appId,dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:new Date().toISOString().slice(0,10)});
+    pubMappings.push({id:'M-'+String(pubMappings.length+1).padStart(3,'0'),game:game.name,gameId:game.id,platform,pub:pub.name,pubId:pub.id,wxAppId:appId,appName,dyAppId:'',jlIds:[],jlNames:[],creator:'业务运营',created:new Date().toISOString().slice(0,10)});
   }else{
     const appId=(document.getElementById('pm_dyAppId').value||'').trim();
-    if(!appId){alert('请填写抖音小游戏应用ID');return;}
+    const appName=(document.getElementById('pm_dyAppName').value||'').trim();
+    if(!appId){alert('请填写媒体平台应用ID');return;}
+    if(!appName){alert('请填写媒体应用名称');return;}
     const idTaken=pubMappings.find(m=>m.platform==='抖音小游戏'&&m.dyAppId===appId);
     if(idTaken){
-      alert(`抖音应用ID「${appId}」已被《${idTaken.game}》占用（发行商：${idTaken.pub}），同一应用ID只能归属于一个游戏-发行商组合。`);
+      alert(`媒体平台应用ID「${appId}」已被《${idTaken.game}》占用（发行商：${idTaken.pub}），同一应用ID只能归属于一个游戏-发行商组合。`);
       return;
     }
-    pubMappings.push({id:'M-'+String(pubMappings.length+1).padStart(3,'0'),game:game.name,gameId:game.id,platform,pub:pub.name,pubId:pub.id,wxAppId:'',dyAppId:appId,jlIds:[],jlNames:[],creator:'业务运营',created:new Date().toISOString().slice(0,10)});
+    pubMappings.push({id:'M-'+String(pubMappings.length+1).padStart(3,'0'),game:game.name,gameId:game.id,platform,pub:pub.name,pubId:pub.id,wxAppId:'',appName,dyAppId:appId,jlIds:[],jlNames:[],creator:'业务运营',created:new Date().toISOString().slice(0,10)});
   }
   closeModal();
   document.getElementById('contentEl').innerHTML=pgPubMapping();
 }
 function openPubMappingDetail(id){
   const m=pubMappings.find(x=>x.id===id);
+  const appId=m.platform==='微信小游戏'?(m.wxAppId||'—'):(m.dyAppId||'—');
   openModal(`映射详情：${m.id}`,`
     <div class="kv">
       <span class="k">记录ID</span><span class="v" style="font-family:monospace">${m.id}</span>
       <span class="k">所属游戏</span><span class="v">《${m.game}》</span>
       <span class="k">平台类型</span><span class="v">${m.platform==='微信小游戏'?`<span class="tag green">微信小游戏</span>`:`<span class="tag blue">抖音小游戏</span>`}</span>
       <span class="k">发行商</span><span class="v">${m.pub}（${m.pubId}）</span>
-      <span class="k">微信应用ID</span><span class="v" style="font-family:monospace">${m.wxAppId||'—'}</span>
-      <span class="k">抖音应用ID</span><span class="v" style="font-family:monospace">${m.dyAppId||'—'}</span>
-      <span class="k">巨量账户ID</span><span class="v" style="font-family:monospace">${m.jlIds.length?m.jlIds.map((id,j)=>`${id}（${m.jlNames[j]}）`).join('<br>'):'—'}</span>
+      <span class="k">媒体平台应用ID</span><span class="v" style="font-family:monospace">${appId}</span>
+      <span class="k">媒体应用名称</span><span class="v">${m.appName||'<span style="color:var(--muted)">—</span>'}</span>
+      <span class="k">巨量账户ID</span><span class="v" style="font-family:monospace">${m.jlIds&&m.jlIds.length?m.jlIds.map((id,j)=>`${id}（${m.jlNames[j]}）`).join('<br>'):'—'}</span>
       <span class="k">创建人</span><span class="v">${m.creator}</span>
       <span class="k">创建时间</span><span class="v">${m.created}</span>
     </div>`)
@@ -1031,9 +1052,10 @@ function openPubMappingEdit(id){
   const gameOpts=games.map(g=>`<option value="${g.id}" ${m.gameId===g.id?'selected':''}>${g.name}</option>`).join('');
   const platOpts=['微信小游戏','抖音小游戏'].map(p=>`<option value="${p}" ${m.platform===p?'selected':''}>${p}</option>`).join('');
   const pubOpts=publishers.map(p=>`<option value="${p.id}" ${m.pubId===p.id?'selected':''}>${p.name}</option>`).join('');
-  const appIdField=isWx
-    ?`<div class="field"><label>微信小游戏应用ID <span class="req">*</span></label><input id="pme_appId" class="input" style="width:100%;font-family:monospace" value="${m.wxAppId||''}"/><div class="hint">同一应用ID只能归属于一个游戏，修改时仍会校验全局唯一。</div></div>`
-    :`<div class="field"><label>抖音小游戏应用ID <span class="req">*</span></label><input id="pme_appId" class="input" style="width:100%;font-family:monospace" value="${m.dyAppId||''}"/><div class="hint">同一应用ID只能归属于一个游戏，修改时仍会校验全局唯一。</div></div>`;
+  const appIdField=`<div class="fgrid">
+      <div class="field"><label>媒体平台应用ID <span class="req">*</span></label><input id="pme_appId" class="input" style="width:100%;font-family:monospace" value="${isWx?(m.wxAppId||''):(m.dyAppId||'')}"/><div class="hint">${isWx?'微信小游戏后台应用ID':'抖音小游戏后台应用ID'}，全局唯一。</div></div>
+      <div class="field"><label>媒体应用名称 <span class="req">*</span></label><input id="pme_appName" class="input" style="width:100%" value="${m.appName||''}"/><div class="hint">用于识别该映射对应的媒体平台应用。</div></div>
+    </div>`;
   const jlSection=!isWx?`
     <div class="sec-title">巨量账户ID（已绑定 ${m.jlIds.length} 个）</div>
     <div class="notice" style="margin-bottom:8px;border-color:#ffe0b2;background:#fff8f0;color:#a05000">⚠ 系统管理员可在此<b>取消</b>已绑定账户。普通用户在「配置巨量ID」中只能追加，不能取消。</div>
@@ -1088,20 +1110,23 @@ function savePubMappingEdit(id){
   const newPubId=document.getElementById('pme_pub').value;
   if(!newGameId||!newPlat||!newPubId){alert('请完整选择 游戏 / 平台 / 发行商');return;}
   const newAppId=(document.getElementById('pme_appId').value||'').trim();
-  if(!newAppId){alert('应用ID不能为空');return;}
+  if(!newAppId){alert('媒体平台应用ID 不能为空');return;}
+  const newAppName=(document.getElementById('pme_appName').value||'').trim();
+  if(!newAppName){alert('媒体应用名称不能为空');return;}
   // 全局唯一性校验：排除当前 mapping 本身
   if(newPlat==='微信小游戏'){
     const dup=pubMappings.find(x=>x.id!==id&&x.platform==='微信小游戏'&&x.wxAppId===newAppId);
-    if(dup){alert(`微信应用ID「${newAppId}」已被《${dup.game}》占用（发行商：${dup.pub}）。`);return;}
+    if(dup){alert(`媒体平台应用ID「${newAppId}」已被《${dup.game}》占用（发行商：${dup.pub}）。`);return;}
   }else{
     const dup=pubMappings.find(x=>x.id!==id&&x.platform==='抖音小游戏'&&x.dyAppId===newAppId);
-    if(dup){alert(`抖音应用ID「${newAppId}」已被《${dup.game}》占用（发行商：${dup.pub}）。`);return;}
+    if(dup){alert(`媒体平台应用ID「${newAppId}」已被《${dup.game}》占用（发行商：${dup.pub}）。`);return;}
   }
   const game=games.find(g=>g.id===newGameId);
   const pub=publishers.find(p=>p.id===newPubId);
   m.gameId=newGameId;m.game=game?game.name:m.game;
   m.platform=newPlat;
   m.pubId=newPubId;m.pub=pub?pub.name:m.pub;
+  m.appName=newAppName;
   if(newPlat==='微信小游戏'){m.wxAppId=newAppId;m.dyAppId='';m.jlIds=[];m.jlNames=[];}
   else{
     m.dyAppId=newAppId;m.wxAppId='';
@@ -1130,7 +1155,8 @@ function openJlIdsConfig(id){
       <span class="k">游戏</span><span class="v">《${m.game}》</span>
       <span class="k">平台</span><span class="v"><span class="tag blue">抖音小游戏</span></span>
       <span class="k">发行商</span><span class="v">${m.pub}（${m.pubId}）</span>
-      <span class="k">抖音应用ID</span><span class="v" style="font-family:monospace">${m.dyAppId||'—'}</span>
+      <span class="k">媒体平台应用ID</span><span class="v" style="font-family:monospace">${m.dyAppId||'—'}</span>
+      <span class="k">媒体应用名称</span><span class="v">${m.appName||'<span style="color:var(--muted)">—</span>'}</span>
       <span class="k">已绑定账户数</span><span class="v" style="color:var(--primary);font-weight:700">${m.jlIds.length}</span>
     </div>
     <div class="notice" style="margin-bottom:8px">已绑定账户<b>不允许取消</b>（解绑需在巨量后台操作并待数据同步）；可勾选未绑定账户进行追加。</div>
@@ -1271,6 +1297,7 @@ function pgCpMapping(){
 /* PAGE: 平台-发行商映射（独立模块） */
 function pgPubMapping(){
   const ent=parsedEntity();
+  const platF=window._pubMapPlatF||'all';
   let gList=FILTER_GAME==='all'?games:games.filter(g=>g.id===FILTER_GAME);
   if(ent.type==='pub')gList=gList.filter(g=>pubMappings.some(m=>m.gameId===g.id&&m.pubId===ent.id));
   if(ent.type==='cp')gList=gList.filter(g=>cpMappings.some(c=>c.gameId===g.id&&c.cpId===ent.id));
@@ -1278,6 +1305,7 @@ function pgPubMapping(){
   const allRows=[];
   gList.forEach(g=>{
     g.platforms.forEach(platform=>{
+      if(platF!=='all'&&platform!==platF)return;
       let list=pubMappings.filter(m=>m.gameId===g.id&&m.platform===platform);
       if(ent.type==='pub')list=list.filter(m=>m.pubId===ent.id);
       const isWx=platform==='微信小游戏';
@@ -1306,11 +1334,13 @@ function pgPubMapping(){
         <td style="color:var(--red)">未配置发行商</td>
         <td>—</td>
         <td>—</td>
+        <td>—</td>
         <td>${cfg}</td>
       </tr>`;
     }
     const m=r.mapping;
     const appId=`<span style="font-family:monospace;color:#31557d">${r.isWx?(m.wxAppId||'—'):(m.dyAppId||'—')}</span>`;
+    const appName=m.appName?`<span>${m.appName}</span>`:'<span style="color:var(--muted)">—</span>';
     const jl=!r.isWx&&m.jlIds.length
       ?`<ul style="padding-left:16px;margin:0">${m.jlIds.map((id,j)=>`<li style="margin:2px 0"><span style="font-family:monospace;color:#31557d">${id}</span><span style="color:var(--muted);margin-left:6px">${m.jlNames[j]||''}</span></li>`).join('')}</ul>`
       :'—';
@@ -1320,6 +1350,7 @@ function pgPubMapping(){
       <td>${tag}</td>
       <td><b>${m.pub}</b><div style="color:var(--muted);font-size:11px;font-family:monospace;margin-top:2px">${m.pubId}</div></td>
       <td>${appId}</td>
+      <td>${appName}</td>
       <td>${jl}</td>
       <td>${acts}</td>
     </tr>`;
@@ -1337,11 +1368,21 @@ function pgPubMapping(){
       </div></div>`;
   })():'';
   return `<div class="ph">
-    <div><div class="pt">游戏-发行商关系</div><div class="pd">按「游戏 × 平台 × 发行商」三元组逐行展示对应的应用 ID 与巨量账户 ID 列表，是系统取数和分账核算的唯一依据。</div></div>
+    <div><div class="pt">游戏-发行商关系</div><div class="pd">按「游戏 × 平台 × 发行商 × 媒体平台应用ID」逐行展示对应的媒体应用与巨量账户 ID 列表，是系统取数和分账核算的唯一依据。</div></div>
     <div class="acts">${canBizMapping()?`<button class="btn p" onclick="openPubMappingForm()">＋ 新增映射</button>`:''}</div>
   </div>
-  <div class="notice">一个游戏可被多家发行商运营；同一发行商在同一平台下可拥有多个外部应用ID（每个 appId 一行）。<b>应用ID全局唯一</b>，重复将提示并阻止保存。巨量账户ID每日从巨量同步，已绑定的不允许删除。</div>
-  ${total?tbl(['游戏','平台','发行商主体','对应应用ID','巨量账户ID列表','操作'],tableRows):'<div class="notice">暂无数据</div>'}
+  <div class="notice">一个游戏可被多家发行商运营；同一发行商在同一平台下可拥有多个媒体平台应用ID（每个 appId 一行）。<b>媒体平台应用ID 全局唯一</b>，重复将提示并阻止保存。巨量账户ID每日从巨量同步，已绑定的不允许删除。</div>
+  <div class="filter" style="margin-bottom:12px">
+    <span style="color:var(--muted);font-size:12.5px">平台</span>
+    <select class="select" style="min-width:140px" onchange="window._pubMapPlatF=this.value;if(window._pageMap)window._pageMap['pubMapping__no']=1;document.getElementById('contentEl').innerHTML=pgPubMapping()">
+      <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
+      <option value="微信小游戏" ${platF==='微信小游戏'?'selected':''}>微信小游戏</option>
+      <option value="抖音小游戏" ${platF==='抖音小游戏'?'selected':''}>抖音小游戏</option>
+    </select>
+    ${platF!=='all'?`<button class="btn g sm" onclick="window._pubMapPlatF='all';if(window._pageMap)window._pageMap['pubMapping__no']=1;document.getElementById('contentEl').innerHTML=pgPubMapping()">清除筛选</button>`:''}
+    <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${total} 条</span>
+  </div>
+  ${total?tbl(['游戏','平台','发行商主体','媒体平台应用ID','媒体应用名称','巨量账户ID列表','操作'],tableRows):'<div class="notice">暂无数据</div>'}
   ${pagerHtml}`;
 }
 
@@ -2063,7 +2104,7 @@ function _revFilterPanel(prefix,ctx,refreshFn){
           ${pubOpts?`<optgroup label="发行商">${pubOpts}</optgroup>`:''}
           ${cpOpts?`<optgroup label="CP">${cpOpts}</optgroup>`:''}
         </select></div>
-      <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">后台游戏应用 <span title="即微信小游戏应用ID或抖音小游戏应用ID" style="color:var(--muted);cursor:help">ⓘ</span></div>
+      <div><div style="font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px">媒体平台应用 <span title="即微信小游戏或抖音小游戏的媒体平台应用ID" style="color:var(--muted);cursor:help">ⓘ</span></div>
         <select class="select" style="width:100%" onchange="window._${prefix}App=this.value;${refreshFn}">
           <option value="all" ${appF==='all'?'selected':''}>全部应用</option>
           ${appOptHtml}
