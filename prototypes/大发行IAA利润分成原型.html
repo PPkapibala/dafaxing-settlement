@@ -3013,7 +3013,6 @@ function pgSettlePubClosed(){
     const appCell=m
       ? `<div style="font-family:monospace;font-size:12px">${appIdStr}</div><div style="color:var(--muted);font-size:11px;margin-top:2px">${m.appName||'—'}</div>`
       : '<span style="color:var(--red);font-size:11px">未配置映射</span>';
-    const shareNote=x.share<1?`<div style="font-size:10px;color:var(--muted);margin-top:1px">${(x.share*100).toFixed(1)}% 拆分</div>`:'';
     const cashRev=cashOk?Math.round(r.cashRev*sh):0;
     const vRev=vOk?Math.round(r.vRev*sh):0;
     const cost=costOk?Math.round(r.cost*sh):0;
@@ -3025,7 +3024,7 @@ function pgSettlePubClosed(){
     const pubVShared=Math.round(ps.pubV*sh);
     return `<tr ${rowStyle}>
       <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
-      <td>${appCell}${shareNote}</td>
+      <td>${appCell}</td>
       <td>${cashOk?mn(cashRev):dash}</td><td>${vOk?mn(vRev):dash}</td>
       <td>${costOk?mn(cost):dash}</td><td>${costOk?mn(cashCost):dash}</td><td>${costOk?mn(vCost):dash}</td>
       <td ${showProfit&&cashP<0?'style="color:var(--red);font-weight:700"':''}>${showProfit?mn(cashP):dash}</td>
