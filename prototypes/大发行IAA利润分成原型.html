@@ -150,11 +150,11 @@
 /* ──────────── CONFIG ──────────── */
 const ROLES=['系统管理员','业务负责人','业务运营','财务人员','财务负责人/审批人','发行商','CP'];
 const ROLE_PAGES={
-  '系统管理员':['games','publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','myPayments','invoices','permConfig','userMgmt'],
-  '业务负责人':['games','publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','invoices'],
+  '系统管理员':['games','publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','myPayments','invoices','permConfig','userMgmt'],
+  '业务负责人':['games','publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','invoices'],
   '业务运营':['games','pubMapping','cpMapping','vRev','dailyRecon','settlePub','settleCp','balance'],
-  '财务人员':['publishers','cps','pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','invoices'],
-  '财务负责人/审批人':['pubMapping','cpMapping','rules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','invoices'],
+  '财务人员':['publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','invoices'],
+  '财务负责人/审批人':['pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','invoices'],
   '发行商':['pubMapping','cpMapping','costDashboard','dailyRecon','settlePub','balance','myPayments'],
   'CP':['cpMapping','settleCp']
 };
@@ -162,7 +162,7 @@ const NAV=[
   {title:'主数据',items:[['games','▦','游戏管理'],['publishers','◉','发行商主体'],['cps','◎','CP主体']]},
   {title:'合作关系',items:[['pubMapping','⇌','游戏-发行商关系'],['cpMapping','◈','游戏-CP关系']]},
   {title:'数据看板',items:[['cashRev','▤','账期现金收入'],['vRev','▤','账期广告金收入'],['costDashboard','▥','账期投放成本'],['cloudCost','☁','账期云服务成本'],['dailyRecon','📅','每日收支对账']]},
-  {title:'结算配置',items:[['rules','⊛','分成规则配置'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细']]},
+  {title:'结算配置',items:[['pubRules','⊛','发行商分成规则'],['cpRules','⊗','CP分成规则'],['settlePub','≋','发行商分账明细'],['settleCp','◫','CP分账明细']]},
   {title:'打款闭环',items:[['payments','☑','打款申请单'],['myPayments','💰','发行商打款申请单'],['balance','▣','发行商账户流水'],['invoices','📑','票据管理']]},
   {title:'系统运维',items:[['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
 
@@ -181,7 +181,7 @@ const USER_DB=[
 // 当前登录会话
 let SESSION=null; // {userId, account, display, role, dataPerms}
 let ROLE='财务人员'; // 便于复用原有代码，从 SESSION 同步
-let PAGE='rules';
+let PAGE='pubRules';
 
 // 游戏筛选（非游戏管理页面共用）
 let FILTER_GAME='all';
@@ -228,12 +228,21 @@ const publishers=[
   {id:'P-2003',name:'灵犀互娱',credit:'91440101MA9QLXI003',contact:'赵磊',phone:'137****5566',email:'zhaolei@lingxi.com',status:'合作中',bank:'平安银行广州天河支行',accName:'广州灵犀互娱科技有限公司',acc:'****7731',bankNo:'307584000027',license:''}
 ];
 const cps=[{id:'CP-3001',name:'梦工厂',legal:'周启',idNo:'4403**********6218',contact:'陈晓',phone:'139****2201',email:'chenxiao@dream.com',status:'合作中',license:'营业执照_梦工厂.pdf'}];
-const rules=[
-  {id:'RU-202604-001',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:60,cpRemainShare:50,tierEnabled:true,tierThreshold:250000,tierHighRate:70,cpServerCostShare:true,status:'生效中',bpm:'BPM-IAA-00021',approved:'2026-04-02 15:22'},
-  {id:'RU-202604-002',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:55,cpRemainShare:55,tierEnabled:false,tierThreshold:0,tierHighRate:0,cpServerCostShare:true,status:'审批中',bpm:'BPM-IAA-00026',approved:'—'},
-  {id:'RU-202603-008',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',start:'2026-03-01',end:'2026-03-31',pubRate:60,cpRemainShare:50,tierEnabled:true,tierThreshold:300000,tierHighRate:65,cpServerCostShare:false,status:'已到期',bpm:'BPM-IAA-00013',approved:'2026-03-01 10:10'},
-  {id:'RU-202604-004',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',pubRate:65,cpRemainShare:43,tierEnabled:false,tierThreshold:0,tierHighRate:0,cpServerCostShare:true,status:'草稿',bpm:'—',approved:'—'}
+// 发行商分成规则：绑定 [游戏 + 平台 + 发行商]；appIds 为可选范围限制（空数组=覆盖该发行商下全部 AppID）
+const pubRules=[
+  {id:'RU-PUB-202604-001',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',appIds:[],start:'2026-04-01',end:'2026-12-31',pubRate:60,tierEnabled:true,tierThreshold:250000,tierHighRate:70,status:'生效中',bpm:'BPM-IAA-00021',approved:'2026-04-02 15:22'},
+  {id:'RU-PUB-202604-002',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',appIds:['tt-hjcs-009','881002'],start:'2026-04-01',end:'2026-12-31',pubRate:55,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'审批中',bpm:'BPM-IAA-00026',approved:'—'},
+  {id:'RU-PUB-202603-008',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',appIds:[],start:'2026-03-01',end:'2026-03-31',pubRate:60,tierEnabled:true,tierThreshold:300000,tierHighRate:65,status:'已到期',bpm:'BPM-IAA-00013',approved:'2026-03-01 10:10'},
+  {id:'RU-PUB-202604-004',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',appIds:[],start:'2026-04-01',end:'2026-12-31',pubRate:65,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'草稿',bpm:'—',approved:'—'}
 ];
+// CP 分成规则：游戏级（绑定 [游戏 + CP]），约定扣除发行商利润和服务器成本后的剩余池里 CP 占比
+const cpRules=[
+  {id:'RU-CP-202604-001',game:'幻境传说',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',cpRemainShare:50,cpServerCostShare:true,status:'生效中',bpm:'BPM-CP-00031',approved:'2026-04-02 15:30'},
+  {id:'RU-CP-202604-002',game:'星际争霸',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',cpRemainShare:50,cpServerCostShare:false,status:'生效中',bpm:'BPM-CP-00029',approved:'2026-03-30 10:10'},
+  {id:'RU-CP-202604-003',game:'萌宠大陆',cp:'梦工厂',start:'2026-04-01',end:'2026-12-31',cpRemainShare:43,cpServerCostShare:true,status:'草稿',bpm:'—',approved:'—'}
+];
+// 兼容：旧 rules 已拆分，保留空数组避免老代码报错
+const rules=[];
 const settle=[
   // 2026-04
   {period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:320000,vRev:68000,cost:185000,cashCost:152577,vCost:32423,serverCost:27750,cashP:167423,vP:35577,pubRate:60,cpRate:20},
@@ -328,6 +337,15 @@ function getGameCloudIds(g){
   return [];
 }
 function getCloudProjectName(id){const p=cloudProjects.find(x=>x.id===id);return p?p.name:'';}
+// 渲染媒体平台应用单元格（基于 game+platform+pub 反查 pubMappings；可能多条，按 appId+名称展示）
+function renderMediaAppCell(r){
+  const list=pubMappings.filter(m=>m.game===r.game&&m.platform===r.platform&&m.pub===r.pub);
+  if(!list.length)return '<span style="color:var(--weak)">—</span>';
+  return list.map(m=>{
+    const appId=m.platform==='微信小游戏'?(m.wxAppId||'—'):(m.dyAppId||'—');
+    return `<div><span style="font-family:monospace;font-size:12px;color:#31557d">${appId}</span>${m.appName?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${m.appName}</div>`:''}</div>`;
+  }).join('<div style="height:4px"></div>');
+}
 function copyText(text){
   try{
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text);}
@@ -563,8 +581,8 @@ function visibleEntities(){
 }
 
 function renderPage(){
-  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,cloudCost:pgCloudCost,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,invoices:pgInvoices,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'分成规则配置',cashRev:'账期现金收入',vRev:'账期广告金收入',costDashboard:'账期投放成本',cloudCost:'账期云服务成本',dailyRecon:'每日收支对账',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'发行商账户流水',payments:'打款申请单',myPayments:'发行商打款申请单',invoices:'票据管理',permConfig:'权限配置',userMgmt:'用户管理'};
+  const map={games:pgGames,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgPubRules,pubRules:pgPubRules,cpRules:pgCpRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,cloudCost:pgCloudCost,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,invoices:pgInvoices,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
+  const pageTitles={games:'游戏管理',pubMapping:'游戏-发行商关系',cpMapping:'游戏-CP关系',publishers:'发行商主体管理',cps:'CP主体管理',rules:'发行商分成规则',pubRules:'发行商分成规则',cpRules:'CP分成规则',cashRev:'账期现金收入',vRev:'账期广告金收入',costDashboard:'账期投放成本',cloudCost:'账期云服务成本',dailyRecon:'每日收支对账',settlePub:'发行商分账明细',settleCp:'CP分账明细',balance:'发行商账户流水',payments:'打款申请单',myPayments:'发行商打款申请单',invoices:'票据管理',permConfig:'权限配置',userMgmt:'用户管理'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -1495,40 +1513,66 @@ function saveCPEdit(id){
   refreshCPs();
 }
 
-/* PAGE: 分成规则配置 */
-function pgRules(){
+/* PAGE: 发行商分成规则 */
+// 列举一条 (game,platform,pub) 下所有候选 AppID（微信 = wxAppId；抖音 = dyAppId + jlIds 多个）
+function listAppIdsFor(gameId,platform,pubId){
+  const ms=pubMappings.filter(m=>(!gameId||m.gameId===gameId)&&(!platform||m.platform===platform)&&(!pubId||m.pubId===pubId));
+  const out=[];
+  ms.forEach(m=>{
+    if(m.platform==='微信小游戏'){
+      if(m.wxAppId)out.push({id:m.wxAppId,label:m.wxAppId,kind:'wxAppId'});
+    }else if(m.platform==='抖音小游戏'){
+      if(m.dyAppId)out.push({id:m.dyAppId,label:m.dyAppId,kind:'dyAppId'});
+      (m.jlIds||[]).forEach((jlId,i)=>out.push({id:jlId,label:`${jlId}（${(m.jlNames||[])[i]||'巨量账户'}）`,kind:'jlId'}));
+    }
+  });
+  return out;
+}
+function listAppIdsForRule(r){
+  const g=games.find(x=>x.name===r.game);
+  const p=publishers.find(x=>x.name===r.pub);
+  return listAppIdsFor(g?.id,r.platform,p?.id);
+}
+function pgPubRules(){
   const ent=parsedEntity();
-  let data=FILTER_GAME==='all'?rules:rules.filter(r=>games.find(g=>g.id===FILTER_GAME)?.name===r.game);
+  let data=FILTER_GAME==='all'?pubRules:pubRules.filter(r=>games.find(g=>g.id===FILTER_GAME)?.name===r.game);
   if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
-  if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
   const rows=data.map(r=>{
     const tierTxt=r.tierEnabled?`<span style="color:var(--orange);font-weight:700">${r.pubRate}% / ${r.tierHighRate}%</span><div style="font-size:10.5px;color:var(--muted);margin-top:2px">≤${(r.tierThreshold/10000).toFixed(0)}w / &gt;${(r.tierThreshold/10000).toFixed(0)}w</div>`
       :`<span>${r.pubRate}%</span><div style="font-size:10.5px;color:var(--muted);margin-top:2px">未启用阶梯</div>`;
-    const cpServer=r.cpServerCostShare?'<span style="background:#e9dfff;color:#5a3a8a;border-radius:8px;padding:1px 6px;font-size:10.5px;font-weight:700">承担服务器</span>':'<span style="background:#f0f0f0;color:var(--muted);border-radius:8px;padding:1px 6px;font-size:10.5px">不承担</span>';
-    const cpLow=((100-r.pubRate)*r.cpRemainShare/100).toFixed(1);
-    const cpHigh=r.tierEnabled?((100-r.tierHighRate)*r.cpRemainShare/100).toFixed(1):null;
-    const cpDerived=cpHigh?`<span style="color:var(--green);font-weight:700">${cpLow}% / ${cpHigh}%</span>`:`<span style="color:var(--green);font-weight:700">${cpLow}%</span>`;
-    const cpFormulaTxt=`<div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:monospace">(1 − 发行商%) × <b style="color:var(--green)">${r.cpRemainShare}%</b></div>`;
-    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td style="font-weight:700">${cpDerived}${cpFormulaTxt}<div style="margin-top:3px">${cpServer}</div></td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
+    const all=listAppIdsForRule(r);
+    const chosen=(r.appIds&&r.appIds.length)?all.filter(a=>r.appIds.includes(a.id)):all;
+    const isAll=!r.appIds||r.appIds.length===0;
+    const appCell=isAll
+      ?`<span style="background:#eef4fb;color:var(--primary);border-radius:8px;padding:1px 7px;font-size:11px;font-weight:700">全部 ${all.length} 个</span><div style="font-size:10.5px;color:var(--muted);margin-top:3px;font-family:monospace;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${all.map(a=>a.id).join('\n')}">${all.slice(0,2).map(a=>a.id).join(' · ')}${all.length>2?` …`:''}</div>`
+      :`<span style="background:#fff3e0;color:var(--orange);border-radius:8px;padding:1px 7px;font-size:11px;font-weight:700">指定 ${chosen.length}/${all.length}</span><div style="font-size:10.5px;color:var(--muted);margin-top:3px;font-family:monospace;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${chosen.map(a=>a.id).join('\n')}">${chosen.slice(0,2).map(a=>a.id).join(' · ')}${chosen.length>2?` …`:''}</div>`;
+    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${appCell}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openPubRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
   });
-  return `<div class="ph"><div><div class="pt">分成规则配置</div><div class="pd">每条规则绑定「游戏＋平台＋发行商＋CP」，并配置阶梯分润 / CP 服务器成本承担等规则参数；审批通过后内容不可修改，如需调整须重建规则。审批流程进度请到 BPM 系统按审批单号查看。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openRuleForm()">＋ 新建规则</button>':''}</div></div>
+  return `<div class="ph"><div><div class="pt">发行商分成规则</div><div class="pd">每条规则绑定「游戏＋平台＋发行商」，可指定生效的媒体应用 AppID（默认覆盖该发行商下全部 AppID）；同一条规则内所有 AppID 共用同一份比例与阶梯。CP 端分成规则请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cpRules')">CP分成规则</button>」中配置。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openPubRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="filter"><select class="select"><option>全部平台</option><option>微信小游戏</option><option>抖音小游戏</option></select><select class="select"><option>全部状态</option><option>草稿</option><option>审批中</option><option>生效中</option><option>已到期</option><option>已驳回</option></select></div>
-  ${tbl(['规则ID','游戏','平台','发行商','CP','生效期间','发行商分成（含阶梯）','CP分成','状态','BPM审批单号','操作'],rows,{pageKey:'rules'})}`;
+  ${tbl(['规则ID','游戏','平台','发行商','媒体应用AppID','生效期间','发行商分成（含阶梯）','状态','BPM审批单号','操作'],rows,{pageKey:'pubRules'})}`;
 }
-function openRuleDetail(id){
-  const r=rules.find(x=>x.id===id);
-  const cpLow=((100-r.pubRate)*r.cpRemainShare/100).toFixed(1);
-  const cpHigh=r.tierEnabled?((100-r.tierHighRate)*r.cpRemainShare/100).toFixed(1):null;
-  const idsLow=(100-r.pubRate-Number(cpLow)).toFixed(1);
-  const idsHigh=cpHigh?(100-r.tierHighRate-Number(cpHigh)).toFixed(1):null;
+// 兼容旧入口
+function pgRules(){return pgPubRules();}
+/* PAGE: CP分成规则 */
+function pgCpRules(){
+  return `<div class="ph"><div><div class="pt">CP分成规则</div><div class="pd">每条规则绑定「游戏＋CP」（游戏级合同）。<b>CP 占比%</b> 即 CP 在该游戏分账基数中所占的比例；「云服务成本」是否扣减由「CP 承担云服务成本」开关决定（广告金侧不扣云成本）。</div></div></div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>新规则（2026-05-15 起）</b>：CP 分账 =（Σ 现金利润 − Σ 发行商真实分账 − 云服务成本）× CP 占比%；广告金侧不扣云服务成本。同一游戏的所有平台、所有发行商利润合并计算，按游戏一份合同一份占比。</div>
+  ${tbl(['规则ID','游戏','CP','生效期间','CP 占比%','CP 承担云服务成本','状态','BPM审批单号'],cpRules.map(r=>{
+    const serverTag=r.cpServerCostShare?'<span style="background:#e9dfff;color:#5a3a8a;border-radius:8px;padding:1px 6px;font-size:10.5px;font-weight:700">承担</span>':'<span style="background:#f0f0f0;color:var(--muted);border-radius:8px;padding:1px 6px;font-size:10.5px">不承担</span>';
+    return `<tr><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700;color:var(--green)">${r.cpRemainShare}%</td><td>${serverTag}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?r.bpm:'<span style="color:var(--weak)">—</span>'}</td></tr>`;
+  }),{pageKey:'cpRules'})}`;
+}
+function openPubRuleDetail(id){
+  const r=pubRules.find(x=>x.id===id);
   const tierBlock=r.tierEnabled
     ?`<span class="v" style="font-weight:700">已启用 · 月流水 <b style="color:var(--orange)">> ${(r.tierThreshold/10000).toFixed(0)}w</b> 时切换为 <b style="color:var(--orange)">${r.tierHighRate}%</b></span>`
     :`<span class="v" style="color:var(--muted)">未启用（按基础比例 ${r.pubRate}% 计算）</span>`;
-  const cpRateBlock=`<span class="v"><span style="font-weight:700;color:var(--green)">${cpLow}%${cpHigh?` / ${cpHigh}%`:''}</span><span style="color:var(--muted);font-family:monospace;margin-left:8px">= (1 − 发行商%) × <b>${r.cpRemainShare}%</b></span></span>`;
-  const cpServerBlock=r.cpServerCostShare
-    ?`<span class="v" style="color:#5a3a8a;font-weight:700">CP 承担服务器成本（参与 CP 分账基数扣减）</span>`
-    :`<span class="v" style="color:var(--muted)">CP 不承担服务器成本</span>`;
-  openModal(`分成规则：${r.id}`,`<div class="kv"><span class="k">规则ID</span><span class="v" style="font-family:monospace">${r.id}</span><span class="k">游戏</span><span class="v">《${r.game}》</span><span class="k">平台类型</span><span class="v">${r.platform}</span><span class="k">发行商主体</span><span class="v">${r.pub}</span><span class="k">CP主体</span><span class="v">《${r.cp}》</span><span class="k">生效期间</span><span class="v">${r.start} ~ ${r.end}</span><span class="k">结算类型</span><span class="v">IAA利润分成</span><span class="k">结算周期</span><span class="v">按自然月</span><span class="k">发行商基础分成</span><span class="v" style="font-size:15px;font-weight:800;color:var(--primary)">${r.pubRate}%</span><span class="k">阶梯分润</span>${tierBlock}<span class="k">CP 剩余池占比</span><span class="v" style="font-weight:700">${r.cpRemainShare}%<span style="color:var(--muted);font-weight:400;margin-left:6px">（手配 · 在剩余池中的占比）</span></span><span class="k">CP 实际占比</span>${cpRateBlock}<span class="k">CP承担服务器成本</span>${cpServerBlock}<span class="k">IDS 实际占比</span><span class="v" style="font-weight:700">${idsLow}%${idsHigh?` / ${idsHigh}%`:''}</span><span class="k">规则状态</span><span class="v">${ts(r.status)}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${r.bpm}</span><span class="k">审批通过时间</span><span class="v">${r.approved}</span></div>
+  const allApps=listAppIdsForRule(r);
+  const chosen=(r.appIds&&r.appIds.length)?allApps.filter(a=>r.appIds.includes(a.id)):allApps;
+  const isAll=!r.appIds||r.appIds.length===0;
+  const appBlock=`<span class="v"><span style="background:${isAll?'#eef4fb':'#fff3e0'};color:${isAll?'var(--primary)':'var(--orange)'};border-radius:8px;padding:1px 7px;font-size:11.5px;font-weight:700">${isAll?`全部 ${allApps.length} 个 AppID`:`指定 ${chosen.length}/${allApps.length} 个`}</span><div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${chosen.map(a=>`<span style="font-family:monospace;font-size:11.5px;background:#f7fafc;border:1px solid #e2e8f0;border-radius:6px;padding:2px 7px">${a.label}</span>`).join('')||'<span style="color:var(--weak);font-size:12px">该映射下暂无 AppID</span>'}</div></span>`;
+  openModal(`发行商分成规则：${r.id}`,`<div class="kv"><span class="k">规则ID</span><span class="v" style="font-family:monospace">${r.id}</span><span class="k">游戏</span><span class="v">《${r.game}》</span><span class="k">平台类型</span><span class="v">${r.platform}</span><span class="k">发行商主体</span><span class="v">${r.pub}</span><span class="k">覆盖 AppID</span>${appBlock}<span class="k">生效期间</span><span class="v">${r.start} ~ ${r.end}</span><span class="k">结算类型</span><span class="v">IAA利润分成</span><span class="k">结算周期</span><span class="v">按自然月</span><span class="k">发行商基础分成</span><span class="v" style="font-size:15px;font-weight:800;color:var(--primary)">${r.pubRate}%</span><span class="k">阶梯分润</span>${tierBlock}<span class="k">规则状态</span><span class="v">${ts(r.status)}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${r.bpm}</span><span class="k">审批通过时间</span><span class="v">${r.approved}</span></div>
   <div class="sec-title">分成公式说明</div>
   <div style="display:flex;flex-direction:column;gap:8px">
     <style>
@@ -1561,40 +1605,32 @@ function openRuleDetail(id){
       </div>
       <div class="fc-tail" style="background:#e6f0ff;color:var(--muted)">仅查看，不折现</div>
     </div>
-    <div class="formula-card" style="border:1px solid #c6e6d6">
-      <div class="fc-head" style="background:var(--green)">CP<br>可结算（现金）</div>
-      <div class="fc-body" style="background:#f0faf5;color:#0d4a2e">
-        ${r.tierEnabled?`<span class="fc-tag fc-tag-1">阶梯Ⅰ ≤${(r.tierThreshold/10000).toFixed(0)}w</span><span>[ 现金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ${r.cpServerCostShare?'− 服务器成本':''} ] × <b style="color:var(--green)">${r.cpRemainShare}%</b></span>
-        <span class="fc-tag fc-tag-2">阶梯Ⅱ &gt;${(r.tierThreshold/10000).toFixed(0)}w</span><span>[ 现金利润 × (1 − <b style="color:var(--orange)">${r.tierHighRate}%</b>) ${r.cpServerCostShare?'− 服务器成本':''} ] × <b style="color:var(--green)">${r.cpRemainShare}%</b></span>`
-        :`<span class="fc-tag fc-tag-1">总利润 ≥ 0</span><span>[ 现金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ${r.cpServerCostShare?'− 服务器成本':''} ] × <b style="color:var(--green)">${r.cpRemainShare}%</b></span>`}
-        <span class="fc-tag fc-tag-loss">总利润 &lt; 0</span><span><b style="color:var(--red)">CP 不分账</b>（亏损由发行商承担）</span>
-      </div>
-      <div class="fc-tail" style="background:#e6f7ee;color:var(--muted)">Phase 1 不可提款</div>
-    </div>
-    <div class="formula-card" style="border:1px solid #c6e6d6">
-      <div class="fc-head" style="background:#2c8454">CP<br>可结算（广告金）</div>
-      <div class="fc-body" style="background:#f0faf5;color:#0d4a2e">
-        ${r.tierEnabled?`<span class="fc-tag fc-tag-1">阶梯Ⅰ ≤${(r.tierThreshold/10000).toFixed(0)}w</span><span>[ 广告金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ] × <b style="color:var(--green)">${r.cpRemainShare}%</b><span style="color:var(--muted);font-size:11.5px;margin-left:4px">不扣服务器</span></span>
-        <span class="fc-tag fc-tag-2">阶梯Ⅱ &gt;${(r.tierThreshold/10000).toFixed(0)}w</span><span>[ 广告金利润 × (1 − <b style="color:var(--orange)">${r.tierHighRate}%</b>) ] × <b style="color:var(--green)">${r.cpRemainShare}%</b><span style="color:var(--muted);font-size:11.5px;margin-left:4px">不扣服务器</span></span>`
-        :`<span class="fc-tag fc-tag-1">总利润 ≥ 0</span><span>[ 广告金利润 × (1 − <b style="color:var(--primary)">${r.pubRate}%</b>) ] × <b style="color:var(--green)">${r.cpRemainShare}%</b><span style="color:var(--muted);font-size:11.5px;margin-left:4px">不扣服务器</span></span>`}
-        <span class="fc-tag fc-tag-loss">总利润 &lt; 0</span><span><b style="color:var(--red)">CP 不分账</b></span>
-      </div>
-      <div class="fc-tail" style="background:#e6f7ee;color:var(--muted)">Phase 1 不可提款</div>
-    </div>
   </div>`)
 }
-function openRuleForm(){
-  openModal('新建分成规则',`<div class="notice">创建前请确认已存在对应的「发行商-游戏-平台-CP」映射关系，否则请先在游戏管理中配置。</div>
+// 兼容旧入口
+function openRuleDetail(id){return openPubRuleDetail(id);}
+function openPubRuleForm(){
+  openModal('新建发行商分成规则',`<div class="notice">创建前请确认已存在对应的「发行商-游戏-平台」映射关系，否则请先在游戏管理中配置。</div>
   <div class="fgrid">
     <div class="field"><label>游戏 <span class="req">*</span></label><select id="rf_game" class="select" style="width:100%" onchange="rfSync()"><option value="">-- 选择游戏 --</option>${games.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}</select></div>
     <div class="field"><label>平台类型 <span class="req">*</span></label><select id="rf_plat" class="select" style="width:100%" onchange="rfSync()"><option value="">-- 选择平台 --</option><option value="微信小游戏">微信小游戏</option><option value="抖音小游戏">抖音小游戏</option></select></div>
     <div class="field"><label>发行商主体 <span class="req">*</span></label>
-      <select id="rf_pub" class="select" style="width:100%" disabled><option value="">请先选择游戏和平台</option></select>
+      <select id="rf_pub" class="select" style="width:100%" disabled onchange="rfSyncApps()"><option value="">请先选择游戏和平台</option></select>
       <div id="rf_pub_hint" class="hint"></div>
     </div>
-    <div class="field"><label>CP主体 <span class="req">*</span></label>
-      <select id="rf_cp" class="select" style="width:100%" disabled><option value="">请先选择游戏</option></select>
-      <div id="rf_cp_hint" class="hint"></div>
+    <div class="field" style="grid-column:1/-1;background:#fafdff;border:1px solid #cfe0f5;border-radius:6px;padding:10px 12px">
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <b style="color:var(--primary)">媒体应用 AppID</b>
+        <span style="color:var(--muted);font-size:12px">默认覆盖该发行商下全部 AppID；勾选可缩小到部分 AppID。规则内所有 AppID 共用同一份比例。</span>
+      </label>
+      <div style="display:flex;align-items:center;gap:14px;margin:4px 0 8px;font-size:12.5px">
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="rf_app_mode" value="all" checked onchange="rfToggleAppMode()"/><span>覆盖全部 AppID</span></label>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="rf_app_mode" value="partial" onchange="rfToggleAppMode()"/><span>指定部分 AppID</span></label>
+        <span id="rf_app_count" style="color:var(--muted);font-size:12px;margin-left:auto"></span>
+      </div>
+      <div id="rf_app_list" style="display:none;max-height:160px;overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px">
+        <div style="color:var(--muted);font-size:12px">请先选择游戏、平台和发行商</div>
+      </div>
     </div>
     <div class="field"><label>生效开始日期 <span class="req">*</span></label><input class="input" type="date" style="width:100%" value="2026-05-01"/></div>
     <div class="field"><label>生效结束日期 <span class="req">*</span></label><input class="input" type="date" style="width:100%" value="2026-12-31"/></div>
@@ -1612,31 +1648,16 @@ function openRuleForm(){
         <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">超阈值后发行商比例（%）</div><input class="input" type="number" style="width:100%" placeholder="如 70" min="0" max="100"/></div>
       </div>
     </div>
-    <div class="field" style="grid-column:1/-1;background:#fafdf7;border:1px solid #c6e6d6;border-radius:6px;padding:10px 12px">
-      <label style="margin-bottom:6px;display:block"><b style="color:var(--green)">CP 分成占比</b> <span class="req">*</span><span style="color:var(--muted);font-size:12px;margin-left:8px">CP 在「扣除发行商后剩余池」中的占比（按阶梯切档时自动同步）</span></label>
-      <div style="display:flex;align-items:center;gap:8px;font-family:monospace;font-size:13.5px;color:#0d4a2e">
-        <span>CP 实际占比 = ( 1 − 发行商% ) ×</span>
-        <input class="input" type="number" style="width:90px;text-align:center;font-weight:700" placeholder="50" min="0" max="100" /><span>%</span>
-        <span style="color:var(--muted);font-size:12px;margin-left:6px">例：发行 60% × CP 剩余池 50% → CP 拿 (1−60%) × 50% = 20%</span>
-      </div>
-    </div>
-    <div class="field" style="grid-column:1/-1;background:#fafafd;border:1px solid #e9dfff;border-radius:6px;padding:10px 12px">
-      <label style="display:flex;align-items:center;gap:6px">
-        <input type="checkbox" id="rf_cp_server" checked />
-        <b style="color:#5a3a8a">CP 承担服务器成本</b>
-        <span style="color:var(--muted);font-size:12px">勾选后 CP 按 CP 分成比例承担服务器成本，再按比例计算 CP 分账（参与基数扣减）</span>
-      </label>
-    </div>
     <div class="field" style="grid-column:1/-1"><label>备注</label><textarea class="input" style="width:100%;height:60px;resize:vertical"></textarea></div>
   </div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn g" onclick="alert('保存为草稿')">存草稿</button><button class="btn p" onclick="alert('提交审批 → BPM流程发起，规则状态变为「审批中」');closeModal()">提交审批</button>`)
 }
+// 兼容旧入口
+function openRuleForm(){return openPubRuleForm();}
 function rfSync(){
   const gameId=document.getElementById('rf_game')?.value;
   const plat=document.getElementById('rf_plat')?.value;
   const pubSel=document.getElementById('rf_pub');
-  const cpSel=document.getElementById('rf_cp');
   const pubHint=document.getElementById('rf_pub_hint');
-  const cpHint=document.getElementById('rf_cp_hint');
   // 联动发行商：需要游戏+平台都选了
   if(gameId && plat){
     const matches=pubMappings.filter(m=>m.gameId===gameId && m.platform===plat);
@@ -1655,27 +1676,48 @@ function rfSync(){
     pubSel.disabled=true;
     pubHint.textContent='';
   }
-  // 联动CP：只需要游戏
-  if(gameId){
-    const cpRels=cpMappings.filter(m=>m.gameId===gameId);
-    if(cpRels.length){
-      cpSel.innerHTML=cpRels.map(m=>`<option value="${m.cpId}">${m.cp}</option>`).join('');
-      cpSel.disabled=false;
-      cpHint.textContent='';
-    } else {
-      cpSel.innerHTML='<option value="">该游戏暂无CP关系</option>';
-      cpSel.disabled=true;
-      cpHint.textContent='请先在「游戏-CP关系」中配置';
-      cpHint.style.color='var(--red)';
-    }
-  } else {
-    cpSel.innerHTML='<option value="">请先选择游戏</option>';
-    cpSel.disabled=true;
-    cpHint.textContent='';
+  rfSyncApps();
+}
+function rfSyncApps(){
+  const gameId=document.getElementById('rf_game')?.value;
+  const plat=document.getElementById('rf_plat')?.value;
+  const pubId=document.getElementById('rf_pub')?.value;
+  const list=document.getElementById('rf_app_list');
+  const counter=document.getElementById('rf_app_count');
+  if(!list)return;
+  if(!gameId||!plat||!pubId){
+    list.innerHTML='<div style="color:var(--muted);font-size:12px">请先选择游戏、平台和发行商</div>';
+    if(counter)counter.textContent='';
+    return;
   }
+  const apps=listAppIdsFor(gameId,plat,pubId);
+  if(!apps.length){
+    list.innerHTML='<div style="color:var(--red);font-size:12px">该映射下暂无 AppID，请先在「平台-发行商映射」中配置</div>';
+    if(counter)counter.textContent='';
+    return;
+  }
+  list.innerHTML=apps.map(a=>`<label style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:12.5px"><input type="checkbox" class="rf_app_cb" value="${a.id}" checked onchange="rfUpdateAppCount()"/><span style="font-family:monospace">${a.label}</span><span style="color:var(--weak);font-size:11px">· ${a.kind}</span></label>`).join('');
+  rfUpdateAppCount();
+}
+function rfToggleAppMode(){
+  const mode=document.querySelector('input[name="rf_app_mode"]:checked')?.value;
+  const list=document.getElementById('rf_app_list');
+  if(!list)return;
+  list.style.display=mode==='partial'?'block':'none';
+  rfUpdateAppCount();
+}
+function rfUpdateAppCount(){
+  const counter=document.getElementById('rf_app_count');
+  const mode=document.querySelector('input[name="rf_app_mode"]:checked')?.value;
+  if(!counter)return;
+  const cbs=document.querySelectorAll('.rf_app_cb');
+  const total=cbs.length;
+  const checked=Array.from(cbs).filter(c=>c.checked).length;
+  if(!total){counter.textContent='';return;}
+  counter.textContent=mode==='partial'?`已选 ${checked} / ${total}`:`共 ${total} 个 AppID 全部覆盖`;
 }
 function submitRule(id){alert(`原型展示：规则 ${id} 已提交 BPM 审批，状态更新为「审批中」。`)}
-function copyRule(id){const r=rules.find(x=>x.id===id);alert(`原型展示：复制规则 ${id}，各字段可重新编辑后提交。`)}
+function copyRule(id){const r=pubRules.find(x=>x.id===id);alert(`原型展示：复制规则 ${id}，各字段可重新编辑后提交。`)}
 
 /* ── 收入双确认 helper ── */
 function syncRevConfirmed(){
@@ -1968,10 +2010,28 @@ function buildMultiBillStatementHtml(keys){
 }
 
 /* ── 阶梯分润 + 服务器成本 + 亏损划转（按规则配置） ── */
-// 找到一条 settle 记录对应的规则配置（生效中的优先；否则取同主键最近一条）
-function findRuleFor(r){
-  const matched=rules.filter(x=>x.game===r.game&&x.platform===r.platform&&x.pub===r.pub&&x.cp===r.cp);
+// 找到一条 settle 记录对应的发行商分成规则（生效中的优先；否则取同主键最近一条）
+function findPubRuleFor(r){
+  const matched=pubRules.filter(x=>x.game===r.game&&x.platform===r.platform&&x.pub===r.pub);
   return matched.find(x=>x.status==='生效中')||matched.find(x=>x.status==='审批中')||matched[0]||null;
+}
+// 找到一条 settle 记录对应的 CP 分成规则（游戏级，只看 game+cp）
+function findCpRuleFor(r){
+  const matched=cpRules.filter(x=>x.game===r.game&&x.cp===r.cp);
+  return matched.find(x=>x.status==='生效中')||matched.find(x=>x.status==='审批中')||matched[0]||null;
+}
+// 兼容旧调用：返回一个合并视图（发行商字段 + CP 字段）
+function findRuleFor(r){
+  const pr=findPubRuleFor(r);
+  const cr=findCpRuleFor(r);
+  if(!pr&&!cr)return null;
+  return {
+    ...(pr||{}),
+    cpRemainShare:cr?cr.cpRemainShare:0,
+    cpServerCostShare:cr?!!cr.cpServerCostShare:false,
+    cp:r.cp,
+    _pubRule:pr,_cpRule:cr
+  };
 }
 // 阶梯分润：根据规则配置返回适用比例
 function tieredPubRate(cashRev,rule){
@@ -2029,6 +2089,50 @@ function calcCpSettle(r){
   const cpV=noShare?0:vBase*cpRemainShare/100;
   return {cashServer,vServer:0,cashBase,vBase,cpCash,cpV,cpRate,cpRemainShare,pubRate,shareServer,rule,noShare,totalP};
 }
+
+/* 按游戏汇总 CP 分账（新规则，2026-05-15 起）：
+ *   现金侧 CP 分账   = ( Σ 现金利润 − Σ 真实发行商现金分账 − 云服务成本 ) × CP占比
+ *   广告金侧 CP 分账 = ( Σ 广告金利润 − Σ 真实发行商广告金分账 ) × CP占比
+ * 占比来自 cpRules.cpRemainShare（按游戏配，代表整池子里 CP 拿走的比例）。
+ * 允许结果为负（下账期冲抵），与原规则不同。
+ */
+function calcCpSettleByGame(period,gameName,cpName){
+  const rows=settle.filter(r=>r.period===period&&r.game===gameName&&r.cp===cpName);
+  if(!rows.length)return null;
+  const cpRule=cpRules.find(x=>x.game===gameName&&x.cp===cpName&&x.status==='生效中')
+    ||cpRules.find(x=>x.game===gameName&&x.cp===cpName)||null;
+  const cpRemainShare=cpRule?(cpRule.cpRemainShare||0):0;
+  const shareServer=cpRule?!!cpRule.cpServerCostShare:false;
+  const platRows=rows.map(r=>{
+    const ps=calcPubSettle(r);
+    return {
+      platform:r.platform,pub:r.pub,
+      cashP:r.cashP||0,vP:r.vP||0,
+      pubCash:ps.pubCash||0,pubV:ps.pubV||0,
+      pubRate:ps.rate,
+      lossTransfer:!!(ps.cashIsLossTransfer||ps.vIsLossTransfer),
+      raw:r
+    };
+  });
+  const sumCashP=platRows.reduce((s,x)=>s+x.cashP,0);
+  const sumVP=platRows.reduce((s,x)=>s+x.vP,0);
+  const sumPubCash=platRows.reduce((s,x)=>s+x.pubCash,0);
+  const sumPubV=platRows.reduce((s,x)=>s+x.pubV,0);
+  const sumServerCost=rows.reduce((s,r)=>s+(r.serverCost||0),0);
+  const cashBase=sumCashP-sumPubCash-(shareServer?sumServerCost:0);
+  const vBase=sumVP-sumPubV;
+  const cpCash=Math.round(cashBase*cpRemainShare/100);
+  const cpV=Math.round(vBase*cpRemainShare/100);
+  return {
+    period,gameName,cpName,cpRule,cpRemainShare,shareServer,
+    platRows,
+    sumCashP,sumVP,sumPubCash,sumPubV,sumServerCost,
+    cashBase,vBase,cpCash,cpV,
+    allReady:rows.every(r=>isSettleReady(r.period,r.game,r.platform)),
+    notReadyCnt:rows.filter(r=>!isSettleReady(r.period,r.game,r.platform)).length,
+    totalRows:rows.length
+  };
+}
 function _revBaseFilter(prefix){
   const startF=window['_'+prefix+'Start']||'2026-01';
   const endF=window['_'+prefix+'End']||'2026-04';
@@ -2076,7 +2180,8 @@ function _revFilterPanel(prefix,ctx,refreshFn){
   const cpOpts=visibleCps.map(c=>`<option value="cp:${c.id}" ${entityF==='cp:'+c.id?'selected':''}>[CP] ${c.name}</option>`).join('');
   const appOptHtml=visibleApps.map(m=>{
     const appId=m.platform==='微信小游戏'?(m.wxAppId||'—'):(m.dyAppId||'—');
-    return `<option value="${m.id}" ${appF===m.id?'selected':''}>${appId} · 《${m.game}》${m.platform==='微信小游戏'?'微小':'抖小'} · ${m.pub}</option>`;
+    const appName=m.appName||'';
+    return `<option value="${m.id}" ${appF===m.id?'selected':''}>${appId}${appName?' · '+appName:''}</option>`;
   }).join('');
   return `<div class="card" style="margin-bottom:20px;padding:16px 20px">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px 20px;align-items:end">
@@ -2137,7 +2242,7 @@ function pgCashRevDashboard(){
       :(canConfirm?`<button class="btn p sm" onclick="confirmCashRev('${key}')">财务确认</button>`
         :`<span class="tag" style="font-size:11px;background:#fff3e0;color:var(--orange)">待财务确认</span>`);
     return `<tr>
-      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
+      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${renderMediaAppCell(r)}</td>
       <td style="font-weight:800;color:var(--primary)">${mn(r.cashRev)}</td>
       <td>${confirmCell}</td>
       <td><button class="link" onclick="openRevDailyDetail('${r.game}','${r.platform}','${r.period}')">每日明细</button></td>
@@ -2165,8 +2270,8 @@ function pgCashRevDashboard(){
   </div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>财务确认机制：</b>财务核对每条账期的现金收入无误后点击「财务确认」。仅已确认的账期现金收入会同步到「发行商分账明细」。</div>
   ${tbl(
-    ['账期','游戏','平台','发行商','现金收入','财务确认','操作'],
-    detailRows.length?detailRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
+    ['账期','游戏','平台','发行商','媒体平台应用','现金收入','财务确认','操作'],
+    detailRows.length?detailRows:[`<tr><td colspan="8" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
   ,{pageKey:'cashRev'})}`;
 }
 function confirmCashRev(key){
@@ -2200,7 +2305,7 @@ function pgVRevDashboard(){
       :(canConfirm?`<button class="btn p sm" onclick="confirmVRev('${key}')">业务运营确认</button>`
         :`<span class="tag" style="font-size:11px;background:#fff3e0;color:var(--orange)">待业务运营确认</span>`);
     return `<tr>
-      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
+      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${renderMediaAppCell(r)}</td>
       <td style="font-weight:800;color:var(--purple)">${fmt(r.vRev)}</td>
       <td>${confirmCell}</td>
       <td><button class="link" onclick="openRevDailyDetail('${r.game}','${r.platform}','${r.period}')">每日明细</button></td>
@@ -2228,8 +2333,8 @@ function pgVRevDashboard(){
   </div>
   <div class="notice" style="border-color:#e9dfff;background:#f7f3ff;color:#5a3a8a">📋 <b>业务运营确认机制：</b>业务运营核对每条账期的广告金收入无误后点击「业务运营确认」。仅已确认的账期广告金收入会同步到「发行商分账明细」。</div>
   ${tbl(
-    ['账期','游戏','平台','发行商','广告金收入','业务运营确认','操作'],
-    detailRows.length?detailRows:[`<tr><td colspan="7" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
+    ['账期','游戏','平台','发行商','媒体平台应用','广告金收入','业务运营确认','操作'],
+    detailRows.length?detailRows:[`<tr><td colspan="8" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
   ,{pageKey:'vRev'})}`;
 }
 function confirmVRev(key){
@@ -2348,7 +2453,7 @@ function pgCostDashboard(){
       ${allOk?'<span style="font-size:11px;color:var(--green);font-weight:700">✓ 双方已确认</span>':(actBtns.length?`<div style="display:flex;gap:4px;flex-wrap:wrap">${actBtns.join('')}</div>`:'')}
     </div>`;
     return `<tr>
-      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
+      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${renderMediaAppCell(r)}</td>
       <td style="font-weight:800">${mn(r.cost)}</td>
       <td style="font-weight:700">${mn(r.cashCost)}</td>
       <td style="font-weight:700;color:var(--purple)">${mn(r.vCost)}</td>
@@ -2431,8 +2536,8 @@ function pgCostDashboard(){
   </div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>对账说明：</b>成本数据来源于巨量/微信平台投放消耗。<b style="color:var(--orange)">由发行商对账后确认</b>；与「财务·现金收入确认」「业务运营·广告金收入确认」共同构成三方确认，三方全部确认后该账期自动出账并流转至「发行商分账明细」。</div>
   ${tbl(
-    ['账期','游戏','平台','发行商','总成本','现金成本','广告金成本','现金/广告金占比','确认状态','操作'],
-    detailRows.length?detailRows:[`<tr><td colspan="10" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
+    ['账期','游戏','平台','发行商','媒体平台应用','总成本','现金成本','广告金成本','现金/广告金占比','确认状态','操作'],
+    detailRows.length?detailRows:[`<tr><td colspan="11" style="text-align:center;color:var(--weak);padding:20px">暂无数据，请调整筛选条件</td></tr>`]
   ,{pageKey:'costDashboard'})}`;
 }
 function confirmCostPub(key){
@@ -2657,8 +2762,8 @@ function pgDailyRecon(){
     ?'<span class="tag" style="background:#e8f7ee;color:var(--green);font-size:11px">✓ 已确认</span>'
     :'<span class="tag" style="background:#fff3e0;color:var(--orange);font-size:11px">⏳ 预估</span>';
 
-  const tableRows=rows.map(r=>`<tr style="${r.status==='estimated'?'background:#fffbf5':''}"><td style="font-family:monospace">${r.date}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td style="font-weight:700">${fmt(r.cashRev)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="color:var(--purple);font-weight:700">${fmt(r.vRev)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="color:var(--red);font-weight:700">${fmt(r.cost)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="font-weight:700;color:${r.profit>=0?'var(--green)':'var(--red)'}">${fmt(r.profit)}</td><td>${tag(r.status)}</td></tr>`);
-  const sumRow=`<tr style="background:#f5f7fa;font-weight:800"><td colspan="4">合计（${rows.length} 行）</td><td>${fmt(sum.cashRev)}</td><td style="color:var(--purple)">${fmt(sum.vRev)}</td><td style="color:var(--red)">${fmt(sum.cost)}</td><td style="color:${sum.profit>=0?'var(--green)':'var(--red)'}">${fmt(sum.profit)}</td><td>—</td></tr>`;
+  const tableRows=rows.map(r=>`<tr style="${r.status==='estimated'?'background:#fffbf5':''}"><td style="font-family:monospace">${r.date}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${renderMediaAppCell(r)}</td><td style="font-weight:700">${fmt(r.cashRev)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="color:var(--purple);font-weight:700">${fmt(r.vRev)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="color:var(--red);font-weight:700">${fmt(r.cost)}${r.status==='estimated'?'<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span>':''}</td><td style="font-weight:700;color:${r.profit>=0?'var(--green)':'var(--red)'}">${fmt(r.profit)}</td><td>${tag(r.status)}</td></tr>`);
+  const sumRow=`<tr style="background:#f5f7fa;font-weight:800"><td colspan="5">合计（${rows.length} 行）</td><td>${fmt(sum.cashRev)}</td><td style="color:var(--purple)">${fmt(sum.vRev)}</td><td style="color:var(--red)">${fmt(sum.cost)}</td><td style="color:${sum.profit>=0?'var(--green)':'var(--red)'}">${fmt(sum.profit)}</td><td>—</td></tr>`;
 
   // 日期下拉：覆盖历史账期 + 当前账期 1~CUT_DAY
   const dateList=[];
@@ -2693,7 +2798,7 @@ function pgDailyRecon(){
     <button class="btn g sm" onclick="window._drStart='2026-04-01';window._drEnd='${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}';window._drStatus='all';window._drPlat='all';document.getElementById('contentEl').innerHTML=pgDailyRecon()">重置</button>
   </div>
   <div style="max-height:520px;overflow:auto;margin-top:10px">
-    ${tbl(['日期','游戏','平台','发行商','现金收入','广告金收入','投放成本','毛利','状态'],tableRows.concat([sumRow]))}
+    ${tbl(['日期','游戏','平台','发行商','媒体平台应用','现金收入','广告金收入','投放成本','毛利','状态'],tableRows.concat([sumRow]))}
   </div>
   <div style="margin-top:10px;font-size:12px;color:var(--weak)">* 数据基于 T+1 同步，今日数据预计 ${TODAY} 06:00 前到位；最终结果以「发行商分账明细」结算后数据为准。</div>`;
 }
@@ -2803,7 +2908,7 @@ function pgSettlePubClosed(){
     <span style="display:inline-block;background:#fff;border:1px solid #e9dfff;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px;color:#5a3a8a"><b>② 业务运营</b>·广告金收入</span>
     <span style="display:inline-block;background:#fff;border:1px solid #ffe0b2;border-radius:10px;padding:1px 8px;margin:0 4px;font-size:12px;color:#a05000"><b>③ 发行商</b>·成本</span>
     三方全部确认后该账期自动出账，可发起打款。
-    <br/><span style="font-size:12px;color:var(--muted)">分账计算规则以「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置</button>」中每条规则的具体配置为准。</span>
+    <br/><span style="font-size:12px;color:var(--muted)">分账计算规则以「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('pubRules')">发行商分成规则</button>」与「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cpRules')">CP分成规则</button>」中每条规则的具体配置为准。</span>
   </div>
   ${tbl(['账期','游戏','平台','发行商','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','发行商分成%','发行商可结算（现金）','发行商可结算（广告金）','确认状态','每日明细'],rows,{pageKey:'settlePub'})}`;
 }
@@ -2854,82 +2959,131 @@ function openDailyDetail(key,period,game,platform,pub){
 
 /* PAGE: CP分账明细 */
 function pgSettleCp(){
+  // 新规则：按游戏一行汇总；点击展开看平台明细。云成本按游戏聚合（不按平台拆分）
   const ent=parsedEntity();
   const allPeriodsAsc=[...new Set(settle.map(r=>r.period))].sort();
   const startF=window._cpStart||(allPeriodsAsc[allPeriodsAsc.length-1]||'2026-04');
   const endF=window._cpEnd||(allPeriodsAsc[allPeriodsAsc.length-1]||'2026-04');
-  let data=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
-  if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
-  if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
-  data=data.filter(r=>r.period>=startF&&r.period<=endF);
-  const totalCpCash=data.reduce((s,r)=>s+calcCpSettle(r).cpCash,0);
-  const totalCpV=data.reduce((s,r)=>s+calcCpSettle(r).cpV,0);
-  const totalServer=data.reduce((s,r)=>s+(r.serverCost||0),0);
-  const totalCpServer=data.reduce((s,r)=>{const cs=calcCpSettle(r);return s+(cs.shareServer?cs.cashServer:0);},0);
-  const rows=data.map(r=>{
-    const cs=calcCpSettle(r);
-    const noShare=cs.noShare;
-    const cpServerShared=cs.shareServer?(cs.cashServer||0)*cs.cpRemainShare/100:0; // CP 实际承担的服务器成本（池内占比折算后）
-    const actualCpRate=(!noShare&&cs.totalP>0)?((cs.cpCash+cs.cpV)/cs.totalP*100):0;
-    const nominalCpRate=cs.cpRate; // 合同名义占比（未扣服务器成本前对总利润的折算）
-    const rateDelta=nominalCpRate-actualCpRate;
-    const g=games.find(x=>x.name===r.game);
-    const gCloudIds=g?getGameCloudIds(g):[];
-    const confirmedCloudCnt=gCloudIds.filter(pid=>isCloudCostConfirmed(r.period,pid)).length;
-    const cloudOk=gCloudIds.length===0?true:confirmedCloudCnt===gCloudIds.length;
+
+  // 收集 (period × game × cp) 唯一组合
+  let rows=settle.filter(r=>r.period>=startF&&r.period<=endF);
+  if(FILTER_GAME!=='all')rows=rows.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
+  if(ent.type==='pub')rows=rows.filter(r=>r.pub===ent.name);
+  if(ent.type==='cp')rows=rows.filter(r=>r.cp===ent.name);
+  const keys=[...new Set(rows.map(r=>r.period+'__'+r.game+'__'+r.cp))];
+  const aggs=keys.map(k=>{const [p,g,cp]=k.split('__');return calcCpSettleByGame(p,g,cp)}).filter(Boolean);
+
+  // 汇总指标
+  const sumCpCash=aggs.reduce((s,a)=>s+(a.allReady && _cloudOkForAgg(a) ? a.cpCash : 0),0);
+  const sumCpV=aggs.reduce((s,a)=>s+(a.allReady && _cloudOkForAgg(a) ? a.cpV : 0),0);
+  const sumServer=aggs.reduce((s,a)=>s+a.sumServerCost,0);
+
+  // 表格行（默认收起；点击行展开）
+  if(!window._cpExpanded)window._cpExpanded=new Set();
+  const tableRows=aggs.flatMap(a=>{
+    const eid=`${a.period}__${a.gameName}__${a.cpName}`;
+    const isOpen=window._cpExpanded.has(eid);
+    const cloudOk=_cloudOkForAgg(a);
     const dash='<span style="color:var(--weak)">—</span>';
-    const lossTag='<span style="background:#ffe9e9;color:var(--red);border-radius:8px;padding:0 5px;font-size:10px;margin-left:3px;font-weight:700">总利润为负·不分账</span>';
-    const cloudTag=gCloudIds.length===0
-      ?'<span class="tag" style="background:#fff3e0;color:var(--orange);font-size:11px">未关联浑天仪项目</span>'
-      :(cloudOk
-          ?`<span class="tag green" style="font-size:11px">✓ 云成本已确认${gCloudIds.length>1?'（'+gCloudIds.length+' 项）':''}</span>`
-          :`<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待财务确认（${confirmedCloudCnt}/${gCloudIds.length}）</span>`);
-    return `<tr ${!cloudOk||noShare?'style="background:#fff8f8"':''}>
-      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.cp}</td>
-      <td>${mn(r.cashRev)}</td><td>${mn(r.vRev)}</td>
-      <td>${mn(r.cost)}</td>
-      <td style="color:var(--muted)">${mn(r.cashCost||0)}</td>
-      <td style="color:var(--muted)">${mn(r.vCost||0)}</td>
-      <td style="color:#7a52b3">${cloudOk?(cs.shareServer?mn(r.serverCost||0):'<span style="color:var(--weak)">—（规则未配置承担）</span>'):dash}</td>
-      <td>${mn(r.cashP)}</td><td>${mn(r.vP)}</td>
-      <td style="color:${cs.totalP<0?'var(--red)':'var(--text)'};font-weight:700">${cloudOk?mn(cs.totalP):dash}</td>
-      <td style="color:#7a52b3">${cloudOk?mn(cs.cashBase)+' / '+mn(cs.vBase):dash}</td>
-      <td>
-        <div style="font-weight:700;color:var(--text)">发行 ${cs.pubRate}%</div>
-        <div style="font-size:11px;color:var(--muted);font-weight:500;margin-top:2px">剩余池 ${100-cs.pubRate}% · 池内 CP ${cs.cpRemainShare}%</div>
-        <div class="tip-trigger" style="font-size:10.5px;color:#999;font-family:monospace;margin-top:2px;cursor:help" title="合同名义占比 = (1−${cs.pubRate}%)×${cs.cpRemainShare}% = ${nominalCpRate.toFixed(1)}%（未扣服务器成本时 CP 对总利润的占比）">名义 ${nominalCpRate.toFixed(1)}% ⓘ</div>
-      </td>
-      <td style="font-weight:700">${cloudOk?mn(cs.cpCash)+(noShare?lossTag:''):dash}</td>
-      <td>${cloudOk?mn(cs.cpV)+(noShare?lossTag:''):dash}</td>
-      <td style="font-weight:700">${cloudOk&&!noShare?`<span style="color:${rateDelta>0.5?'var(--orange)':'var(--text)'}">${actualCpRate.toFixed(2)}%</span>${rateDelta>0.5?`<div style="font-size:10.5px;color:var(--muted);font-weight:400" title="名义 ${nominalCpRate.toFixed(1)}% − 服务器成本分摊 ¥${cpServerShared.toFixed(2)} ÷ 总利润 ¥${cs.totalP.toFixed(2)}">↓ 比名义低 ${rateDelta.toFixed(2)}pp</div>`:''}`:dash}</td>
-      <td>${cloudTag}</td>
+    const ready=a.allReady && cloudOk;
+    const statusBadge=!a.allReady
+      ? `<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待三方确认 ${a.notReadyCnt}/${a.totalRows}</span>`
+      : (!cloudOk
+          ? `<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待云成本确认</span>`
+          : `<span class="tag green" style="font-size:11px">✓ 已确认</span>`);
+    const cpCashCell = ready
+      ? `<span style="font-weight:800;color:${a.cpCash<0?'var(--red)':'var(--text)'}">${mn(a.cpCash)}</span>${a.cpCash<0?'<div style="font-size:10.5px;color:var(--red);font-weight:400">▼ 负值·下账期冲抵</div>':''}`
+      : dash;
+    const cpVCell = ready
+      ? `<span style="font-weight:800;color:${a.cpV<0?'var(--red)':'var(--text)'}">${mn(a.cpV)}</span>${a.cpV<0?'<div style="font-size:10.5px;color:var(--red);font-weight:400">▼ 负值·下账期冲抵</div>':''}`
+      : dash;
+
+    const mainRow = `<tr style="${ready?'':'background:#fffbf5'}" data-eid="${eid}">
+      <td><button class="link" style="padding:0" onclick="_cpToggleExpand('${eid}')">${isOpen?'▾':'▸'}</button></td>
+      <td>${a.period}</td>
+      <td><b>《${a.gameName}》</b></td>
+      <td>${a.cpName}</td>
+      <td style="color:var(--muted)">${a.totalRows} 个平台×发行商</td>
+      <td>${mn(a.sumCashP)}</td>
+      <td>${mn(a.sumPubCash)}</td>
+      <td style="color:#7a52b3">${a.shareServer?mn(a.sumServerCost):'<span style="color:var(--weak)">—（规则未扣）</span>'}</td>
+      <td style="font-weight:700;color:${a.cashBase<0?'var(--red)':'var(--text)'}">${ready?mn(a.cashBase):dash}</td>
+      <td>${mn(a.sumVP)}</td>
+      <td>${mn(a.sumPubV)}</td>
+      <td style="font-weight:700;color:${a.vBase<0?'var(--red)':'var(--text)'}">${ready?mn(a.vBase):dash}</td>
+      <td><b>${a.cpRemainShare}%</b><div style="font-size:10.5px;color:var(--muted)">${a.cpRule?a.cpRule.id:'未配置规则'}</div></td>
+      <td>${cpCashCell}</td>
+      <td>${cpVCell}</td>
+      <td>${statusBadge}</td>
     </tr>`;
+
+    if(!isOpen)return [mainRow];
+
+    // 展开行：平台明细
+    const detailRows = a.platRows.map(pr=>`<tr style="background:#fafbfc">
+      <td></td>
+      <td colspan="2" style="color:var(--muted);padding-left:24px">└ ${pr.platform}</td>
+      <td>${pr.pub}</td>
+      <td style="color:var(--muted)">—</td>
+      <td>${mn(pr.cashP)}</td>
+      <td>${mn(pr.pubCash)}<div style="font-size:10.5px;color:var(--muted)">${pr.pubRate}%${pr.lossTransfer?' · 亏损全划转':''}</div></td>
+      <td style="color:var(--weak)">—</td>
+      <td style="color:var(--weak)">—</td>
+      <td>${mn(pr.vP)}</td>
+      <td>${mn(pr.pubV)}</td>
+      <td style="color:var(--weak)">—</td>
+      <td style="color:var(--weak)">—</td>
+      <td style="color:var(--weak)">—</td>
+      <td style="color:var(--weak)">—</td>
+      <td style="color:var(--weak)">—</td>
+    </tr>`).join('');
+    const cloudRow = `<tr style="background:#fffaf2">
+      <td></td>
+      <td colspan="14" style="padding:8px 12px;font-size:12px;color:#8a4b00">
+        <b>☁ 云服务成本（游戏维度汇总）：</b>${mn(a.sumServerCost)}
+        <span style="color:var(--muted);margin-left:12px">ⓘ 云服务以浑天仪项目为单位归集，无法按平台拆分；现金侧 ${a.shareServer?'已扣减':'未扣减（规则未启用）'}、广告金侧不扣减</span>
+      </td>
+      <td></td>
+    </tr>`;
+    return [mainRow, detailRows, cloudRow];
   });
-  return `<div class="ph"><div><div class="pt">CP分账明细</div><div class="pd">CP 分账基数 = 利润 × (1 − 发行商占比%) − CP承担服务器成本；当期总利润（现金+广告金）为负则 CP 不参与分账。<b style="color:var(--primary)">需财务在「账期云服务成本」中确认对应账期的云成本后方可出账</b>。Phase 1 中 CP 不可主动提款，需由财务线下处理。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
+
+  return `<div class="ph"><div><div class="pt">CP分账明细</div><div class="pd"><b>按游戏汇总</b>：CP 分账 =（全部利润 − 发行商真实分账 − 云服务成本）× CP占比。同一游戏的所有平台、所有发行商利润合并计算；广告金侧不扣云服务成本。<b style="color:var(--primary)">需财务在「账期云服务成本」中确认对应账期的云成本后方可出账</b>。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
   <div class="filter" style="margin-bottom:16px">
     <span style="font-size:12px;color:var(--muted);font-weight:650">开始账期</span>
-    <select class="select" onchange="window._cpStart=this.value;document.getElementById('contentEl').innerHTML=pgSettleCp()">
+    <select class="select" onchange="window._cpStart=this.value;window._cpExpanded=new Set();document.getElementById('contentEl').innerHTML=pgSettleCp()">
       ${allPeriodsAsc.map(p=>`<option value="${p}" ${startF===p?'selected':''}>${p}</option>`).join('')}
     </select>
     <span style="font-size:12px;color:var(--muted);font-weight:650">结束账期</span>
-    <select class="select" onchange="window._cpEnd=this.value;document.getElementById('contentEl').innerHTML=pgSettleCp()">
+    <select class="select" onchange="window._cpEnd=this.value;window._cpExpanded=new Set();document.getElementById('contentEl').innerHTML=pgSettleCp()">
       ${allPeriodsAsc.map(p=>`<option value="${p}" ${endF===p?'selected':''}>${p}</option>`).join('')}
     </select>
-    <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 条</span>
+    <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${aggs.length} 个游戏×账期</span>
   </div>
   <div class="g3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px">
-    <div class="metric"><div class="lb">CP现金利润合计</div><div class="v ${totalCpCash<0?'neg':''}">${fmt(totalCpCash)}</div></div>
-    <div class="metric"><div class="lb">CP广告金利润</div><div class="v">${fmt(totalCpV)}</div></div>
-    <div class="metric"><div class="lb">CP承担服务器成本（现金侧）</div><div class="v" style="color:#7a52b3">${fmt(totalCpServer)}</div><div class="ft">仅规则开启「CP 承担」时计入</div></div>
+    <div class="metric"><div class="lb">CP 现金分账合计</div><div class="v ${sumCpCash<0?'neg':''}">${fmt(sumCpCash)}</div></div>
+    <div class="metric"><div class="lb">CP 广告金分账合计</div><div class="v ${sumCpV<0?'neg':''}">${fmt(sumCpV)}</div></div>
+    <div class="metric"><div class="lb">云服务成本合计（仅参考）</div><div class="v" style="color:#7a52b3">${fmt(sumServer)}</div><div class="ft">游戏维度合计，按游戏 cpRule 决定是否扣减</div></div>
   </div>
-  <div class="notice" style="border-color:#cfe0f5;background:#fafdff;color:#1a4a80">💡 <b>CP 分账规则：</b>
-    <span style="display:inline-block;margin:0 6px"><b>① 现金</b>：CP 现金分账 = [ 现金利润 × (1 − 发行商占比%) − 服务器成本 ] × <span style="color:var(--green);font-weight:700">CP剩余池占比%</span></span><br/>
-    <span style="display:inline-block;margin:0 6px"><b>② 广告金</b>：CP 广告金分账 = [ 广告金利润 × (1 − 发行商占比%) ] × <span style="color:var(--green);font-weight:700">CP剩余池占比%</span><span style="color:var(--muted)">（不扣服务器成本）</span></span><br/>
-    <span style="display:inline-block;margin:0 6px"><b>③ 总利润 &lt; 0</b>：CP 现金/广告金均为 0（「总利润为负·不分账」标记），亏损由发行商承担</span><br/>
-    <span style="display:inline-block;margin:0 6px;color:#a05000"><b>④ 名义 vs 实际占比</b>：合同条款里「池内 CP 占 50%」折算到总利润是<b>名义占比</b>（如 15%）；CP 承担服务器成本时实际拿到的会更低，<b>「CP 实际占比」</b>列按行动态计算 = (CP现金 + CP广告金) ÷ 总利润</span><br/>
-    <span style="display:inline-block;margin:0 6px;color:var(--muted)">服务器成本是否扣减由「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置</button>」中每条规则的「CP 承担服务器成本」开关决定</span>
+  <div class="notice" style="border-color:#cfe0f5;background:#fafdff;color:#1a4a80">💡 <b>CP 分账规则（按游戏，2026-05-15 起）：</b>
+    <span style="display:inline-block;margin:0 6px"><b>① 现金</b>：CP 现金分账 = ( Σ 现金利润 − Σ 发行商真实现金分账 − 云服务成本 ) × <span style="color:var(--green);font-weight:700">CP 占比%</span></span><br/>
+    <span style="display:inline-block;margin:0 6px"><b>② 广告金</b>：CP 广告金分账 = ( Σ 广告金利润 − Σ 发行商真实广告金分账 ) × <span style="color:var(--green);font-weight:700">CP 占比%</span><span style="color:var(--muted)">（不扣云成本）</span></span><br/>
+    <span style="display:inline-block;margin:0 6px"><b>③ 结果可为负</b>：负值在下账期与新结果合并冲抵，不当期支付</span><br/>
+    <span style="display:inline-block;margin:0 6px;color:var(--muted)">CP 占比以「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置 · CP 部分</button>」中每条规则的「CP 占比%」为准（按游戏配置）</span>
   </div>
-  ${tbl(['账期','游戏','平台','CP','现金收入','广告金收入','总消耗','现金成本','广告金成本','服务器成本','现金利润','广告金利润','总利润','CP分账基数(现/广)','合同分账条款','CP现金分账','CP广告金分账','CP实际占比','云成本状态'],rows,{pageKey:'settleCp'})}`;
+  ${tbl(['','账期','游戏','CP','明细数','Σ 现金利润','Σ 发行商分掉','云服务成本','现金分账基数','Σ 广告金利润','Σ 发行商分掉','广告金分账基数','CP 占比','CP 现金分账','CP 广告金分账','状态'],tableRows,{pageKey:'settleCp'})}`;
+}
+
+function _cloudOkForAgg(a){
+  const g=games.find(x=>x.name===a.gameName);
+  if(!g||!g.cloudProjectId)return true; // 未关联浑天仪项目 → 视为不依赖
+  return isCloudCostConfirmed(a.period,g.cloudProjectId);
+}
+function _cpToggleExpand(eid){
+  if(!window._cpExpanded)window._cpExpanded=new Set();
+  if(window._cpExpanded.has(eid))window._cpExpanded.delete(eid);
+  else window._cpExpanded.add(eid);
+  document.getElementById('contentEl').innerHTML=pgSettleCp();
 }
 
 /* PAGE: 账户打款流水 */
@@ -3677,20 +3831,20 @@ const PERM_MODULES=[
   {group:'主数据',items:[{key:'games',label:'游戏管理'},{key:'publishers',label:'发行商主体'},{key:'cps',label:'CP主体'}]},
   {group:'合作关系',items:[{key:'pubMapping',label:'游戏-发行商关系'},{key:'cpMapping',label:'游戏-CP关系'}]},
   {group:'数据看板',items:[{key:'cashRev',label:'账期现金收入'},{key:'vRev',label:'账期广告金收入'},{key:'costDashboard',label:'账期投放成本'},{key:'cloudCost',label:'账期云服务成本'},{key:'dailyRecon',label:'每日收支对账'}]},
-  {group:'结算配置',items:[{key:'rules',label:'分成规则配置'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'发行商账户流水'}]},
+  {group:'结算配置',items:[{key:'pubRules',label:'发行商分成规则'},{key:'cpRules',label:'CP分成规则'},{key:'settlePub',label:'发行商分账明细'},{key:'settleCp',label:'CP分账明细'},{key:'balance',label:'发行商账户流水'}]},
   {group:'打款闭环',items:[{key:'payments',label:'打款申请单（财务）'},{key:'myPayments',label:'发行商打款申请单'},{key:'invoices',label:'票据管理'}]}
 ];
 const OPS=['查看','新增/编辑','删除'];
 const OP_KEYS=['view','edit','delete'];
 // 初始操作权限配置（只对有页面访问权限的角色有意义）
 const PERM_OPS={
-  '系统管理员':{games:{view:1,edit:1,delete:1,approve:0,export:1},publishers:{view:1,edit:1,delete:1,approve:0,export:1},cps:{view:1,edit:1,delete:1,approve:0,export:1},pubMapping:{view:1,edit:1,delete:1,approve:0,export:1},cpMapping:{view:1,edit:1,delete:1,approve:0,export:1},rules:{view:1,edit:1,delete:1,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:1,edit:1,delete:1,approve:1,export:0},payments:{view:1,edit:1,delete:0,approve:1,export:1},myPayments:{view:1,edit:0,delete:0,approve:0,export:1},invoices:{view:1,edit:0,delete:0,approve:0,export:1},cloudCost:{view:1,edit:1,delete:0,approve:1,export:1},dailyRecon:{view:1,edit:1,delete:0,approve:0,export:1}},
-  '业务负责人':{games:{view:1,edit:1,delete:0,approve:0,export:1},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},rules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:0,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},invoices:{view:1,edit:0,delete:0,approve:0,export:1},cloudCost:{view:1,edit:0,delete:0,approve:0,export:1},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1}},
-  '业务运营':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},invoices:{view:0,edit:0,delete:0,approve:0,export:0},cloudCost:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1}},
-  '财务人员':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},rules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:1,delete:0,approve:0,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},invoices:{view:1,edit:0,delete:0,approve:0,export:1},cloudCost:{view:1,edit:0,delete:0,approve:1,export:1},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1}},
-  '财务负责人/审批人':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},rules:{view:1,edit:0,delete:0,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:1,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},invoices:{view:1,edit:0,delete:0,approve:0,export:1},cloudCost:{view:1,edit:0,delete:0,approve:1,export:1},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1}},
-  '发行商':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:0,edit:0,delete:0,approve:0,export:0},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:1,edit:1,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:1,edit:0,delete:0,approve:0,export:1},invoices:{view:0,edit:0,delete:0,approve:0,export:0},cloudCost:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1}},
-  'CP':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:0,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},rules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:0,edit:0,delete:0,approve:0,export:0},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:0,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},invoices:{view:0,edit:0,delete:0,approve:0,export:0},cloudCost:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:0,edit:0,delete:0,approve:0,export:0}}
+  '系统管理员':{games:{view:1,edit:1,delete:1,approve:0,export:1},publishers:{view:1,edit:1,delete:1,approve:0,export:1},cps:{view:1,edit:1,delete:1,approve:0,export:1},pubMapping:{view:1,edit:1,delete:1,approve:0,export:1},cpMapping:{view:1,edit:1,delete:1,approve:0,export:1},pubRules:{view:1,edit:1,delete:1,approve:1,export:1},cpRules:{view:1,edit:1,delete:1,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:1,edit:1,delete:1,approve:1,export:0},payments:{view:1,edit:1,delete:0,approve:1,export:1},myPayments:{view:1,edit:0,delete:0,approve:0,export:1},invoices:{view:1,edit:0,delete:0,approve:0,export:1},cloudCost:{view:1,edit:1,delete:0,approve:1,export:1},dailyRecon:{view:1,edit:1,delete:0,approve:0,export:1}},
+  '业务负责人':{games:{view:1,edit:1,delete:0,approve:0,export:1},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},pubRules:{view:1,edit:1,delete:0,approve:0,export:1},cpRules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:0,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},invoices:{view:1,edit:0,delete:0,approve:0,export:1},cloudCost:{view:1,edit:0,delete:0,approve:0,export:1},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1}},
+  '业务运营':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:1,delete:0,approve:0,export:1},cpMapping:{view:1,edit:1,delete:0,approve:0,export:1},pubRules:{view:0,edit:0,delete:0,approve:0,export:0},cpRules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},invoices:{view:0,edit:0,delete:0,approve:0,export:0},cloudCost:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1}},
+  '财务人员':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:1,edit:1,delete:0,approve:0,export:1},cps:{view:1,edit:1,delete:0,approve:0,export:1},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},pubRules:{view:1,edit:1,delete:0,approve:0,export:1},cpRules:{view:1,edit:1,delete:0,approve:0,export:1},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:1,delete:0,approve:0,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},invoices:{view:1,edit:0,delete:0,approve:0,export:1},cloudCost:{view:1,edit:0,delete:0,approve:1,export:1},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1}},
+  '财务负责人/审批人':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:1},cpMapping:{view:1,edit:0,delete:0,approve:0,export:1},pubRules:{view:1,edit:0,delete:0,approve:1,export:1},cpRules:{view:1,edit:0,delete:0,approve:1,export:1},settlePub:{view:1,edit:0,delete:0,approve:1,export:1},settleCp:{view:1,edit:0,delete:0,approve:1,export:1},balance:{view:1,edit:0,delete:0,approve:0,export:1},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:1,edit:0,delete:0,approve:1,export:1},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},invoices:{view:1,edit:0,delete:0,approve:0,export:1},cloudCost:{view:1,edit:0,delete:0,approve:1,export:1},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1}},
+  '发行商':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:1,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},pubRules:{view:0,edit:0,delete:0,approve:0,export:0},cpRules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:1,edit:0,delete:0,approve:0,export:1},settleCp:{view:0,edit:0,delete:0,approve:0,export:0},balance:{view:1,edit:0,delete:0,approve:0,export:0},paymentNew:{view:1,edit:1,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:1,edit:0,delete:0,approve:0,export:1},invoices:{view:0,edit:0,delete:0,approve:0,export:0},cloudCost:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:1,edit:0,delete:0,approve:0,export:1}},
+  'CP':{games:{view:0,edit:0,delete:0,approve:0,export:0},publishers:{view:0,edit:0,delete:0,approve:0,export:0},cps:{view:0,edit:0,delete:0,approve:0,export:0},pubMapping:{view:0,edit:0,delete:0,approve:0,export:0},cpMapping:{view:1,edit:0,delete:0,approve:0,export:0},pubRules:{view:0,edit:0,delete:0,approve:0,export:0},cpRules:{view:0,edit:0,delete:0,approve:0,export:0},settlePub:{view:0,edit:0,delete:0,approve:0,export:0},settleCp:{view:1,edit:0,delete:0,approve:0,export:1},balance:{view:0,edit:0,delete:0,approve:0,export:0},paymentNew:{view:0,edit:0,delete:0,approve:0,export:0},payments:{view:0,edit:0,delete:0,approve:0,export:0},myPayments:{view:0,edit:0,delete:0,approve:0,export:0},invoices:{view:0,edit:0,delete:0,approve:0,export:0},cloudCost:{view:0,edit:0,delete:0,approve:0,export:0},dailyRecon:{view:0,edit:0,delete:0,approve:0,export:0}}
 };
 let _permEditRole=null;
 function pgPermConfig(){
