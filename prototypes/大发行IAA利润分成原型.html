@@ -4882,7 +4882,9 @@ function confirmGrantData(uid){
 /* ──────────── INIT ──────────── */
 (function init(){
   // 预置 mock：2026-04 / 星辰网络 / 幻境传说 / 微信小游戏 已完成三方确认 + 发行商对账
-  const seedKey='2026-04__幻境传说__微信小游戏';
+  // 预置一条"已完成三方确认 + 已确认对账"且尚未被任何对账单占用的明细，演示「可生成对账单」入口
+  // 选用 2026-05 萌宠大陆 / 微信 / 星辰网络（不与 9 份预置对账单的 keys 冲突）
+  const seedKey='2026-05__萌宠大陆__微信小游戏';
   window._cashRevConfirmed=window._cashRevConfirmed||new Set();
   window._vRevConfirmed=window._vRevConfirmed||new Set();
   window._costPubConfirmed=window._costPubConfirmed||new Set();
@@ -4896,17 +4898,6 @@ function confirmGrantData(uid){
   window._costConfirmed.add(seedKey);
   window._billConfirmed.add(seedKey);
   syncRevConfirmed();
-  // 预置一条已发起、与该账期关联的打款申请（与 settle 行 pubCash 一致：320000 利润 - 成本=167423，分成 60% = 100453.80）
-  const seedSettle=settle.find(r=>r.period==='2026-04'&&r.game==='幻境传说'&&r.platform==='微信小游戏'&&r.pub==='星辰网络');
-  if(seedSettle&&!pays.some(p=>p.period==='2026-04'&&p.game==='幻境传说'&&p.platform==='微信小游戏'&&p.pub==='星辰网络')){
-    const seedAmt=Math.round(calcPubSettle(seedSettle).pubCash*100)/100;
-    pays.unshift({
-      id:'PAY-202604-010',period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',
-      amount:seedAmt,approval:'待审批',exec:'待执行',
-      time:'2026-05-06 10:24',bpm:'BPM-PAY-1024',flow:'—',bkFlow:'—',reason:'—',
-      invoiceFile:`发票_星辰网络_${seedAmt}.pdf`,billFile:`对账单_星辰网络_2026-04_${seedAmt}.pdf`
-    });
-  }
 
   document.addEventListener('click',function(){
     document.getElementById('userCenter').classList.remove('open');
