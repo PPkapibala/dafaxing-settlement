@@ -1,0 +1,4 @@
+# Ignore everything except what we explicitly publish
+*
+!.gitignore
+!index.html
