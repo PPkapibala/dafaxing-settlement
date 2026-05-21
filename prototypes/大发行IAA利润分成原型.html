@@ -193,7 +193,7 @@ window._generatedStatements=[
   // 单笔常规 · 2026-03 光速 星际/抖音
   {sn:'BS-20260405-001',keys:['2026-03__星际争霸__抖音小游戏'],createdAt:'2026-04-05 14:18:43',pub:'光速传媒',paymentIds:['PAY-202603-007']},
   // 失败 → 财务重打 · 2026-03 弹球/微信
-  {sn:'BS-20260408-001',keys:['2026-03__弹球传奇__微信小游戏'],createdAt:'2026-04-08 09:32:11',pub:'灵犀互娱',paymentIds:['PAY-202603-008','PAY-R-202603-008']},
+  {sn:'BS-20260408-001',keys:['2026-03__弹球传奇__微信小游戏'],createdAt:'2026-04-08 09:32:11',pub:'灵犀互娱',paymentIds:['PAY-202603-008']},
   // 单笔常规 · 2026-04 星辰 幻境/微信
   {sn:'BS-20260410-001',keys:['2026-04__幻境传说__微信小游戏'],createdAt:'2026-04-10 10:05:00',pub:'星辰网络',paymentIds:['PAY-202604-001']},
   // 打款中 · 2026-04 光速 星际/抖音
@@ -309,9 +309,12 @@ const pays=[
   // —— 终止流程示例：账户错填 → 失败 → 财务终止 → 联运商修正账户 → 同账期重新发起 → 成功 ——
   {id:'PAY-202602-005',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:140140,approval:'已通过',exec:'已终止',time:'2026-03-04 10:22',bpm:'BPM-PAY-0830',flow:'YQ-20260304005',bkFlow:'BK-840117',reason:'收款账户名称与开户行不一致',terminatedAt:'2026-03-05 09:15',terminatedBy:'李四（财务）',invoiceFile:'发票_光速传媒_2026-02_140140.pdf',billFile:'对账单_BS-20260304-001.pdf',statementSn:'BS-20260304-001',items:[{period:'2026-02',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:140140}]},
   {id:'PAY-202602-009',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:140140,approval:'已通过',exec:'打款成功',time:'2026-03-06 14:08',bpm:'BPM-PAY-0838',flow:'YQ-20260306011',bkFlow:'BK-840205',reason:'—',invoiceFile:'发票_光速传媒_2026-02_140140.pdf',billFile:'对账单_BS-20260304-001.pdf',statementSn:'BS-20260304-001',prevTerminatedId:'PAY-202602-005',items:[{period:'2026-02',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:140140}]},
-  // —— 重新打款示例：失败（非账户问题）→ 财务点重新打款生成关联新单 → 成功 ——
-  {id:'PAY-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款失败',time:'2026-04-08 09:55',bpm:'BPM-PAY-0995',flow:'YQ-20260408007',bkFlow:'BK-846930',reason:'对方银行系统繁忙，超时未响应',invoiceFile:'发票_灵犀互娱_2026-03_54200.pdf',billFile:'对账单_BS-20260408-001.pdf',statementSn:'BS-20260408-001',items:[{period:'2026-03',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',amount:54200}]},
-  {id:'PAY-R-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款成功',time:'2026-04-08 16:30',bpm:'BPM-PAY-0996',flow:'YQ-20260408022',bkFlow:'BK-847105',reason:'—',relateId:'PAY-202603-008',invoiceFile:'发票_灵犀互娱_2026-03_54200.pdf',billFile:'对账单_BS-20260408-001.pdf',statementSn:'BS-20260408-001',items:[{period:'2026-03',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',amount:54200}]}
+  // —— 重新打款示例：失败（非账户问题）→ 财务重新执行打款 → 同一申请单第二次流水成功 ——
+  // 同一申请单可对应多次银行执行（attempts），原单状态翻新为最新一次执行结果；流水单号在列表中按行展示
+  {id:'PAY-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款成功',time:'2026-04-08 16:30',bpm:'BPM-PAY-0995',flow:'YQ-20260408022',bkFlow:'BK-847105',reason:'—',invoiceFile:'发票_灵犀互娱_2026-03_54200.pdf',billFile:'对账单_BS-20260408-001.pdf',statementSn:'BS-20260408-001',items:[{period:'2026-03',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',amount:54200}],attempts:[
+    {flow:'YQ-20260408007',bkFlow:'BK-846930',time:'2026-04-08 09:55',status:'打款失败',reason:'对方银行系统繁忙，超时未响应'},
+    {flow:'YQ-20260408022',bkFlow:'BK-847105',time:'2026-04-08 16:30',status:'打款成功',reason:'—'}
+  ]}
 ];
 const syncs=[
   {game:'幻境传说',platform:'微信小游戏',date:'2026-04-27',status:'成功',reason:'—',syncTime:'2026-04-28 06:10'},
@@ -1965,7 +1968,10 @@ function syncCostConfirmed(){
   window._costConfirmed=new Set([...window._costPubConfirmed].filter(k=>window._costBizConfirmed.has(k)));
 }
 function isSettleReady(period,game,platform){
-  const r={period,game,platform};
+  // 三方确认 key 是按 联运商×平台应用 粒度记录的；必须先从 settle 反查 pub，
+  // 再调用 expandSettleByApp（其内部 filter 依赖 pub），才能得到正确的 per-app keys
+  const r=settle.find(x=>x.period===period&&x.game===game&&x.platform===platform);
+  if(!r)return false;
   const keys=settleAppKeys(r);
   const cash=window._cashRevConfirmed||new Set();
   const v=window._vRevConfirmed||new Set();
@@ -3400,8 +3406,10 @@ function pgSettleCp(){
 
 function _cloudOkForAgg(a){
   const g=games.find(x=>x.name===a.gameName);
-  if(!g||!g.cloudProjectId)return true; // 未关联浑天仪项目 → 视为不依赖
-  return isCloudCostConfirmed(a.period,g.cloudProjectId);
+  if(!g)return true;
+  const ids=getGameCloudIds(g);
+  if(!ids.length)return true; // 未关联浑天仪项目 → 视为不依赖
+  return ids.every(id=>isCloudCostConfirmed(a.period,id));
 }
 function openCpSettleDetail(eid){
   const [period,gameName,cpName]=eid.split('__');
@@ -3907,7 +3915,7 @@ function pgPayments(){
 
   const finView=canFin();
   const banner=finView
-    ?`<div class="notice" style="border-color:#ffd9b3;background:#fff7ec;color:#8a4b00">💼 <b>财务视图（内部）：</b>展示打款单的真实执行状态。失败单可发起「重新打款」生成关联新单；电子回单可下载留档。<br/><b style="color:var(--red)">⚠ 信息隔离：</b>对外（联运商视图）失败状态会被脱敏为「打款中」，避免联运商看到处理过程；新单成功后再翻转为「打款成功」。</div>`
+    ?`<div class="notice" style="border-color:#ffd9b3;background:#fff7ec;color:#8a4b00">💼 <b>财务视图（内部）：</b>展示打款单的真实执行状态。失败单可发起「重新打款」追加一笔新流水到同一申请单；电子回单可下载留档。<br/><b style="color:var(--red)">⚠ 信息隔离：</b>对外（联运商视图）失败状态会被脱敏为「打款中」，避免联运商看到处理过程；新流水成功后再翻转为「打款成功」。</div>`
     :`<div class="notice">展示所有打款申请的审批状态与执行状态。</div>`;
 
   const opCol=(p)=>{
@@ -3938,7 +3946,17 @@ function pgPayments(){
       else if(p.period)periodTxt=p.period;
     }else if(p.period){periodTxt=p.period;}
     const stmtCell=stmtSn?`<button class="link" style="font-family:monospace;font-size:12px;padding:0" onclick="go('statements');setTimeout(()=>highlightStmt('${stmtSn}'),50)">${stmtSn}</button>`:'<span style="color:var(--weak)">—</span>';
-    rows.push(`<tr data-pay-id="${p.id}" style="${trStyle}"><td style="font-family:monospace;font-size:12px">${p.id}${p.relateId?`<div style="font-size:10px;color:var(--muted)">↻ 关联 ${p.relateId}</div>`:''}${p.prevTerminatedId?`<div style="font-size:10px;color:var(--muted)">↩ 续 ${p.prevTerminatedId}</div>`:''}</td><td>${periodTxt}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(p.exec)}</td><td>${stmtCell}</td><td style="color:var(--muted)">${p.time}</td><td>${opCol(p)}</td></tr>`);
+    // 流水单号列：只展示最新一笔（=当前生效执行）；多次执行时尾部加重试角标。
+    // 不再附状态标签，避免与「执行状态」列重复；完整历史在详情弹窗中。
+    const atts=Array.isArray(p.attempts)&&p.attempts.length?p.attempts:[{flow:p.flow,bkFlow:p.bkFlow,time:p.time,status:p.exec,reason:p.reason}];
+    const last=atts[atts.length-1];
+    const lastFlow=last.flow&&last.flow!=='—'?last.flow:'—';
+    const lastBk=last.bkFlow&&last.bkFlow!=='—'?last.bkFlow:'';
+    const retryBadge=atts.length>1
+      ?`<span class="tag" style="font-size:10px;margin-left:4px;background:#fff7ec;color:#a05000;border:1px solid #ffd9b3" title="共 ${atts.length} 次执行，点查看详情">↻ 共 ${atts.length} 次</span>`
+      :'';
+    const flowCell=`<div style="font-family:monospace;font-size:11.5px">${lastFlow}${retryBadge}${lastBk?`<div style="color:var(--muted);font-size:10.5px">银行 ${lastBk}</div>`:''}</div>`;
+    rows.push(`<tr data-pay-id="${p.id}" style="${trStyle}"><td style="font-family:monospace;font-size:12px">${p.id}</td><td>${periodTxt}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(p.exec)}</td><td>${stmtCell}</td><td>${flowCell}</td><td style="color:var(--muted)">${p.time}</td><td>${opCol(p)}</td></tr>`);
   });
 
   return `<div class="ph"><div><div class="pt">打款申请单${finView?'（财务内部视图）':''}</div><div class="pd">展示所有打款申请的真实审批状态与执行状态；打款失败条目标红，可查看失败原因。<b>申请由联运商在「对账单管理」按对账单一键发起</b>，财务在此审核与执行。${ent.type==='cp'?'<b style="color:var(--orange)">（Phase 1 中CP不参与直接打款，由财务线下处理）</b>':''}</div></div><div class="acts"><button class="btn g" onclick="alert('导出申请单列表（含失败处理记录）')">↓ 导出</button></div></div>
@@ -3965,7 +3983,7 @@ function pgPayments(){
     ${(periodF!=='all'||apprF!=='all'||execF!=='all')?`<button class="btn g sm" onclick="window._payPeriod='all';window._payApproval='all';window._payExec='all';document.getElementById('contentEl').innerHTML=pgPayments()">清除筛选</button>`:''}
     <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 单</span>
   </div>
-  ${tbl(['申请单号','账期','联运商','打款金额','审批状态','执行状态','关联对账单','发起时间','操作'],rows,{pageKey:'payments'})}`;
+  ${tbl(['申请单号','账期','联运商','打款金额','审批状态','执行状态','关联对账单','流水单号','发起时间','操作'],rows,{pageKey:'payments'})}`;
 }
 
 /* PAGE: 我的打款记录（联运商专用 — 失败状态对外脱敏为「打款中」）
@@ -3976,8 +3994,7 @@ function pgMyPayments(){
   let data=pays;
   if(ent.type==='pub')data=data.filter(p=>p.pub===ent.name);
   if(FILTER_GAME!=='all')data=data.filter(p=>p.game===games.find(g=>g.id===FILTER_GAME)?.name);
-  // 隐藏「重新打款生成的关联新单」，避免联运商看到 R 编号疑惑；只展示原始单
-  data=data.filter(p=>!p.relateId);
+  // 已合并为单条申请单 + attempts 数组，无需再过滤 relateId
 
   // 提取一笔打款单关联的账期集合（与财务视图同口径）
   const payPeriods=(p)=>{
@@ -4000,9 +4017,8 @@ function pgMyPayments(){
   // 联运商视角脱敏：失败→打款中，已终止→已终止 · 待重新发起
   const maskForFilter=(s)=>s==='打款失败'?'打款中':s;
   if(execF!=='all')data=data.filter(p=>maskForFilter(p.exec)===execF);
-  const allPeriods=[...new Set(pays.filter(p=>!p.relateId).flatMap(payPeriods))].sort().reverse();
+  const allPeriods=[...new Set(pays.flatMap(payPeriods))].sort().reverse();
 
-  // 脱敏映射：失败 → 打款中（在视图层做，不改底层数据）
   // 脱敏映射：失败 → 打款中（财务内部处理中）；已终止 → 已终止 · 待重新发起（明确告知联运商）
   const maskExec=(s)=>s==='打款失败'?'打款中':(s==='已终止'?'已终止 · 待重新发起':s);
 
@@ -4030,13 +4046,24 @@ function pgMyPayments(){
       else if(p.period)periodTxt=p.period;
     }else if(p.period){periodTxt=p.period;}
     const stmtCell=stmtSn?`<button class="link" style="font-family:monospace;font-size:12px;padding:0" onclick="go('statements');setTimeout(()=>highlightStmt('${stmtSn}'),50)">${stmtSn}</button>`:'<span style="color:var(--weak)">—</span>';
-    rows.push(`<tr data-pay-id="${p.id}"><td style="font-family:monospace;font-size:12px">${p.id}</td><td>${periodTxt}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(shown)}</td><td>${stmtCell}</td><td style="color:var(--muted)">${p.time}</td><td>${ops}</td></tr>`);
+    // 流水单号（脱敏）：只展示成功流水；进行中/失败统一展示「处理中」
+    // 流水单号（脱敏）：只展示最后一笔成功流水；未成功统一显示「处理中…」
+    // 不附状态标签（与「执行状态」列重复），也不暴露重试次数（属于内部信息）
+    const atts=Array.isArray(p.attempts)&&p.attempts.length?p.attempts:[{flow:p.flow,bkFlow:p.bkFlow,status:p.exec}];
+    const lastOk=[...atts].reverse().find(a=>a.status==='打款成功');
+    let flowCell;
+    if(lastOk){
+      flowCell=`<div style="font-family:monospace;font-size:11.5px">${lastOk.flow||'—'}${lastOk.bkFlow?`<div style="color:var(--muted);font-size:10.5px">银行 ${lastOk.bkFlow}</div>`:''}</div>`;
+    }else{
+      flowCell=`<span style="font-size:11.5px;color:var(--muted)">处理中…</span>`;
+    }
+    rows.push(`<tr data-pay-id="${p.id}"><td style="font-family:monospace;font-size:12px">${p.id}</td><td>${periodTxt}</td><td>${p.pub}</td><td style="font-weight:700">${fmt(p.amount)}</td><td>${ts(p.approval)}</td><td>${ts(shown)}</td><td>${stmtCell}</td><td>${flowCell}</td><td style="color:var(--muted)">${p.time}</td><td>${ops}</td></tr>`);
   });
 
   return `<div class="ph"><div><div class="pt">联运商打款申请单</div><div class="pd">查看本主体名下所有打款申请的进度。打款成功后可下载电子回单。${isPublisher()?'<br/><span style="color:var(--muted);font-size:12px">发起打款请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick=\'go("statements")\'>对账单管理</button>」，按对账单一键发起以保证金额一致。</span>':''}</div></div><div class="acts"><button class="btn g" onclick="alert('导出联运商打款申请单')">↓ 导出</button></div></div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">👁 <b>只读视图：</b>本页面仅展示与本联运商主体相关的打款单。如对结果有疑问，请联系结算财务对接人。</div>
   <div class="filter"><select class="select"><option>全部审批状态</option><option>待审批</option><option>已通过</option><option>已驳回</option></select><select class="select"><option>全部执行状态</option><option>待执行</option><option>打款中</option><option>打款成功</option></select></div>
-  ${tbl(['申请单号','账期','联运商','打款金额','审批状态','执行状态','关联对账单','发起时间','操作'],rows,{pageKey:'myPayments'})}`;
+  ${tbl(['申请单号','账期','联运商','打款金额','审批状态','执行状态','关联对账单','流水单号','发起时间','操作'],rows,{pageKey:'myPayments'})}`;
 }
 
 /* PAGE: 对账单管理 */
@@ -4381,7 +4408,12 @@ function openMyPayDetail(id){
     ${[['提交申请','done'],['审批',p.approval==='待审批'?'act':'done'],['银企打款',isProcessing?'act':masked==='打款成功'?'done':''],['完成',masked==='打款成功'?'done':'']].map((s,i)=>(i>0?'<div class="sline"></div>':'')+`<div class="step ${s[1]}"><span class="sc">${s[1]==='done'?'✓':(i+1)}</span>${s[0]}</div>`).join('')}
   </div>
   ${isProcessing?'<div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">⏳ 打款处理中，到账时间以银行实际为准。如超过 3 个工作日仍未到账，请联系结算财务。</div>':''}
-  <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">账期</span><span class="v">${p.period||'—'}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(masked)}</span><span class="k">发起时间</span><span class="v">${p.time}</span></div>
+  <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">账期</span><span class="v">${p.period||'—'}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(masked)}</span><span class="k">发起时间</span><span class="v">${p.time}</span>${(()=>{
+    // 联运商视图：仅展示最后一笔成功流水（如有），未成功则不展示流水号避免暴露内部重试过程
+    const atts=Array.isArray(p.attempts)&&p.attempts.length?p.attempts:[{flow:p.flow,bkFlow:p.bkFlow,status:p.exec}];
+    const ok=[...atts].reverse().find(a=>a.status==='打款成功');
+    return ok?`<span class="k">流水单号</span><span class="v" style="font-family:monospace">${ok.flow||'—'}</span><span class="k">银行交易号</span><span class="v" style="font-family:monospace">${ok.bkFlow||'—'}</span>`:'';
+  })()}</div>
   ${_renderPayItems(p)}
   <div class="sec-title">收款账户</div>
   <div class="kv"><span class="k">账户名称</span><span class="v">${pub?pub.accName:'—'}</span><span class="k">开户银行</span><span class="v">${pub?pub.bank:'—'}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">${pub?'****'+pub.acc:'—'}</span></div>
@@ -4410,7 +4442,8 @@ function openPayDetail(id){
   <div class="stepper">
     ${[['提交申请','done'],['BPM审批',p.approval==='待审批'?'act':'done'],['银企打款',p.exec==='打款中'?'act':p.exec==='打款成功'?'done':p.exec==='打款失败'?'done':''],['完成',p.exec==='打款成功'?'done':'']].map((s,i)=>(i>0?'<div class="sline"></div>':'')+`<div class="step ${s[1]}"><span class="sc">${s[1]==='done'?'✓':(i+1)}</span>${s[0]}</div>`).join('')}
   </div>
-  <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">账期</span><span class="v">${p.period||'—'}</span><span class="k">联运商主体</span><span class="v">${p.pub}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(p.exec)}</span><span class="k">发起时间</span><span class="v">${p.time}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${p.bpm}</span><span class="k">打款流水号</span><span class="v" style="font-family:monospace">${p.flow}</span><span class="k">银行交易流水</span><span class="v" style="font-family:monospace">${p.bkFlow}</span>${p.relateId?`<span class="k">关联原单</span><span class="v" style="font-family:monospace">${p.relateId}</span>`:''}${p.prevTerminatedId?`<span class="k">续接终止单</span><span class="v" style="font-family:monospace">${p.prevTerminatedId}</span>`:''}</div>
+  <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">账期</span><span class="v">${p.period||'—'}</span><span class="k">联运商主体</span><span class="v">${p.pub}</span><span class="k">打款金额</span><span class="v" style="font-size:15px;font-weight:800">${fmt(p.amount)}</span><span class="k">审批状态</span><span class="v">${ts(p.approval)}</span><span class="k">执行状态</span><span class="v">${ts(p.exec)}</span><span class="k">发起时间</span><span class="v">${p.time}</span><span class="k">BPM实例号</span><span class="v" style="font-family:monospace">${p.bpm}</span></div>
+  ${_renderPayAttempts(p)}
   ${_renderPayItems(p)}
   <div class="sec-title">收款账户快照（提交时锁定）</div>
   <div class="kv"><span class="k">账户名称</span><span class="v">${pub?pub.accName:'—'}</span><span class="k">开户银行</span><span class="v">${pub?pub.bank:'—'}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">${pub?'****'+pub.acc:'—'}</span><span class="k">联行号</span><span class="v" style="font-family:monospace">${pub?pub.bankNo:'—'}</span></div>
@@ -4418,6 +4451,25 @@ function openPayDetail(id){
   ${_renderPayAttachments(p)}
   ${footActs.length?`<div style="margin-top:14px;display:flex;gap:8px">${footActs.join('')}</div>`:''}`)
 }
+// 打款流水（attempts）：一笔申请单可能对应多次银行执行；详情面板独立展示一份历史
+function _renderPayAttempts(p){
+  const atts=Array.isArray(p.attempts)&&p.attempts.length?p.attempts:[{flow:p.flow,bkFlow:p.bkFlow,time:p.time,status:p.exec,reason:p.reason}];
+  const rows=atts.map((a,i)=>`<tr>
+    <td style="text-align:center">#${i+1}</td>
+    <td style="font-family:monospace;font-size:12px">${a.flow||'—'}</td>
+    <td style="font-family:monospace;font-size:12px;color:var(--muted)">${a.bkFlow||'—'}</td>
+    <td style="color:var(--muted)">${a.time||'—'}</td>
+    <td>${ts(a.status||'—')}</td>
+    <td style="color:var(--muted);font-size:12px">${a.reason&&a.reason!=='—'?a.reason:(a.memo||'—')}</td>
+  </tr>`).join('');
+  const label=atts.length>1?`打款流水（${atts.length} 次执行）`:'打款流水';
+  return `<div class="sec-title">${label}</div>
+  <div class="card" style="margin-bottom:6px"><div class="tw"><table class="table" style="margin:0;font-size:12.5px">
+    <thead><tr><th style="width:50px">序号</th><th>流水单号</th><th>银行交易号</th><th>时间</th><th>状态</th><th>失败原因 / 处理说明</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div></div>`;
+}
+
 // 对账单口径明细表（账期/游戏/平台/现金收入/广告金收入/总消耗/分成比例/可结算双列+合计）
 // 发起打款 与 申请单详情 共用，确保两侧字段一致；无对账单/无可解析记录时返回空串
 function _renderStmtBreakdown(stmtSn,stmtKeys){
@@ -4543,39 +4595,46 @@ function openRepay(origId){
   const p=pays.find(x=>x.id===origId);
   if(!p){alert('原单不存在');return}
   const pub=publishers.find(x=>x.name===p.pub);
-  const newId='PAY-'+(new Date()).toISOString().slice(0,7).replace('-','')+'-R'+Math.floor(Math.random()*900+100);
-  const body=`<div class="alert">⚠ 原单失败原因：${p.reason}<div style="margin-top:4px;font-size:12px;color:var(--muted)">请先与联运商核实账户/联行号，必要时在「联运商主体管理」更新银行信息后再重发。</div></div>
-    <div class="sec-title">原打款申请单</div>
-    <div class="kv"><span class="k">原申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">游戏</span><span class="v">《${p.game}》</span><span class="k">平台</span><span class="v">${p.platform}</span><span class="k">联运商</span><span class="v">${p.pub}</span><span class="k">原打款金额</span><span class="v">${fmt(p.amount)}</span></div>
-    <div class="sec-title">新打款单（关联原单 ${p.id}）</div>
+  const attempts=Array.isArray(p.attempts)?p.attempts:[{flow:p.flow,bkFlow:p.bkFlow,time:p.time,status:p.exec,reason:p.reason}];
+  const nextAttemptNo=attempts.length+1;
+  const body=`<div class="alert">⚠ 上次执行失败原因：${p.reason}<div style="margin-top:4px;font-size:12px;color:var(--muted)">本次操作将<b>在同一申请单 ${p.id} 下追加第 ${nextAttemptNo} 笔银行流水</b>，不会生成新的申请单。原审批已通过，重新执行无需重新审批。</div></div>
+    <div class="sec-title">申请单基本信息</div>
+    <div class="kv"><span class="k">申请单号</span><span class="v" style="font-family:monospace">${p.id}</span><span class="k">游戏</span><span class="v">《${p.game}》</span><span class="k">平台</span><span class="v">${p.platform}</span><span class="k">联运商</span><span class="v">${p.pub}</span><span class="k">打款金额</span><span class="v" style="font-weight:700">${fmt(p.amount)}</span><span class="k">本次为第</span><span class="v" style="color:var(--orange);font-weight:700">${nextAttemptNo} 次执行</span></div>
+    <div class="sec-title">历史流水</div>
+    <div class="card" style="margin-bottom:6px"><div class="tw"><table class="table" style="margin:0;font-size:12.5px">
+      <thead><tr><th>序号</th><th>流水单号</th><th>银行交易号</th><th>时间</th><th>状态</th><th>失败原因</th></tr></thead>
+      <tbody>${attempts.map((a,i)=>`<tr><td style="text-align:center">#${i+1}</td><td style="font-family:monospace">${a.flow||'—'}</td><td style="font-family:monospace;color:var(--muted)">${a.bkFlow||'—'}</td><td style="color:var(--muted)">${a.time||'—'}</td><td>${ts(a.status||'—')}</td><td style="color:var(--muted)">${a.reason||'—'}</td></tr>`).join('')}</tbody>
+    </table></div></div>
+    <div class="sec-title">本次重新打款</div>
     <div class="form-grid">
-      <div class="field"><label>新申请单号</label><input class="input" style="width:100%" value="${newId}" disabled/></div>
-      <div class="field"><label>打款金额 <span class="req">*</span></label><input class="input" type="number" id="repayAmt" style="width:100%" value="${p.amount}"/></div>
-      <div class="field" style="grid-column:1/-1"><label>处理说明 <span class="req">*</span></label><input class="input" id="repayMemo" style="width:100%" placeholder="例如：已与联运商确认联行号变更，重发本笔款项"/></div>
+      <div class="field" style="grid-column:1/-1"><label>处理说明 <span class="req">*</span></label><input class="input" id="repayMemo" style="width:100%" placeholder="例如：对方银行系统已恢复，重新执行打款"/></div>
     </div>
     <div class="sec-title">收款账户（当前最新）</div>
     <div class="kv"><span class="k">账户名称</span><span class="v">${pub?pub.accName:'—'}</span><span class="k">开户银行</span><span class="v">${pub?pub.bank:'—'}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">${pub?'****'+pub.acc:'—'}</span><span class="k">联行号</span><span class="v" style="font-family:monospace">${pub?pub.bankNo:'—'}</span></div>
-    <div class="notice" style="margin-top:8px">提交后将生成新单并自动走 BPM 审批流程；原单状态保持「打款失败」用于审计追溯，新单与原单通过「关联原单号」字段双向关联。</div>`;
-  const foot=`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="submitRepay('${p.id}','${newId}')">提交重新打款</button>`;
-  openModal(`重新打款（财务处理） · 原单 ${p.id}`,body,foot);
+    <div class="notice" style="margin-top:8px">提交后系统将向银企接口发起新一笔银行执行，并将其追加到本申请单的「流水单号」列表；申请单的当前执行状态翻新为「打款中」。</div>`;
+  const foot=`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="submitRepay('${p.id}')">提交重新打款</button>`;
+  openModal(`重新打款（财务处理） · 申请单 ${p.id}`,body,foot);
 }
-function submitRepay(origId,newId){
-  const amt=parseFloat((document.getElementById('repayAmt')||{}).value)||0;
+function submitRepay(origId){
   const memo=(document.getElementById('repayMemo')||{}).value||'';
-  if(!amt){alert('请填写打款金额');return}
   if(!memo.trim()){alert('请填写处理说明（用于审计）');return}
   const orig=pays.find(x=>x.id===origId);
   if(orig){
-    // 复用原单的 statementSn 和 items；新单也成为该对账单的 paymentIds 一员
-    const stmtSn=orig.statementSn||(()=>{const s=(window._generatedStatements||[]).find(x=>(x.paymentIds||[]).includes(orig.id));return s?s.sn:'';})();
-    pays.unshift({id:newId,game:orig.game,platform:orig.platform,period:orig.period,pub:orig.pub,amount:amt,approval:'待审批',exec:'待执行',time:new Date().toISOString().slice(0,16).replace('T',' '),bpm:'BPM-PAY-R'+Math.floor(Math.random()*9000+1000),flow:'—',bkFlow:'—',reason:'—',relateId:origId,memo:memo,statementSn:stmtSn,items:orig.items?orig.items.map(it=>({...it})):undefined,invoiceFile:orig.invoiceFile,billFile:orig.billFile});
-    if(stmtSn){
-      const s=(window._generatedStatements||[]).find(x=>x.sn===stmtSn);
-      if(s){if(!Array.isArray(s.paymentIds))s.paymentIds=s.paymentId?[s.paymentId]:[];s.paymentIds.push(newId);}
+    // 追加新一笔银行执行到 attempts 数组；申请单整体翻新为「打款中」
+    const now=new Date().toISOString().slice(0,16).replace('T',' ');
+    const newFlow='YQ-'+(new Date()).toISOString().slice(0,10).replace(/-/g,'')+String(Math.floor(Math.random()*900+100));
+    if(!Array.isArray(orig.attempts)){
+      orig.attempts=[{flow:orig.flow,bkFlow:orig.bkFlow,time:orig.time,status:orig.exec,reason:orig.reason}];
     }
+    orig.attempts.push({flow:newFlow,bkFlow:'—',time:now,status:'打款中',reason:'—',memo:memo});
+    // 翻新申请单顶层状态：审批保持「已通过」，执行状态变「打款中」，当前流水为新流水
+    orig.exec='打款中';
+    orig.flow=newFlow;
+    orig.bkFlow='—';
+    orig.reason='—';
   }
   closeModal();
-  alert(`原型展示：已生成新打款单 ${newId}，关联原单 ${origId}${orig&&orig.statementSn?'，并追加到对账单 '+orig.statementSn:''}，正在走 BPM 审批流程。`);
+  alert(`原型展示：已为申请单 ${origId} 追加第 ${(orig&&orig.attempts.length)||'?'} 笔银行流水，状态翻新为「打款中」。`);
   go('payments')
 }
 
@@ -5093,7 +5152,7 @@ function confirmGrantData(uid){
 
 /* ──────────── INIT ──────────── */
 (function init(){
-  // 预置 mock：2026-05 / 星辰网络 / 萌宠大陆 / 微信小游戏 已完成三方确认 + 联运商对账
+  // 预置 mock：2026-05 / 星辰网络 / 萌宠大陆 / 微信小游戏 已完成三方确认 + 联运商对账 + 云成本确认
   // 选用 2026-05 萌宠大陆 / 微信 / 星辰网络（不与 9 份预置对账单的 keys 冲突）
   window._cashRevConfirmed=window._cashRevConfirmed||new Set();
   window._vRevConfirmed=window._vRevConfirmed||new Set();
@@ -5101,6 +5160,7 @@ function confirmGrantData(uid){
   window._costBizConfirmed=window._costBizConfirmed||new Set();
   window._costConfirmed=window._costConfirmed||new Set();
   window._billConfirmed=window._billConfirmed||new Set();
+  window._cloudCostConfirmed=window._cloudCostConfirmed||new Set();
   // 按平台应用粒度种子：枚举该 settle 行下的所有 pubMappings 应用 → 全部确认
   const seedSettle={period:'2026-05',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络'};
   expandSettleByApp(seedSettle).forEach(x=>{
@@ -5113,6 +5173,11 @@ function confirmGrantData(uid){
   });
   // 对账单确认按 period × game × platform（保持原粒度）
   window._billConfirmed.add('2026-05__萌宠大陆__微信小游戏');
+  // 云服务成本确认（按账期 × 浑天仪项目）：萌宠大陆 2026-05 已确认
+  (function(){
+    const g=games.find(x=>x.name==='萌宠大陆');
+    if(g)getGameCloudIds(g).forEach(id=>window._cloudCostConfirmed.add(`2026-05__${id}`));
+  })();
   syncRevConfirmed();
 
   document.addEventListener('click',function(){
