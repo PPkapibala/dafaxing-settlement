@@ -1,0 +1,50 @@
+# ---------- 凭证 / 密钥 ----------
+*.env
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# 飞书脚本（含 access token，请保留为本地工具，不入库）
+feishu_upload.py
+read_skill.py
+
+# ---------- IDE / 工具 ----------
+.vscode/
+.idea/
+.trae/
+.agents/
+.claude/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ---------- 依赖 / 构建产物 ----------
+node_modules/
+dist/
+build/
+target/
+*.class
+*.jar
+!**/gradle/wrapper/gradle-wrapper.jar
+.gradle/
+.mvn/
+
+# ---------- 日志 / 临时 ----------
+*.log
+logs/
+*.tmp
+*.bak
+*~
+
+# ---------- 本地脚本 / 个人文件 ----------
+start.bat
+start.sh
+image.png
+skills-lock.json
+中国银行银企对接接口规范V2-副本.pdf

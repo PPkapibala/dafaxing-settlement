@@ -150,11 +150,11 @@
 /* ──────────── CONFIG ──────────── */
 const ROLES=['系统管理员','业务负责人','业务运营','财务人员','财务负责人/审批人','联运商','CP'];
 const ROLE_PAGES={
-  '系统管理员':['games','platformApps','publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','myPayments','statements','invoices','permConfig','userMgmt'],
+  '系统管理员':['games','platformApps','publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','myPayments','statements','invoices','idsAccounts','syncTasks','bpmApprovers','permConfig','userMgmt'],
   '业务负责人':['games','platformApps','publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices'],
   '业务运营':['games','platformApps','pubMapping','cpMapping','vRev','dailyRecon','settlePub','settleCp','balance'],
-  '财务人员':['publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices'],
-  '财务负责人/审批人':['pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices'],
+  '财务人员':['publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices','idsAccounts','syncTasks'],
+  '财务负责人/审批人':['pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices','idsAccounts','syncTasks'],
   '联运商':['pubMapping','cpMapping','costDashboard','dailyRecon','settlePub','balance','statements','myPayments'],
   'CP':['cpMapping','settleCp']
 };
@@ -166,7 +166,7 @@ const NAV=[
   {title:'账期管理',items:[['cashRev','▤','现金收入确认'],['vRev','▤','广告金收入确认'],['costDashboard','▥','投放成本确认'],['cloudCost','☁','云服务成本确认']]},
   {title:'分账明细',items:[['settlePub','≋','联运商分账明细'],['settleCp','◫','CP分账明细']]},
   {title:'资金结算',items:[['statements','📄','对账单管理'],['payments','☑','付款单管理'],['myPayments','💰','付款申请'],['balance','▣','账户流水'],['invoices','📑','票据管理']]},
-  {title:'系统设置',items:[['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
+  {title:'系统设置',items:[['idsAccounts','🏦','出账账户'],['syncTasks','🔄','数据同步任务'],['bpmApprovers','✅','审批人配置'],['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
 
 /* ── SESSION & 用户列表 ── */
 // 模拟已有用户库（管理员预置 + 已登录过的用户）
@@ -243,6 +243,65 @@ const platformApps=[
   {id:'PA-007',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-028',appSecret:'0718293a4b5c6d7e8f901a2b3c4d5e6f7',appName:'弹球传奇·光速版',remark:'',createdAt:'2026-04-16 10:30',creator:'系统管理员'},
   {id:'PA-008',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-045',appSecret:'18293a4b5c6d7e8f901a2b3c4d5e6f708',appName:'弹球传奇·灵犀版',remark:'',createdAt:'2026-04-17 16:00',creator:'系统管理员'},
   {id:'PA-009',platform:'抖音小游戏',gameId:'G-1003',appId:'tt-mcdl-021',appSecret:'8293a4b5c6d7e8f901a2b3c4d5e6f7081',appName:'萌宠大陆·抖音待启用版',remark:'抖音端备用应用，未投放',createdAt:'2026-05-10 11:00',creator:'系统管理员'}
+];
+const idsAccounts=[
+  {id:'IDS-001',name:'IDS主出账账户',company:'IDS',bank:'中国银行',branch:'北京中关村支行',accountName:'北京IDS科技有限公司',accountNo:'6222020200001234567',bankNo:'104100000001',status:'启用',isDefault:true,remark:'当前唯一出账账户',createdAt:'2026-05-01 10:00',creator:'财务人员',updatedAt:'2026-05-01 10:00'}
+];
+// 数据同步任务（系统预置 9 条；调度时间由运维统一配置，UI 只展示）
+// 投放成本按联运商拆分（数据源是联运方接口，每家联运商分别调用）
+// 其他数据源是平台/系统统一接口，按平台聚合即可
+const syncTasks=[
+  {id:'SYNC-001',name:'现金收入·微信小游戏',type:'现金收入',platform:'微信小游戏',pub:'',source:'微信小游戏后台接口',dimension:'平台应用',freq:'每日',cron:'T+1 02:00',nextRun:'2026-05-27 02:00',downstream:'cashRev',status:'启用'},
+  {id:'SYNC-002',name:'现金收入·抖音小游戏',type:'现金收入',platform:'抖音小游戏',pub:'',source:'抖音小游戏后台接口',dimension:'平台应用',freq:'每日',cron:'T+1 02:05',nextRun:'2026-05-27 02:05',downstream:'cashRev',status:'启用'},
+  {id:'SYNC-003',name:'广告金收入·微信小游戏',type:'广告金收入',platform:'微信小游戏',pub:'',source:'微信小游戏后台接口',dimension:'平台应用',freq:'每日',cron:'T+1 02:10',nextRun:'2026-05-27 02:10',downstream:'vRev',status:'启用'},
+  {id:'SYNC-004',name:'广告金收入·抖音小游戏',type:'广告金收入',platform:'抖音小游戏',pub:'',source:'抖音小游戏后台接口',dimension:'平台应用',freq:'每日',cron:'T+1 02:12',nextRun:'2026-05-27 02:12',downstream:'vRev',status:'启用'},
+  {id:'SYNC-005',name:'投放成本·微信·星辰网络',type:'投放成本',platform:'微信小游戏',pub:'星辰网络',source:'联运方接口（星辰网络）',dimension:'平台应用',freq:'每日',cron:'T+1 02:15',nextRun:'2026-05-27 02:15',downstream:'costDashboard',status:'启用'},
+  {id:'SYNC-006',name:'投放成本·微信·光速传媒',type:'投放成本',platform:'微信小游戏',pub:'光速传媒',source:'联运方接口（光速传媒）',dimension:'平台应用',freq:'每日',cron:'T+1 02:16',nextRun:'2026-05-27 02:16',downstream:'costDashboard',status:'启用'},
+  {id:'SYNC-007',name:'投放成本·微信·灵犀互娱',type:'投放成本',platform:'微信小游戏',pub:'灵犀互娱',source:'联运方接口（灵犀互娱）',dimension:'平台应用',freq:'每日',cron:'T+1 02:17',nextRun:'2026-05-27 02:17',downstream:'costDashboard',status:'启用'},
+  {id:'SYNC-008',name:'投放成本·抖音·光速传媒',type:'投放成本',platform:'抖音小游戏',pub:'光速传媒',source:'联运方接口（光速传媒）',dimension:'平台应用',freq:'每日',cron:'T+1 02:18',nextRun:'2026-05-27 02:18',downstream:'costDashboard',status:'启用'},
+  {id:'SYNC-009',name:'云服务成本·浑天仪',type:'云服务成本',platform:'浑天仪',pub:'',source:'浑天仪',dimension:'浑天仪项目',freq:'每月',cron:'每月 1 日 03:00',nextRun:'2026-06-01 03:00',downstream:'cloudCost',status:'启用'}
+];
+// 执行历史（最近运行结果；列表按 taskId+startTime 倒序）
+// 状态：成功 / 失败 / 部分成功 / 运行中
+// 触发方式：自动调度 / 手动触发 / 失败重跑
+const syncRuns=[
+  // SYNC-001 现金收入·微信小游戏
+  {id:'RUN-26052601',taskId:'SYNC-001',period:'2026-05-25',startTime:'2026-05-26 02:00:03',endTime:'2026-05-26 02:00:15',duration:12,status:'成功',rows:1247,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052501',taskId:'SYNC-001',period:'2026-05-24',startTime:'2026-05-25 02:00:02',endTime:'2026-05-25 02:00:13',duration:11,status:'成功',rows:1198,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052401',taskId:'SYNC-001',period:'2026-05-23',startTime:'2026-05-24 02:00:01',endTime:'2026-05-24 02:00:14',duration:13,status:'成功',rows:1208,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052301',taskId:'SYNC-001',period:'2026-05-22',startTime:'2026-05-23 02:00:02',endTime:'2026-05-23 02:00:12',duration:10,status:'成功',rows:1156,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-002 现金收入·抖音小游戏
+  {id:'RUN-26052602',taskId:'SYNC-002',period:'2026-05-25',startTime:'2026-05-26 02:05:01',endTime:'2026-05-26 02:05:14',duration:13,status:'成功',rows:980,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052502',taskId:'SYNC-002',period:'2026-05-24',startTime:'2026-05-25 02:05:02',endTime:'2026-05-25 02:05:15',duration:13,status:'成功',rows:945,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052402',taskId:'SYNC-002',period:'2026-05-23',startTime:'2026-05-24 02:05:01',endTime:'2026-05-24 02:05:11',duration:10,status:'成功',rows:1012,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-003 广告金收入·微信小游戏
+  {id:'RUN-26052603',taskId:'SYNC-003',period:'2026-05-25',startTime:'2026-05-26 02:10:02',endTime:'2026-05-26 02:10:10',duration:8,status:'成功',rows:542,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052503',taskId:'SYNC-003',period:'2026-05-24',startTime:'2026-05-25 02:10:01',endTime:'2026-05-25 02:10:09',duration:8,status:'成功',rows:518,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-004 广告金收入·抖音小游戏
+  {id:'RUN-26052604',taskId:'SYNC-004',period:'2026-05-25',startTime:'2026-05-26 02:12:01',endTime:'2026-05-26 02:12:08',duration:7,status:'成功',rows:318,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052504',taskId:'SYNC-004',period:'2026-05-24',startTime:'2026-05-25 02:12:02',endTime:'2026-05-25 02:12:09',duration:7,status:'成功',rows:302,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-005 投放成本·微信·星辰网络
+  {id:'RUN-26052605',taskId:'SYNC-005',period:'2026-05-25',startTime:'2026-05-26 02:15:01',endTime:'2026-05-26 02:15:09',duration:8,status:'成功',rows:86,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052505',taskId:'SYNC-005',period:'2026-05-24',startTime:'2026-05-25 02:15:02',endTime:'2026-05-25 02:15:11',duration:9,status:'成功',rows:82,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-006 投放成本·微信·光速传媒（最近一次失败）
+  {id:'RUN-26052606',taskId:'SYNC-006',period:'2026-05-25',startTime:'2026-05-26 02:16:01',endTime:'2026-05-26 02:16:32',duration:31,status:'失败',rows:0,trigger:'自动调度',operator:'系统',errMsg:'联运方接口返回 401 未授权，请检查 access_token 是否过期'},
+  {id:'RUN-26052506',taskId:'SYNC-006',period:'2026-05-24',startTime:'2026-05-25 02:16:01',endTime:'2026-05-25 02:16:10',duration:9,status:'成功',rows:124,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052406',taskId:'SYNC-006',period:'2026-05-23',startTime:'2026-05-24 02:16:01',endTime:'2026-05-24 02:16:09',duration:8,status:'成功',rows:118,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-007 投放成本·微信·灵犀互娱
+  {id:'RUN-26052607',taskId:'SYNC-007',period:'2026-05-25',startTime:'2026-05-26 02:17:02',endTime:'2026-05-26 02:17:07',duration:5,status:'成功',rows:42,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-008 投放成本·抖音·光速传媒
+  {id:'RUN-26052608',taskId:'SYNC-008',period:'2026-05-25',startTime:'2026-05-26 02:18:01',endTime:'2026-05-26 02:18:11',duration:10,status:'成功',rows:124,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-009 云服务成本·浑天仪（每月 1 日，最近一次是 5/1）
+  {id:'RUN-26050109',taskId:'SYNC-009',period:'2026-04',startTime:'2026-05-01 03:00:01',endTime:'2026-05-01 03:00:18',duration:17,status:'成功',rows:18,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26040109',taskId:'SYNC-009',period:'2026-03',startTime:'2026-04-01 03:00:02',endTime:'2026-04-01 03:00:19',duration:17,status:'成功',rows:17,trigger:'自动调度',operator:'系统',errMsg:''}
+];
+// 审批人配置（系统预置 3 条，对接 BPM 流程节点上的角色账号）
+// "项目经理" 是 BPM 流程节点角色，与系统业务角色无关；两个流程的项目经理可独立配置
+// "BPM 发起人" 仅用于打款流程的自动发起场景
+const bpmApprovers=[
+  {id:'APR-RULE-PM',scenario:'分账规则审批',scenarioKey:'rule',role:'项目经理',name:'张三',feishuAccount:'zhangsan@dafaxing.com',updatedAt:'2026-05-20 14:30',updatedBy:'系统管理员'},
+  {id:'APR-PAY-PM',scenario:'打款流程审批',scenarioKey:'payment',role:'项目经理',name:'李四',feishuAccount:'lisi@dafaxing.com',updatedAt:'2026-05-22 10:15',updatedBy:'系统管理员'},
+  {id:'APR-PAY-INITIATOR',scenario:'打款流程审批',scenarioKey:'payment',role:'BPM 发起人',name:'结算系统机器人',feishuAccount:'settle_bot@dafaxing.com',updatedAt:'2026-05-01 09:00',updatedBy:'系统管理员'}
 ];
 // 平台应用 helpers
 function getPlatformApp(id){return platformApps.find(a=>a.id===id);}
@@ -732,8 +791,8 @@ function visibleEntities(){
 }
 
 function renderPage(){
-  const map={games:pgGames,platformApps:pgPlatformApps,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgPubRules,pubRules:pgPubRules,cpRules:pgCpRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,cloudCost:pgCloudCost,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,statements:pgStatements,invoices:pgInvoices,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'联运授权',cpMapping:'CP合作',publishers:'联运商',cps:'CP',rules:'联运商分成规则',pubRules:'联运商分成规则',cpRules:'CP分成规则',cashRev:'现金收入确认',vRev:'广告金收入确认',costDashboard:'投放成本确认',cloudCost:'云服务成本确认',dailyRecon:'每日收支预估',settlePub:'联运商分账明细',settleCp:'CP分账明细',balance:'账户流水',payments:'付款单管理',myPayments:'付款申请',statements:'对账单管理',invoices:'票据管理',permConfig:'权限配置',userMgmt:'用户管理'};
+  const map={games:pgGames,platformApps:pgPlatformApps,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgPubRules,pubRules:pgPubRules,cpRules:pgCpRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,cloudCost:pgCloudCost,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,statements:pgStatements,invoices:pgInvoices,idsAccounts:pgIdsAccounts,syncTasks:pgSyncTasks,bpmApprovers:pgBpmApprovers,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
+  const pageTitles={games:'游戏管理',pubMapping:'联运授权',cpMapping:'CP合作',publishers:'联运商',cps:'CP',rules:'联运商分成规则',pubRules:'联运商分成规则',cpRules:'CP分成规则',cashRev:'现金收入确认',vRev:'广告金收入确认',costDashboard:'投放成本确认',cloudCost:'云服务成本确认',dailyRecon:'每日收支预估',settlePub:'联运商分账明细',settleCp:'CP分账明细',balance:'账户流水',payments:'付款单管理',myPayments:'付款申请',statements:'对账单管理',invoices:'票据管理',idsAccounts:'出账账户',syncTasks:'数据同步任务',bpmApprovers:'审批人配置',permConfig:'权限配置',userMgmt:'用户管理'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -793,7 +852,7 @@ function pgGames(){
       <td>${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</td>
       <td>${cloudTag}</td>
       <td style="color:var(--muted)">${g.remark||'—'}</td>
-      <td>${cpRel?cpRel.cp:'<span style="color:var(--red)">未配置</span>'}</td>
+      <td>${cpRel?cpRel.cp:'—'}</td>
       <td style="color:var(--muted);font-size:12px">${g.creator}</td>
       <td style="color:var(--muted);font-size:12px">${g.created}</td>
       <td>
@@ -1023,7 +1082,7 @@ function openGameDetail(id){
     </div>
     <div class="sec-title">绑定CP关系</div>
     <div class="kv">
-      <span class="k">CP</span><span class="v">${cpRel?cpRel.cp:'<span style="color:var(--red)">未配置</span>'}</span>
+      <span class="k">CP</span><span class="v">${cpRel?cpRel.cp:'—'}</span>
       <span class="k">CPID</span><span class="v" style="font-family:monospace">${cpRel?cpRel.cpId:'—'}</span>
     </div>
     <div class="sec-title">平台-联运商-平台应用映射（${pms.length} 条）</div>
@@ -1444,7 +1503,7 @@ function openCpMappingDetail(gameId){
       <span class="k">游戏名称</span><span class="v">《${g.name}》</span>
       <span class="k">上架平台</span><span class="v">${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</span>
       <span class="k">CPID</span><span class="v" style="font-family:monospace">${rel?rel.cpId:'—'}</span>
-      <span class="k">CP名称</span><span class="v">${rel?rel.cp:'<span style="color:var(--red)">未配置</span>'}</span>
+      <span class="k">CP名称</span><span class="v">${rel?rel.cp:'—'}</span>
       <span class="k">创建人</span><span class="v">${rel?rel.creator:'—'}</span>
       <span class="k">创建时间</span><span class="v">${rel?rel.created:'—'}</span>
     </div>`)
@@ -1501,7 +1560,7 @@ function pgCpMapping(){
       <td><b>《${g.name}》</b></td>
       <td>${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</td>
       <td style="font-family:monospace;font-size:12px">${rel?rel.cpId:'—'}</td>
-      <td>${rel?rel.cp:`<span style="color:var(--red)">未配置</span>`}</td>
+      <td>${rel?rel.cp:'—'}</td>
       <td style="color:var(--muted);font-size:12px">${rel?rel.creator+' · '+rel.created:'—'}</td>
       <td>${rel
         ? `<button class="link" onclick="openCpMappingDetail('${g.id}')">查看</button>${canBizMapping()?`<button class="link" style="margin-left:6px" onclick="openCpMappingEdit('${g.id}')">编辑</button>`:''}`
@@ -3434,7 +3493,7 @@ function pgCloudCost(){
   const allGames=games.filter(g=>getGameCloudIds(g).length>0);
 
   return `<div class="ph"><div><div class="pt">云服务成本确认</div><div class="pd">每月从浑天仪同步云服务成本，按账期 × 游戏应用展示（一个游戏对应一个浑天仪项目）。<b style="color:var(--primary)">由财务对账后确认</b>；确认后该账期对应游戏的 CP 分账方可正常出账。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
-  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>云服务成本归属：</b>云服务成本以「游戏应用」为单位归集，每个游戏在「游戏管理」中关联唯一的浑天仪项目（1:1）。未关联浑天仪项目的游戏不会产生云服务���本归属。</div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>云服务成本归属：</b>云服务成本以「游戏应用」为单位归集，每个游戏在「游戏管理」中关联唯一的浑天仪项目（1:1）。未关联浑天仪项目的游戏不会产生云服务成本归属。</div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0">
     <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">云服务成本合计</div><div style="font-size:20px;font-weight:800;margin-top:4px;color:#7a52b3">${fmt(totalCost)}</div></div>
     <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">已确认</div><div style="font-size:20px;font-weight:800;margin-top:4px;color:var(--green)">${confirmedCnt} 条</div></div>
@@ -3493,7 +3552,9 @@ function pgDailyRecon(){
         const cashRev=Math.round(r.cashRev*w/wSum);
         const vRev=Math.round(r.vRev*w/wSum);
         const cost=Math.round(r.cost*w/wSum);
-        allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,profit:cashRev+vRev-cost,period:r.period});
+        const cashCost=Math.round((r.cashCost||0)*w/wSum);
+        const vCost=Math.round((r.vCost||0)*w/wSum);
+        allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,cashCost,vCost,profit:cashRev+vRev-cost,period:r.period});
       });
     }
     if(isCur){
@@ -3507,7 +3568,9 @@ function pgDailyRecon(){
         const cashRev=Math.round(r.cashRev*scale*w/wSum*CUT_DAY);
         const vRev=Math.round(r.vRev*scale*w/wSum*CUT_DAY);
         const cost=Math.round(r.cost*scale*w/wSum*CUT_DAY);
-        allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,profit:cashRev+vRev-cost,period:CUT_MONTH});
+        const cashCost=Math.round((r.cashCost||0)*scale*w/wSum*CUT_DAY);
+        const vCost=Math.round((r.vCost||0)*scale*w/wSum*CUT_DAY);
+        allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,cashCost,vCost,profit:cashRev+vRev-cost,period:CUT_MONTH});
       });
     }
   });
@@ -3516,11 +3579,11 @@ function pgDailyRecon(){
   if(window._drPlat!=='all')rows=rows.filter(r=>r.platform===window._drPlat);
   rows.sort((a,b)=>a.date===b.date?(a.game+a.platform).localeCompare(b.game+b.platform):b.date.localeCompare(a.date));
 
-  const sum=rows.reduce((s,r)=>{s.cashRev+=r.cashRev;s.vRev+=r.vRev;s.cost+=r.cost;s.profit+=r.profit;return s},{cashRev:0,vRev:0,cost:0,profit:0});
+  const sum=rows.reduce((s,r)=>{s.cashRev+=r.cashRev;s.vRev+=r.vRev;s.cost+=r.cost;s.cashCost+=r.cashCost;s.vCost+=r.vCost;s.profit+=r.profit;return s},{cashRev:0,vRev:0,cost:0,cashCost:0,vCost:0,profit:0});
 
   const estTag='<span class="tag" style="background:#fff3e0;color:var(--orange);font-size:11px">⏳ 预估</span>';
-  const tableRows=rows.map(r=>`<tr style="background:#fffbf5"><td style="font-family:monospace">${r.date}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${renderMediaAppCell(r)}</td><td style="font-weight:700">${fmt(r.cashRev)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="color:var(--purple);font-weight:700">${fmt(r.vRev)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="color:var(--red);font-weight:700">${fmt(r.cost)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="font-weight:700;color:${r.profit>=0?'var(--green)':'var(--red)'}">${fmt(r.profit)}</td><td>${estTag}</td></tr>`);
-  const sumRow=`<tr style="background:#f5f7fa;font-weight:800"><td colspan="5">合计（${rows.length} 行）</td><td>${fmt(sum.cashRev)}</td><td style="color:var(--purple)">${fmt(sum.vRev)}</td><td style="color:var(--red)">${fmt(sum.cost)}</td><td style="color:${sum.profit>=0?'var(--green)':'var(--red)'}">${fmt(sum.profit)}</td><td>—</td></tr>`;
+  const tableRows=rows.map(r=>`<tr style="background:#fffbf5"><td style="font-family:monospace">${r.date}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${renderMediaAppCell(r)}</td><td style="font-weight:700">${fmt(r.cashRev)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="color:var(--purple);font-weight:700">${fmt(r.vRev)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="color:var(--red);font-weight:700">${fmt(r.cost)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="font-weight:700">${fmt(r.cashCost)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="color:var(--purple);font-weight:700">${fmt(r.vCost)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="font-weight:700;color:${r.profit>=0?'var(--green)':'var(--red)'}">${fmt(r.profit)}</td><td>${estTag}</td></tr>`);
+  const sumRow=`<tr style="background:#f5f7fa;font-weight:800"><td colspan="5">合计（${rows.length} 行）</td><td>${fmt(sum.cashRev)}</td><td style="color:var(--purple)">${fmt(sum.vRev)}</td><td style="color:var(--red)">${fmt(sum.cost)}</td><td>${fmt(sum.cashCost)}</td><td style="color:var(--purple)">${fmt(sum.vCost)}</td><td style="color:${sum.profit>=0?'var(--green)':'var(--red)'}">${fmt(sum.profit)}</td><td>—</td></tr>`;
 
   // 日期下拉：覆盖历史账期 + 当前账期 1~CUT_DAY
   const dateList=[];
@@ -3549,7 +3612,7 @@ function pgDailyRecon(){
     <button class="btn g sm" onclick="window._drStart='2026-04-01';window._drEnd='${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}';window._drPlat='all';document.getElementById('contentEl').innerHTML=pgDailyRecon()">重置</button>
   </div>
   <div style="max-height:520px;overflow:auto;margin-top:10px">
-    ${tbl(['日期','游戏','平台','联运商','平台应用','现金收入','广告金收入','投放成本','毛利','状态'],tableRows.concat([sumRow]))}
+    ${tbl(['日期','游戏','平台','联运商','平台应用','现金收入','广告金收入','投放成本','现金成本','广告金成本','毛利','状态'],tableRows.concat([sumRow]))}
   </div>
   <div style="margin-top:10px;font-size:12px;color:var(--weak)">* 数据基于 T+1 同步，今日数据预计 ${TODAY} 06:00 前到位；本页面为预估参考，最终结果以「联运商分账明细」结算后数据为准。</div>`;
 }
@@ -5106,6 +5169,491 @@ function submitRepay(origId){
 
 /* PAGE: 数据同步状态（已下线 — 前期手动处理） */
 
+/* PAGE: 出账账户（IDS 主体的银行账户） */
+function getIdsAccount(id){return idsAccounts.find(a=>a.id===id);}
+function maskAccNo(s){if(!s)return '—';const v=String(s);if(v.length<=8)return '****'+v.slice(-4);return v.slice(0,4)+' **** **** '+v.slice(-4);}
+function pgIdsAccounts(){
+  const canEdit=['系统管理员','财务人员','财务负责人/审批人'].includes(ROLE);
+  const stF=window._idsStF||'all';
+  const kw=(window._idsKw||'').trim().toLowerCase();
+  let data=idsAccounts.slice();
+  if(stF!=='all')data=data.filter(a=>a.status===stF);
+  if(kw)data=data.filter(a=>(a.name||'').toLowerCase().includes(kw)||(a.accountNo||'').includes(kw)||(a.bank||'').toLowerCase().includes(kw));
+  const rows=data.map(a=>{
+    const stTag=a.status==='启用'
+      ?'<span class="tag green" style="font-size:11px">启用</span>'
+      :'<span class="tag" style="font-size:11px;background:#f4f4f4;color:#888;border:1px solid #ddd">已停用</span>';
+    const defTag=a.isDefault?'<span class="tag" style="font-size:11px;background:#fff8f0;color:var(--orange);border:1px solid #ffe0b2">默认</span>':'<span style="color:var(--weak);font-size:12px">—</span>';
+    const ops=[`<button class="link" onclick="openIdsAccountDetail('${a.id}')">详情</button>`];
+    if(canEdit){
+      ops.push(`<button class="link" onclick="openIdsAccountForm('${a.id}')">编辑</button>`);
+      if(!a.isDefault&&a.status==='启用')ops.push(`<button class="link" onclick="setIdsDefault('${a.id}')">设为默认</button>`);
+      if(a.status==='启用')ops.push(`<button class="link" style="color:var(--red)" onclick="toggleIdsStatus('${a.id}')">停用</button>`);
+      else ops.push(`<button class="link" onclick="toggleIdsStatus('${a.id}')">启用</button>`);
+    }
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${a.id}</td>
+      <td><b>${a.name}</b><div style="color:var(--muted);font-size:11px;margin-top:2px">${a.company||'—'}</div></td>
+      <td>${a.bank}<div style="color:var(--muted);font-size:11px;margin-top:2px">${a.branch||'—'}</div></td>
+      <td>${a.accountName||'—'}</td>
+      <td style="font-family:monospace;font-size:12px;color:#31557d">${maskAccNo(a.accountNo)}</td>
+      <td style="font-family:monospace;font-size:12px;color:var(--muted)">${a.bankNo||'—'}</td>
+      <td>${defTag}</td>
+      <td>${stTag}</td>
+      <td style="color:var(--muted);font-size:12px">${a.createdAt||'—'}</td>
+      <td>${ops.join(' ')}</td>
+    </tr>`;
+  });
+  if(!rows.length)rows.push(`<tr><td colspan="10" style="text-align:center;color:var(--weak);padding:24px">暂无出账账户，请点击右上角「新建」</td></tr>`);
+  return `<div class="ph">
+    <div><div class="pt">出账账户</div><div class="pd">维护 IDS 公司对外结算的<b>出账银行账户</b>（钱从这些账户打到联运商）。账号默认脱敏展示；当前付款流程使用<b>默认账户</b>，多账户时可手动切换默认。</div></div>
+    <div class="acts">${canEdit?'<button class="btn p" onclick="openIdsAccountForm()">＋ 新建出账账户</button>':''}<button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
+  </div>
+  <div class="filter" style="margin-bottom:16px">
+    <span style="font-size:12px;color:var(--muted);font-weight:650">状态</span>
+    <select class="select" onchange="window._idsStF=this.value;document.getElementById('contentEl').innerHTML=pgIdsAccounts()">
+      <option value="all" ${stF==='all'?'selected':''}>全部状态</option>
+      <option value="启用" ${stF==='启用'?'selected':''}>启用</option>
+      <option value="已停用" ${stF==='已停用'?'selected':''}>已停用</option>
+    </select>
+    <input class="input" placeholder="搜索 账户名称 / 账号 / 银行" value="${window._idsKw||''}" oninput="window._idsKw=this.value" onkeydown="if(event.key==='Enter')document.getElementById('contentEl').innerHTML=pgIdsAccounts()" style="min-width:240px"/>
+    <button class="btn g sm" onclick="document.getElementById('contentEl').innerHTML=pgIdsAccounts()">查询</button>
+    <button class="btn g sm" onclick="window._idsStF='all';window._idsKw='';document.getElementById('contentEl').innerHTML=pgIdsAccounts()">重置</button>
+    <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 条</span>
+  </div>
+  ${tbl(['账户ID','账户名称','开户银行','户名','银行账号','联行号','默认','状态','创建时间','操作'],rows,{pageKey:'idsAccounts'})}`;
+}
+function openIdsAccountDetail(id){
+  const a=getIdsAccount(id);
+  if(!a){alert('账户不存在');return;}
+  openModal(`出账账户详情：${a.id}`,
+    `<div class="kv">
+      <span class="k">账户ID</span><span class="v" style="font-family:monospace">${a.id}</span>
+      <span class="k">账户名称</span><span class="v"><b>${a.name}</b></span>
+      <span class="k">所属公司</span><span class="v">${a.company||'IDS'}</span>
+      <span class="k">户名</span><span class="v">${a.accountName||'—'}</span>
+      <span class="k">开户银行</span><span class="v">${a.bank}</span>
+      <span class="k">开户支行</span><span class="v">${a.branch||'—'}</span>
+      <span class="k">银行账号</span><span class="v" style="font-family:monospace">${maskAccNo(a.accountNo)} <button class="link" style="margin-left:6px;font-size:11px" onclick="viewFullIdsAcc('${a.id}')">查看完整</button></span>
+      <span class="k">联行号</span><span class="v" style="font-family:monospace">${a.bankNo||'—'}</span>
+      <span class="k">默认</span><span class="v">${a.isDefault?'<span class="tag" style="font-size:11px;background:#fff8f0;color:var(--orange);border:1px solid #ffe0b2">默认账户</span>':'否'}</span>
+      <span class="k">状态</span><span class="v">${a.status}</span>
+      <span class="k">备注</span><span class="v">${a.remark||'—'}</span>
+      <span class="k">创建时间</span><span class="v">${a.createdAt||'—'} · ${a.creator||'—'}</span>
+      <span class="k">最近更新</span><span class="v">${a.updatedAt||a.createdAt||'—'}</span>
+    </div>`);
+}
+function viewFullIdsAcc(id){
+  const a=getIdsAccount(id);
+  if(!a)return;
+  confirmDialog('查看完整账号',
+    `即将展示账户 <b>${a.name}</b> 的<b style="color:var(--red)">完整银行账号</b>。<br/>该操作会被审计记录，请确认后查看。`,
+    ()=>{
+      openModal('完整账号 · '+a.id,
+        `<div class="notice" style="border-color:#ffd9d9;background:#fff5f5;color:#a02020">⚠ 请妥善保管，避免截屏外传。</div>
+         <div style="background:#1a1a1a;color:#7eff9e;padding:14px 16px;border-radius:6px;font-family:monospace;font-size:14px;letter-spacing:1px;word-break:break-all;margin-top:12px">${a.accountNo}</div>
+         <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn g sm" onclick="copyText('${a.accountNo}')">复制</button></div>`);
+    });
+}
+function openIdsAccountForm(id){
+  const a=id?getIdsAccount(id):null;
+  const isEdit=!!a;
+  const body=`<div class="form-grid">
+    <div class="field" style="grid-column:1/-1"><label>账户名称（业务别名）<span class="req">*</span></label>
+      <input class="input" id="iaf_name" style="width:100%" value="${a?a.name:''}" placeholder="如 IDS主出账账户 / 备用出账账户"/>
+      <div class="hint">便于多账户场景下识别用途</div>
+    </div>
+    <div class="field"><label>所属公司</label>
+      <input class="input" id="iaf_company" style="width:100%" value="${a?a.company||'IDS':'IDS'}" placeholder="默认 IDS"/>
+    </div>
+    <div class="field"><label>户名 <span class="req">*</span></label>
+      <input class="input" id="iaf_accName" style="width:100%" value="${a?a.accountName||'':''}" placeholder="与营业执照公司名一致"/>
+    </div>
+    <div class="field"><label>开户银行 <span class="req">*</span></label>
+      <input class="input" id="iaf_bank" style="width:100%" value="${a?a.bank:''}" placeholder="如 中国银行"/>
+    </div>
+    <div class="field"><label>开户支行 <span class="req">*</span></label>
+      <input class="input" id="iaf_branch" style="width:100%" value="${a?a.branch||'':''}" placeholder="如 北京中关村支行"/>
+    </div>
+    <div class="field"><label>银行账号 <span class="req">*</span></label>
+      <input class="input" id="iaf_accNo" style="width:100%;font-family:monospace" value="${a?a.accountNo||'':''}" placeholder="纯数字"/>
+      <div class="hint">加密存储；展示时默认脱敏</div>
+    </div>
+    <div class="field"><label>联行号 <span class="req">*</span></label>
+      <input class="input" id="iaf_bankNo" style="width:100%;font-family:monospace" value="${a?a.bankNo||'':''}" placeholder="12 位数字"/>
+    </div>
+    <div class="field" style="grid-column:1/-1"><label>备注</label>
+      <textarea class="input" id="iaf_remark" style="width:100%;height:60px;resize:vertical">${a?a.remark||'':''}</textarea>
+    </div>
+    <div class="field" style="grid-column:1/-1">
+      <label><input type="checkbox" id="iaf_default" ${a&&a.isDefault?'checked':''} ${a&&a.isDefault?'disabled':''}/> 设为默认出账账户</label>
+      <div class="hint">${a&&a.isDefault?'当前已是默认账户；如需更换，请到其他账户上点「设为默认」':'勾选后将自动取消其他账户的默认状态；多账户时付款单默认从此账户出账'}</div>
+    </div>
+  </div>`;
+  openModal(isEdit?`编辑出账账户 · ${a.id}`:'新建出账账户',body,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveIdsAccount('${id||''}')">保存</button>`);
+}
+function saveIdsAccount(id){
+  const name=(document.getElementById('iaf_name').value||'').trim();
+  const company=(document.getElementById('iaf_company').value||'').trim()||'IDS';
+  const accountName=(document.getElementById('iaf_accName').value||'').trim();
+  const bank=(document.getElementById('iaf_bank').value||'').trim();
+  const branch=(document.getElementById('iaf_branch').value||'').trim();
+  const accountNo=(document.getElementById('iaf_accNo').value||'').trim();
+  const bankNo=(document.getElementById('iaf_bankNo').value||'').trim();
+  const remark=(document.getElementById('iaf_remark').value||'').trim();
+  const isDefault=document.getElementById('iaf_default').checked;
+  if(!name){alert('请填写账户名称');return;}
+  if(!accountName){alert('请填写户名');return;}
+  if(!bank){alert('请填写开户银行');return;}
+  if(!branch){alert('请填写开户支行');return;}
+  if(!accountNo||!/^\d+$/.test(accountNo)){alert('银行账号必须为纯数字');return;}
+  if(!bankNo||!/^\d+$/.test(bankNo)){alert('联行号必须为纯数字');return;}
+  const dup=idsAccounts.find(x=>x.accountNo===accountNo&&x.id!==id);
+  if(dup){alert(`银行账号已被账户 ${dup.id}（${dup.name}）占用`);return;}
+  const now=new Date().toISOString().slice(0,16).replace('T',' ');
+  if(id){
+    const a=getIdsAccount(id);
+    a.name=name;a.company=company;a.accountName=accountName;a.bank=bank;a.branch=branch;a.accountNo=accountNo;a.bankNo=bankNo;a.remark=remark;a.updatedAt=now;
+    if(isDefault&&!a.isDefault){idsAccounts.forEach(x=>x.isDefault=false);a.isDefault=true;}
+  }else{
+    const newId='IDS-'+String(idsAccounts.length+1).padStart(3,'0');
+    const willBeDefault=isDefault||idsAccounts.length===0;
+    if(willBeDefault)idsAccounts.forEach(x=>x.isDefault=false);
+    idsAccounts.push({id:newId,name,company,accountName,bank,branch,accountNo,bankNo,status:'启用',isDefault:willBeDefault,remark,createdAt:now,creator:(SESSION&&SESSION.display)||ROLE,updatedAt:now});
+  }
+  closeModal();
+  document.getElementById('contentEl').innerHTML=pgIdsAccounts();
+}
+function setIdsDefault(id){
+  const a=getIdsAccount(id);
+  if(!a)return;
+  if(a.status!=='启用'){alert('已停用的账户不能设为默认');return;}
+  confirmDialog('设为默认出账账户',
+    `确认将 <b>${a.name}</b> 设为默认出账账户？<br/>设置后多账户场景下的付款单将默认从此账户出账，原默认账户的"默认"标记会被取消。`,
+    ()=>{
+      idsAccounts.forEach(x=>x.isDefault=false);
+      a.isDefault=true;
+      a.updatedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+      document.getElementById('contentEl').innerHTML=pgIdsAccounts();
+    });
+}
+function toggleIdsStatus(id){
+  const a=getIdsAccount(id);
+  if(!a)return;
+  if(a.status==='启用'){
+    const enabledCount=idsAccounts.filter(x=>x.status==='启用').length;
+    if(enabledCount<=1){alert('系统至少保留 1 个启用状态的出账账户，无法停用最后一个。');return;}
+    if(a.isDefault){alert('该账户为默认账户，请先将其他启用账户设为默认后再停用。');return;}
+    confirmDialog('停用出账账户',
+      `确认停用 <b>${a.name}</b>？<br/>停用后该账户将不再出现在付款选择中（已发起的付款单不受影响）。`,
+      ()=>{
+        a.status='已停用';
+        a.updatedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+        document.getElementById('contentEl').innerHTML=pgIdsAccounts();
+      });
+  }else{
+    a.status='启用';
+    a.updatedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+    document.getElementById('contentEl').innerHTML=pgIdsAccounts();
+  }
+}
+
+/* PAGE: 数据同步任务 */
+function getSyncTask(id){return syncTasks.find(t=>t.id===id);}
+function getLatestRun(taskId){
+  const list=syncRuns.filter(r=>r.taskId===taskId);
+  if(!list.length)return null;
+  return list.slice().sort((a,b)=>(b.startTime||'').localeCompare(a.startTime||''))[0];
+}
+function syncStatusTag(s){
+  const map={
+    '成功':'<span class="tag green" style="font-size:11px">✅ 成功</span>',
+    '失败':'<span class="tag red" style="font-size:11px">❌ 失败</span>',
+    '部分成功':'<span class="tag" style="font-size:11px;background:#fff8f0;color:var(--orange);border:1px solid #ffe0b2">⚠ 部分成功</span>',
+    '运行中':'<span class="tag" style="font-size:11px;background:#eef4fb;color:var(--primary);border:1px solid #cfe0f5">⏳ 运行中</span>'
+  };
+  return map[s]||`<span class="tag">${s}</span>`;
+}
+function pgSyncTasks(){
+  const canOp=['系统管理员','财务人员'].includes(ROLE);
+  const canPause=ROLE==='系统管理员';
+  const typeF=window._stTypeF||'all';
+  const platF=window._stPlatF||'all';
+  const stF=window._stStF||'all';
+  const kw=(window._stKw||'').trim().toLowerCase();
+  let data=syncTasks.slice();
+  if(typeF!=='all')data=data.filter(t=>t.type===typeF);
+  if(platF!=='all')data=data.filter(t=>t.platform===platF);
+  if(stF!=='all'){
+    if(stF==='已暂停')data=data.filter(t=>t.status==='暂停');
+    else data=data.filter(t=>{const r=getLatestRun(t.id);return r&&r.status===stF;});
+  }
+  if(kw)data=data.filter(t=>(t.name||'').toLowerCase().includes(kw)||(t.pub||'').toLowerCase().includes(kw));
+  const rows=data.map(t=>{
+    const r=getLatestRun(t.id);
+    const stTag=t.status==='暂停'
+      ?'<span class="tag" style="font-size:11px;background:#f4f4f4;color:#888;border:1px solid #ddd">已暂停</span>'
+      :(r?syncStatusTag(r.status):'<span style="color:var(--weak);font-size:12px">未运行</span>');
+    const ops=[`<button class="link" onclick="openSyncTaskDetail('${t.id}')">详情</button>`,
+               `<button class="link" onclick="openSyncTaskHistory('${t.id}')">执行历史</button>`];
+    if(canOp&&t.status==='启用'){
+      ops.push(`<button class="link" onclick="runSyncTaskNow('${t.id}')">立即运行</button>`);
+      if(r&&r.status==='失败')ops.push(`<button class="link" style="color:var(--orange)" onclick="rerunSyncTask('${r.id}')">重跑</button>`);
+    }
+    if(canPause){
+      if(t.status==='启用')ops.push(`<button class="link" style="color:var(--red)" onclick="toggleSyncStatus('${t.id}')">暂停</button>`);
+      else ops.push(`<button class="link" onclick="toggleSyncStatus('${t.id}')">启用</button>`);
+    }
+    const platTag=t.platform==='微信小游戏'?'<span class="tag green" style="font-size:11px">微小</span>'
+                 :t.platform==='抖音小游戏'?'<span class="tag blue" style="font-size:11px">抖小</span>'
+                 :t.platform==='浑天仪'?'<span class="tag" style="font-size:11px;background:#f0ebff;color:#6a3ec0;border:1px solid #d9caff">浑天仪</span>':t.platform;
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${t.id}</td>
+      <td><b>${t.name}</b></td>
+      <td>${t.type}</td>
+      <td>${platTag}</td>
+      <td>${t.pub||'<span style="color:var(--weak)">—</span>'}</td>
+      <td><span style="font-size:12px">${t.freq}</span><div style="color:var(--muted);font-size:11px;margin-top:2px">${t.cron}</div></td>
+      <td style="font-family:monospace;font-size:12px">${r?r.period:'<span style="color:var(--weak);font-family:inherit">—</span>'}</td>
+      <td style="font-family:monospace;font-size:12px">${r?r.startTime:'<span style="color:var(--weak);font-family:inherit">—</span>'}</td>
+      <td>${stTag}</td>
+      <td style="font-family:monospace;font-size:12px">${r&&r.status==='成功'?r.rows.toLocaleString():'—'}</td>
+      <td>${ops.join(' ')}</td>
+    </tr>`;
+  });
+  if(!rows.length)rows.push(`<tr><td colspan="11" style="text-align:center;color:var(--weak);padding:24px">无匹配任务</td></tr>`);
+  return `<div class="ph">
+    <div><div class="pt">数据同步任务</div><div class="pd">系统按调度计划自动从各数据源拉取数据；下方展示每个任务最近一次执行结果。<b>调度时间由运维统一配置，UI 仅展示不可修改</b>。任务失败时可手动重跑。</div></div>
+    <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
+  </div>
+  <div class="filter" style="margin-bottom:16px;flex-wrap:wrap">
+    <span style="font-size:12px;color:var(--muted);font-weight:650">数据类型</span>
+    <select class="select" onchange="window._stTypeF=this.value;document.getElementById('contentEl').innerHTML=pgSyncTasks()">
+      <option value="all" ${typeF==='all'?'selected':''}>全部类型</option>
+      <option value="现金收入" ${typeF==='现金收入'?'selected':''}>现金收入</option>
+      <option value="广告金收入" ${typeF==='广告金收入'?'selected':''}>广告金收入</option>
+      <option value="投放成本" ${typeF==='投放成本'?'selected':''}>投放成本</option>
+      <option value="云服务成本" ${typeF==='云服务成本'?'selected':''}>云服务成本</option>
+    </select>
+    <span style="font-size:12px;color:var(--muted);font-weight:650">平台</span>
+    <select class="select" onchange="window._stPlatF=this.value;document.getElementById('contentEl').innerHTML=pgSyncTasks()">
+      <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
+      <option value="微信小游戏" ${platF==='微信小游戏'?'selected':''}>微信小游戏</option>
+      <option value="抖音小游戏" ${platF==='抖音小游戏'?'selected':''}>抖音小游戏</option>
+      <option value="浑天仪" ${platF==='浑天仪'?'selected':''}>浑天仪</option>
+    </select>
+    <span style="font-size:12px;color:var(--muted);font-weight:650">状态</span>
+    <select class="select" onchange="window._stStF=this.value;document.getElementById('contentEl').innerHTML=pgSyncTasks()">
+      <option value="all" ${stF==='all'?'selected':''}>全部状态</option>
+      <option value="成功" ${stF==='成功'?'selected':''}>最近成功</option>
+      <option value="失败" ${stF==='失败'?'selected':''}>最近失败</option>
+      <option value="运行中" ${stF==='运行中'?'selected':''}>运行中</option>
+      <option value="已暂停" ${stF==='已暂停'?'selected':''}>已暂停</option>
+    </select>
+    <input class="input" placeholder="搜索 任务名 / 联运商" value="${window._stKw||''}" oninput="window._stKw=this.value" onkeydown="if(event.key==='Enter')document.getElementById('contentEl').innerHTML=pgSyncTasks()" style="min-width:200px"/>
+    <button class="btn g sm" onclick="document.getElementById('contentEl').innerHTML=pgSyncTasks()">查询</button>
+    <button class="btn g sm" onclick="window._stTypeF='all';window._stPlatF='all';window._stStF='all';window._stKw='';document.getElementById('contentEl').innerHTML=pgSyncTasks()">重置</button>
+    <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 条</span>
+  </div>
+  ${tbl(['任务ID','任务名称','数据类型','平台','联运商','频率/调度','数据所属范围','最近同步时间','最近状态','拉取条数','操作'],rows,{pageKey:'syncTasks'})}`;
+}
+function openSyncTaskDetail(id){
+  const t=getSyncTask(id);
+  if(!t)return;
+  const allRuns=syncRuns.filter(r=>r.taskId===id);
+  const successCnt=allRuns.filter(r=>r.status==='成功').length;
+  const failCnt=allRuns.filter(r=>r.status==='失败').length;
+  const r=getLatestRun(id);
+  const downstreamMap={cashRev:'现金收入确认',vRev:'广告金收入确认',costDashboard:'投放成本确认',cloudCost:'云服务成本确认'};
+  const downName=downstreamMap[t.downstream]||'—';
+  openModal(`任务详情：${t.id}`,
+    `<div class="kv">
+      <span class="k">任务ID</span><span class="v" style="font-family:monospace">${t.id}</span>
+      <span class="k">任务名称</span><span class="v"><b>${t.name}</b></span>
+      <span class="k">数据源</span><span class="v">${t.source}</span>
+      <span class="k">数据类型</span><span class="v">${t.type}</span>
+      <span class="k">同步维度</span><span class="v">${t.dimension}</span>
+      <span class="k">平台</span><span class="v">${t.platform}</span>
+      <span class="k">联运商</span><span class="v">${t.pub||'—（覆盖全部联运商）'}</span>
+    </div>
+    <div class="sec-title">调度信息</div>
+    <div class="kv">
+      <span class="k">频率</span><span class="v">${t.freq}</span>
+      <span class="k">调度时间</span><span class="v">${t.cron}</span>
+      <span class="k">下次预计运行</span><span class="v" style="color:var(--primary)">${t.nextRun}</span>
+    </div>
+    <div class="notice" style="margin:8px 0 12px">ⓘ 调度时间由运维统一配置，UI 不支持修改；如需调整请联系系统管理员。</div>
+    <div class="sec-title">运行统计</div>
+    <div class="kv">
+      <span class="k">任务状态</span><span class="v">${t.status==='启用'?'<span class="tag green" style="font-size:11px">● 启用</span>':'<span class="tag" style="font-size:11px;background:#f4f4f4;color:#888;border:1px solid #ddd">● 已暂停</span>'}</span>
+      <span class="k">最近执行</span><span class="v">${r?(r.startTime+' · '+r.status+'（'+(r.rows||0)+' 条）'):'—'}</span>
+      <span class="k">累计执行</span><span class="v">${allRuns.length} 次（成功 ${successCnt} / 失败 ${failCnt}）</span>
+    </div>
+    <div class="sec-title">下游模块</div>
+    <div class="kv">
+      <span class="k">数据流向</span><span class="v">→ ${downName} <button class="link" style="margin-left:8px;font-size:12px" onclick="closeModal();go('${t.downstream}')">跳转</button></span>
+    </div>`);
+}
+function openSyncTaskHistory(id){
+  const t=getSyncTask(id);
+  if(!t)return;
+  const list=syncRuns.filter(r=>r.taskId===id).sort((a,b)=>(b.startTime||'').localeCompare(a.startTime||''));
+  const canOp=['系统管理员','财务人员'].includes(ROLE);
+  const rows=list.map(r=>{
+    const opBtn=(canOp&&r.status==='失败')?`<button class="link" style="color:var(--orange)" onclick="rerunSyncTask('${r.id}')">重跑</button>`:'<span style="color:var(--weak)">—</span>';
+    const errCell=r.errMsg?`<div style="color:var(--red);font-size:11px;margin-top:2px;max-width:280px">${r.errMsg}</div>`:'';
+    return `<tr>
+      <td style="font-family:monospace;font-size:11px">${r.id}</td>
+      <td>${r.period}</td>
+      <td style="font-size:12px">${r.startTime}</td>
+      <td style="font-family:monospace;font-size:12px">${r.duration}s</td>
+      <td>${syncStatusTag(r.status)}${errCell}</td>
+      <td style="font-family:monospace;font-size:12px">${r.status==='成功'?r.rows.toLocaleString():'—'}</td>
+      <td><span style="font-size:11px;color:var(--muted)">${r.trigger}</span><div style="font-size:11px;color:var(--muted)">${r.operator}</div></td>
+      <td>${opBtn}</td>
+    </tr>`;
+  });
+  if(!rows.length)rows.push(`<tr><td colspan="8" style="text-align:center;color:var(--weak);padding:24px">该任务暂无执行记录</td></tr>`);
+  openModal(`执行历史：${t.name}`,
+    `<div class="notice" style="margin-bottom:10px">展示该任务最近 ${list.length} 次执行记录（默认按时间倒序）。失败的执行可点「重跑」手动重新拉取。</div>
+     <div class="tw"><table class="table" style="margin:0">
+       <thead><tr><th>执行ID</th><th>数据所属范围</th><th>开始时间</th><th>耗时</th><th>状态</th><th>条数</th><th>触发方式</th><th>操作</th></tr></thead>
+       <tbody>${rows.join('')}</tbody>
+     </table></div>`,
+    `<button class="btn g" onclick="closeModal()">关闭</button>`);
+}
+function runSyncTaskNow(id){
+  const t=getSyncTask(id);
+  if(!t)return;
+  if(t.status!=='启用'){alert('已暂停的任务无法手动运行，请先启用');return;}
+  confirmDialog('立即运行任务',
+    `确认手动触发任务 <b>${t.name}</b>？<br/><br/>系统将立即从「${t.source}」拉取最新数据，可能影响下游「${({cashRev:'现金收入确认',vRev:'广告金收入确认',costDashboard:'投放成本确认',cloudCost:'云服务成本确认'})[t.downstream]||'未知'}」页面的数据。`,
+    ()=>{
+      const now=new Date();
+      const startStr=now.toISOString().slice(0,19).replace('T',' ');
+      const period=t.freq==='每月'?startStr.slice(0,7):(new Date(now.getTime()-86400000).toISOString().slice(0,10));
+      const rows=Math.floor(800+Math.random()*800);
+      const duration=Math.floor(8+Math.random()*15);
+      const endStr=new Date(now.getTime()+duration*1000).toISOString().slice(0,19).replace('T',' ');
+      const newId='RUN-M'+Date.now().toString().slice(-8);
+      syncRuns.unshift({id:newId,taskId:id,period,startTime:startStr,endTime:endStr,duration,status:'成功',rows,trigger:'手动触发',operator:(SESSION&&SESSION.display)||ROLE,errMsg:''});
+      alert(`任务 ${t.name} 已运行完成。\n\n执行ID：${newId}\n数据期间：${period}\n拉取条数：${rows.toLocaleString()}\n耗时：${duration}s`);
+      document.getElementById('contentEl').innerHTML=pgSyncTasks();
+    });
+}
+function rerunSyncTask(runId){
+  const r=syncRuns.find(x=>x.id===runId);
+  if(!r){alert('原执行记录不存在');return;}
+  const t=getSyncTask(r.taskId);
+  if(!t)return;
+  confirmDialog('重跑失败任务',
+    `确认重新执行 <b>${t.name}</b> 的 <b>${r.period}</b> 期数据？<br/><br/>原失败原因：${r.errMsg||'—'}`,
+    ()=>{
+      const now=new Date();
+      const startStr=now.toISOString().slice(0,19).replace('T',' ');
+      const duration=Math.floor(8+Math.random()*12);
+      const endStr=new Date(now.getTime()+duration*1000).toISOString().slice(0,19).replace('T',' ');
+      const rows=Math.floor(80+Math.random()*200);
+      const newId='RUN-R'+Date.now().toString().slice(-8);
+      syncRuns.unshift({id:newId,taskId:r.taskId,period:r.period,startTime:startStr,endTime:endStr,duration,status:'成功',rows,trigger:'失败重跑',operator:(SESSION&&SESSION.display)||ROLE,errMsg:''});
+      closeModal();
+      alert(`重跑成功。\n\n新执行ID：${newId}\n数据期间：${r.period}\n拉取条数：${rows.toLocaleString()}`);
+      document.getElementById('contentEl').innerHTML=pgSyncTasks();
+    });
+}
+function toggleSyncStatus(id){
+  const t=getSyncTask(id);
+  if(!t)return;
+  if(t.status==='启用'){
+    confirmDialog('暂停同步任务',
+      `确认暂停 <b>${t.name}</b>？<br/><br/>暂停后该任务将<b style="color:var(--red)">不再按调度自动运行</b>，下游模块的数据将不再更新。如需恢复，请重新启用。`,
+      ()=>{t.status='暂停';document.getElementById('contentEl').innerHTML=pgSyncTasks();});
+  }else{
+    t.status='启用';
+    document.getElementById('contentEl').innerHTML=pgSyncTasks();
+  }
+}
+
+/* PAGE: 审批人配置（BPM 流程节点角色 → 飞书账号映射） */
+function getBpmApprover(id){return bpmApprovers.find(a=>a.id===id);}
+function pgBpmApprovers(){
+  const canEdit=ROLE==='系统管理员';
+  const groups=[
+    {key:'rule',title:'分账规则审批',desc:'分账规则提交后由项目经理审批；审批通过后规则才能生效。'},
+    {key:'payment',title:'打款流程审批',desc:'打款申请提交后由项目经理审批；审批流程由 BPM 发起人代表系统自动发起。'}
+  ];
+  const groupHtml=groups.map(g=>{
+    const items=bpmApprovers.filter(a=>a.scenarioKey===g.key);
+    const rows=items.map((a,idx)=>{
+      const editBtn=canEdit?`<button class="btn g sm" onclick="openBpmApproverEditForm('${a.id}')">编辑</button>`:'';
+      const sep=idx<items.length-1?'<div style="height:1px;background:var(--line);margin:14px 0"></div>':'';
+      return `<div style="display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:650;color:#1a4a80">${a.role}</div>
+          <div style="font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px">${a.id}</div>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:600">${a.name}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">📱 ${a.feishuAccount}</div>
+          <div style="font-size:11px;color:var(--weak);margin-top:4px">最近更新：${a.updatedAt} by ${a.updatedBy}</div>
+        </div>
+        <div>${editBtn}</div>
+      </div>${sep}`;
+    }).join('');
+    return `<div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="font-size:15px;font-weight:650;color:var(--primary)">${g.title}</span>
+        <span class="tag" style="font-size:11px;background:#eef4fb;color:var(--primary);border:1px solid #cfe0f5">${items.length} 项配置</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${g.desc}</div>
+      <div style="height:1px;background:var(--line);margin-bottom:14px"></div>
+      ${rows}
+    </div>`;
+  }).join('');
+  return `<div class="ph">
+    <div><div class="pt">审批人配置</div><div class="pd">系统预置 BPM 流程中各节点角色对应的飞书账号。<b>"项目经理"是 BPM 流程节点角色</b>（与系统业务角色无关），两个流程可独立配置不同的人。<b>"BPM 发起人"</b>仅用于打款流程的自动发起场景。审批流转顺序由 BPM 系统定义，本页面仅维护"谁来审批"。</div></div>
+    <div class="acts">${canEdit?'':'<span style="color:var(--muted);font-size:12px">⚠ 仅系统管理员可编辑</span>'}</div>
+  </div>
+  <div class="notice" style="margin-bottom:16px;border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 配置项<b>系统预置不可新增/删除</b>，只能替换具体的人；变更后立即生效，下一笔触发的审批流程将使用新的飞书账号。</div>
+  ${groupHtml}`;
+}
+function openBpmApproverEditForm(id){
+  const a=getBpmApprover(id);
+  if(!a){alert('配置项不存在');return;}
+  const body=`<div class="notice" style="margin-bottom:14px">
+    <div style="font-size:13px"><b>${a.scenario}</b> · ${a.role}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">当前：${a.name}（${a.feishuAccount}）</div>
+  </div>
+  <div class="form-grid">
+    <div class="field"><label>新人姓名 <span class="req">*</span></label>
+      <input class="input" id="bpa_name" style="width:100%" value="${a.name}" placeholder="如 张三"/>
+    </div>
+    <div class="field"><label>飞书账号 <span class="req">*</span></label>
+      <input class="input" id="bpa_account" style="width:100%;font-family:monospace" value="${a.feishuAccount}" placeholder="如 zhangsan@dafaxing.com"/>
+      <div class="hint">需为已开通飞书的企业邮箱</div>
+    </div>
+  </div>`;
+  openModal(`编辑审批人 · ${a.id}`,body,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveBpmApprover('${id}')">保存</button>`);
+}
+function saveBpmApprover(id){
+  const a=getBpmApprover(id);
+  if(!a)return;
+  const name=(document.getElementById('bpa_name').value||'').trim();
+  const account=(document.getElementById('bpa_account').value||'').trim();
+  if(!name){alert('请填写姓名');return;}
+  if(!account){alert('请填写飞书账号');return;}
+  if(!/^[\w.-]+@[\w-]+(\.[\w-]+)+$/.test(account)){alert('飞书账号格式不正确，应为邮箱格式');return;}
+  if(name===a.name&&account===a.feishuAccount){alert('未做任何修改');return;}
+  a.name=name;
+  a.feishuAccount=account;
+  a.updatedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+  a.updatedBy=(SESSION&&SESSION.display)||ROLE;
+  closeModal();
+  document.getElementById('contentEl').innerHTML=pgBpmApprovers();
+}
+
 /* PAGE: 权限配置 */
 const PERM_MODULES=[
   {group:'基础档案',items:[{key:'games',label:'游戏管理'},{key:'platformApps',label:'平台应用'},{key:'publishers',label:'联运商'},{key:'cps',label:'CP'}]},
@@ -5113,7 +5661,8 @@ const PERM_MODULES=[
   {group:'分成规则',items:[{key:'pubRules',label:'联运商分成规则'},{key:'cpRules',label:'CP分成规则'}]},
   {group:'账期管理',items:[{key:'cashRev',label:'现金收入确认'},{key:'vRev',label:'广告金收入确认'},{key:'costDashboard',label:'投放成本确认'},{key:'cloudCost',label:'云服务成本确认'},{key:'dailyRecon',label:'每日收支预估'}]},
   {group:'分账明细',items:[{key:'settlePub',label:'联运商分账明细'},{key:'settleCp',label:'CP分账明细'}]},
-  {group:'资金结算',items:[{key:'statements',label:'对账单管理'},{key:'payments',label:'付款单管理'},{key:'myPayments',label:'付款申请'},{key:'balance',label:'账户流水'},{key:'invoices',label:'票据管理'}]}
+  {group:'资金结算',items:[{key:'statements',label:'对账单管理'},{key:'payments',label:'付款单管理'},{key:'myPayments',label:'付款申请'},{key:'balance',label:'账户流水'},{key:'invoices',label:'票据管理'}]},
+  {group:'系统设置',items:[{key:'idsAccounts',label:'出账账户'},{key:'syncTasks',label:'数据同步任务'},{key:'bpmApprovers',label:'审批人配置'}]}
 ];
 const OPS=['查看','新增/编辑','删除'];
 const OP_KEYS=['view','edit','delete'];
