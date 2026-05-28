@@ -152,7 +152,7 @@ const ROLES=['系统管理员','业务负责人','业务运营','财务人员','
 const ROLE_PAGES={
   '系统管理员':['games','platformApps','publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','myPayments','statements','invoices','idsAccounts','syncTasks','bpmApprovers','permConfig','userMgmt'],
   '业务负责人':['games','platformApps','publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices'],
-  '业务运营':['games','platformApps','pubMapping','cpMapping','vRev','dailyRecon','settlePub','settleCp','balance'],
+  '业务运营':['games','platformApps','pubMapping','cpMapping','pubRules','cpRules','vRev','dailyRecon','settlePub','settleCp','balance'],
   '财务人员':['publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices','idsAccounts','syncTasks'],
   '财务负责人/审批人':['pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices','idsAccounts','syncTasks'],
   '联运商':['pubMapping','cpMapping','costDashboard','dailyRecon','settlePub','balance','statements','myPayments'],
@@ -300,7 +300,6 @@ const syncRuns=[
 // "BPM 发起人" 仅用于打款流程的自动发起场景
 const bpmApprovers=[
   {id:'APR-RULE-PM',scenario:'分账规则审批',scenarioKey:'rule',role:'项目经理',name:'张三',feishuAccount:'zhangsan@dafaxing.com',updatedAt:'2026-05-20 14:30',updatedBy:'系统管理员'},
-  {id:'APR-PAY-PM',scenario:'打款流程审批',scenarioKey:'payment',role:'项目经理',name:'李四',feishuAccount:'lisi@dafaxing.com',updatedAt:'2026-05-22 10:15',updatedBy:'系统管理员'},
   {id:'APR-PAY-INITIATOR',scenario:'打款流程审批',scenarioKey:'payment',role:'BPM 发起人',name:'结算系统机器人',feishuAccount:'settle_bot@dafaxing.com',updatedAt:'2026-05-01 09:00',updatedBy:'系统管理员'}
 ];
 // 平台应用 helpers
@@ -527,12 +526,13 @@ function confirmDialog(title,msg,onYes,yesLabel,yesStyle){
 }
 const canEdit=()=>['系统管理员','业务负责人','业务运营'].includes(ROLE);
 const canFin=()=>['财务人员','财务负责人/审批人'].includes(ROLE);
+const canEditRule=()=>['财务人员','财务负责人/审批人','业务负责人','业务运营'].includes(ROLE);
 const isPublisher=()=>ROLE==='联运商';
 const isAdmin=()=>ROLE==='系统管理员';
 // PRD 4.1.3 权限细化
 const canAdminGame=()=>ROLE==='系统管理员';           // 新建/编辑/删除游戏基础信息
 const canBizMapping=()=>ROLE==='系统管理员';          // 新增/编辑映射关系（三元组、应用ID、解绑巨量ID）仅系统管理员
-const canConfigJl=()=>['系统管理员','业务负责人','业务运营'].includes(ROLE); // 配置巨量ID：业务可追加，但不能取消已绑定（已通过 disabled 锁定）
+const canConfigJl=()=>['系统管理员','业务负责人','业务运营'].includes(ROLE);
 
 /* ──────────── NAV ──────────── */
 function renderNav(){
@@ -2025,9 +2025,9 @@ function pgPubRules(){
     const namesLine=visible.map(a=>a.appName).join(' · ');
     const moreSpan=remain>0?` <span style="color:var(--primary);cursor:help" title="${fullList}">…+${remain} 个</span>`:'';
     const appCell=`<span style="${badgeStyle};border-radius:8px;padding:1px 7px;font-size:11px;font-weight:700">${badgeText}</span><div style="font-size:10.5px;color:var(--muted);margin-top:3px;max-width:220px;line-height:1.5" title="${fullList}">${namesLine||'<span style="color:var(--weak)">—</span>'}${moreSpan}</div>`;
-    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${appCell}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openPubRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
+    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${appCell}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openPubRuleDetail('${r.id}')">查看</button>${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
   });
-  return `<div class="ph"><div><div class="pt">联运商分成规则</div><div class="pd">每条规则绑定「游戏＋平台＋联运商」，可指定生效的平台应用 AppID（默认覆盖该联运商下全部 AppID）；同一条规则内所有 AppID 共用同一份比例与阶梯。CP 端分成规则请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cpRules')">CP分成规则</button>」中配置。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openPubRuleForm()">＋ 新建规则</button>':''}</div></div>
+  return `<div class="ph"><div><div class="pt">联运商分成规则</div><div class="pd">每条规则绑定「游戏＋平台＋联运商」，可指定生效的平台应用 AppID（默认覆盖该联运商下全部 AppID）；同一条规则内所有 AppID 共用同一份比例与阶梯。CP 端分成规则请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cpRules')">CP分成规则</button>」中配置。</div></div><div class="acts">${canEditRule()?'<button class="btn p" onclick="openPubRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="filter"><select class="select"><option>全部平台</option><option>微信小游戏</option><option>抖音小游戏</option></select><select class="select"><option>全部状态</option><option>草稿</option><option>审批中</option><option>生效中</option><option>已到期</option><option>已驳回</option></select></div>
   ${tbl(['规则ID','游戏','平台','联运商','平台应用','生效期间','联运商分成（含阶梯）','状态','BPM审批单号','操作'],rows,{pageKey:'pubRules'})}`;
 }
@@ -2038,11 +2038,11 @@ function pgCpRules(){
   const ent=parsedEntity();
   let data=FILTER_GAME==='all'?cpRules:cpRules.filter(r=>games.find(g=>g.id===FILTER_GAME)?.name===r.game);
   if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
-  return `<div class="ph"><div><div class="pt">CP分成规则</div><div class="pd">每条规则绑定「游戏＋CP」（游戏级合同）。<b>CP 占比%</b> 即 CP 在该游戏分账基数中所占的比例。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openCpRuleForm()">＋ 新建规则</button>':''}</div></div>
+  return `<div class="ph"><div><div class="pt">CP分成规则</div><div class="pd">每条规则绑定「游戏＋CP」（游戏级合同）。<b>CP 占比%</b> 即 CP 在该游戏分账基数中所占的比例。</div></div><div class="acts">${canEditRule()?'<button class="btn p" onclick="openCpRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>分账规则</b>：CP 分账 =（Σ 现金利润 − Σ 联运商真实分账 − 云服务成本）× CP 占比%；广告金侧不扣云服务成本。同一游戏的所有平台、所有联运商利润合并计算，按游戏一份合同一份占比。</div>
   ${tbl(['规则ID','游戏','CP','生效期间','CP 占比%','状态','BPM审批单号','操作'],data.map(r=>{
     const bpmCell=r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>';
-    const ops=`<button class="link" onclick="openCpRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitCpRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyCpRule('${r.id}')">复制</button>`:''}`;
+    const ops=`<button class="link" onclick="openCpRuleDetail('${r.id}')">查看</button>${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitCpRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyCpRule('${r.id}')">复制</button>`:''}`;
     return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700;color:var(--green)">${r.cpRemainShare}%</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${bpmCell}</td><td>${ops}</td></tr>`;
   }),{pageKey:'cpRules'})}`;
 }
