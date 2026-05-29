@@ -234,15 +234,15 @@ const games=[
 // 主数据：平台应用（微信/抖音 后台 AppID + AppSecret），归属唯一游戏（gameId）
 // 游戏×联运商关系建立时通过平台应用反查游戏，无需再次选择
 const platformApps=[
-  {id:'PA-001',platform:'微信小游戏',gameId:'G-1001',appId:'wx-hjcs-001',appSecret:'a1b2c3d4e5f60718293a4b5c6d7e8f90',appName:'幻境传说·星辰版',remark:'',createdAt:'2026-04-01 10:30',creator:'系统管理员'},
-  {id:'PA-002',platform:'抖音小游戏',gameId:'G-1001',appId:'tt-hjcs-009',appSecret:'b2c3d4e5f60718293a4b5c6d7e8f901a2',appName:'幻境传说·光速主版',remark:'',createdAt:'2026-04-01 10:35',creator:'系统管理员'},
-  {id:'PA-003',platform:'抖音小游戏',gameId:'G-1001',appId:'tt-hjcs-010',appSecret:'c3d4e5f60718293a4b5c6d7e8f901a2b3',appName:'幻境传说·光速子版B',remark:'',createdAt:'2026-04-12 09:20',creator:'系统管理员'},
-  {id:'PA-004',platform:'抖音小游戏',gameId:'G-1002',appId:'tt-xjzb-007',appSecret:'d4e5f60718293a4b5c6d7e8f901a2b3c4',appName:'星际争霸·光速版',remark:'',createdAt:'2026-04-04 11:00',creator:'系统管理员'},
-  {id:'PA-005',platform:'微信小游戏',gameId:'G-1003',appId:'wx-mcdl-003',appSecret:'e5f60718293a4b5c6d7e8f901a2b3c4d5',appName:'萌宠大陆·星辰版',remark:'',createdAt:'2026-04-09 14:15',creator:'系统管理员'},
-  {id:'PA-006',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-011',appSecret:'f60718293a4b5c6d7e8f901a2b3c4d5e6',appName:'弹球传奇·星辰版',remark:'',createdAt:'2026-04-16 09:00',creator:'系统管理员'},
-  {id:'PA-007',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-028',appSecret:'0718293a4b5c6d7e8f901a2b3c4d5e6f7',appName:'弹球传奇·光速版',remark:'',createdAt:'2026-04-16 10:30',creator:'系统管理员'},
-  {id:'PA-008',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-045',appSecret:'18293a4b5c6d7e8f901a2b3c4d5e6f708',appName:'弹球传奇·灵犀版',remark:'',createdAt:'2026-04-17 16:00',creator:'系统管理员'},
-  {id:'PA-009',platform:'抖音小游戏',gameId:'G-1003',appId:'tt-mcdl-021',appSecret:'8293a4b5c6d7e8f901a2b3c4d5e6f7081',appName:'萌宠大陆·抖音待启用版',remark:'抖音端备用应用，未投放',createdAt:'2026-05-10 11:00',creator:'系统管理员'}
+  {id:'PA-001',platform:'微信小游戏',gameId:'G-1001',appId:'wx-hjcs-001',appSecret:'a1b2c3d4e5f60718293a4b5c6d7e8f90',appName:'幻境传说·星辰版',remark:'',launchDate:'2025-06-01',createdAt:'2026-04-01 10:30',creator:'系统管理员'},
+  {id:'PA-002',platform:'抖音小游戏',gameId:'G-1001',appId:'tt-hjcs-009',appSecret:'b2c3d4e5f60718293a4b5c6d7e8f901a2',appName:'幻境传说·光速主版',remark:'',launchDate:'2025-07-15',createdAt:'2026-04-01 10:35',creator:'系统管理员'},
+  {id:'PA-003',platform:'抖音小游戏',gameId:'G-1001',appId:'tt-hjcs-010',appSecret:'c3d4e5f60718293a4b5c6d7e8f901a2b3',appName:'幻境传说·光速子版B',remark:'',launchDate:'2025-09-01',createdAt:'2026-04-12 09:20',creator:'系统管理员'},
+  {id:'PA-004',platform:'抖音小游戏',gameId:'G-1002',appId:'tt-xjzb-007',appSecret:'d4e5f60718293a4b5c6d7e8f901a2b3c4',appName:'星际争霸·光速版',remark:'',launchDate:'2026-01-10',createdAt:'2026-04-04 11:00',creator:'系统管理员'},
+  {id:'PA-005',platform:'微信小游戏',gameId:'G-1003',appId:'wx-mcdl-003',appSecret:'e5f60718293a4b5c6d7e8f901a2b3c4d5',appName:'萌宠大陆·星辰版',remark:'',launchDate:'2026-03-20',createdAt:'2026-04-09 14:15',creator:'系统管理员'},
+  {id:'PA-006',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-011',appSecret:'f60718293a4b5c6d7e8f901a2b3c4d5e6',appName:'弹球传奇·星辰版',remark:'',launchDate:'2026-04-15',createdAt:'2026-04-16 09:00',creator:'系统管理员'},
+  {id:'PA-007',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-028',appSecret:'0718293a4b5c6d7e8f901a2b3c4d5e6f7',appName:'弹球传奇·光速版',remark:'',launchDate:'2026-04-15',createdAt:'2026-04-16 10:30',creator:'系统管理员'},
+  {id:'PA-008',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-045',appSecret:'18293a4b5c6d7e8f901a2b3c4d5e6f708',appName:'弹球传奇·灵犀版',remark:'',launchDate:'2026-04-15',createdAt:'2026-04-17 16:00',creator:'系统管理员'},
+  {id:'PA-009',platform:'抖音小游戏',gameId:'G-1003',appId:'tt-mcdl-021',appSecret:'8293a4b5c6d7e8f901a2b3c4d5e6f7081',appName:'萌宠大陆·抖音待启用版',remark:'抖音端备用应用，未投放',launchDate:'',createdAt:'2026-05-10 11:00',creator:'系统管理员'}
 ];
 const idsAccounts=[
   {id:'IDS-001',name:'IDS主出账账户',company:'IDS',bank:'中国银行',branch:'北京中关村支行',accountName:'北京IDS科技有限公司',accountNo:'6222020200001234567',bankNo:'104100000001',status:'启用',isDefault:true,remark:'当前唯一出账账户',createdAt:'2026-05-01 10:00',creator:'财务人员',updatedAt:'2026-05-01 10:00'}
@@ -1608,12 +1608,13 @@ function pgPlatformApps(){
       <td style="font-family:monospace;font-size:12px;color:#31557d">${a.appId}</td>
       <td>${a.appName||'<span style="color:var(--weak)">—</span>'}</td>
       <td><span style="font-family:monospace;font-size:12px;color:var(--muted)">${maskSecret(a.appSecret)}</span><button class="link" style="margin-left:6px;font-size:11px" onclick="viewFullSecret('${a.id}')">查看完整</button></td>
+      <td style="color:var(--muted);font-size:12px">${a.launchDate||'<span style="color:var(--weak)">—</span>'}</td>
       <td>${occupied}</td>
       <td style="color:var(--muted);font-size:12px">${a.createdAt||'—'}</td>
       <td>${ops.join(' ')}</td>
     </tr>`;
   });
-  if(!rows.length)rows.push(`<tr><td colspan="9" style="text-align:center;color:var(--weak);padding:24px">暂无平台应用，请点击右上角「新建」</td></tr>`);
+  if(!rows.length)rows.push(`<tr><td colspan="10" style="text-align:center;color:var(--weak);padding:24px">暂无平台应用，请点击右上角「新建」</td></tr>`);
   return `<div class="ph">
     <div><div class="pt">平台应用</div><div class="pd">维护微信/抖音小游戏的<b>平台应用 AppID + AppSecret</b>。每个平台应用归属唯一游戏；AppID 全局唯一；联运授权建立时<b>直接从本列表选择</b>，无需手填。AppSecret 默认脱敏展示，点击「查看完整」需二次确认。</div></div>
     <div class="acts">${canEdit?'<button class="btn p" onclick="openPlatformAppForm()">＋ 新建平台应用</button>':''}<button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
@@ -1630,7 +1631,7 @@ function pgPlatformApps(){
     <button class="btn g sm" onclick="window._paPlat='all';window._paKw='';document.getElementById('contentEl').innerHTML=pgPlatformApps()">重置</button>
     <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 条</span>
   </div>
-  ${tbl(['应用ID','平台','所属游戏','AppID','应用名称','AppSecret','占用情况','创建时间','操作'],rows,{pageKey:'platformApps'})}`;
+  ${tbl(['应用ID','平台','所属游戏','AppID','应用名称','AppSecret','上线日期','占用情况','创建时间','操作'],rows,{pageKey:'platformApps'})}`;
 }
 function openPlatformAppDetail(id){
   const a=getPlatformApp(id);
@@ -1650,6 +1651,7 @@ function openPlatformAppDetail(id){
       <span class="k">AppID</span><span class="v" style="font-family:monospace;font-size:13px">${a.appId}</span>
       <span class="k">应用名称</span><span class="v">${a.appName||'—'}</span>
       <span class="k">AppSecret</span><span class="v" style="font-family:monospace">${maskSecret(a.appSecret)} <button class="link" style="margin-left:6px;font-size:11px" onclick="viewFullSecret('${a.id}')">查看完整</button></span>
+      <span class="k">应用上线日期</span><span class="v">${a.launchDate||'<span style="color:var(--weak)">未填写</span>'}</span>
       <span class="k">备注</span><span class="v">${a.remark||'—'}</span>
       <span class="k">创建时间</span><span class="v">${a.createdAt}</span>
       <span class="k">创建人</span><span class="v">${a.creator}</span>
@@ -1711,6 +1713,10 @@ function openPlatformAppForm(id){
       ${isEdit
         ?`<input class="input" style="width:100%;font-family:monospace" value="${maskSecret(a.appSecret)}" disabled/><div class="hint">编辑模式下不直接展示，如需更换请使用列表中的「重置Secret」</div>`
         :`<input class="input" id="paf_secret" style="width:100%;font-family:monospace" placeholder="32 位字符，留空将自动生成"/><div class="hint">留空时由系统生成；提交后默认脱敏存储</div>`}
+    </div>
+    <div class="field"><label>应用上线日期</label>
+      <input class="input" type="date" id="paf_launchDate" style="width:100%" value="${a?a.launchDate||'':''}" />
+      <div class="hint">填写该应用在对应平台的实际上线日期；用于判断阶梯分润的12个月计算窗口</div>
     </div>
     <div class="field" style="grid-column:1/-1"><label>备注</label>
       <textarea class="input" id="paf_remark" style="width:100%;height:60px;resize:vertical">${a?a.remark||'':''}</textarea>
@@ -2226,10 +2232,10 @@ function openPubRuleForm(){
       <label style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
         <input type="checkbox" id="rf_tier_enabled" onchange="document.getElementById('rf_tier_box').style.display=this.checked?'grid':'none'" />
         <b style="color:var(--primary)">启用阶梯分润</b>
-        <span style="color:var(--muted);font-size:12px">单款·单平台·单联运商月流水超过阈值后切换为高档比例</span>
+        <span style="color:var(--muted);font-size:12px">以平台应用上线当月起连续12个自然月为窗口；窗口内累计收入流水达阈值后，后续账期切换为高档比例</span>
       </label>
       <div id="rf_tier_box" style="display:none;grid-template-columns:1fr 1fr;gap:10px 14px">
-        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">月流水阈值（万元）</div><input class="input" type="number" style="width:100%" placeholder="如 3000" min="0"/></div>
+        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">累计流水阈值（万元）</div><input class="input" type="number" style="width:100%" placeholder="如 3000" min="0"/></div>
         <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">超阈值后联运商比例（%）</div><input class="input" type="number" style="width:100%" placeholder="如 70" min="0" max="100"/></div>
       </div>
     </div>
