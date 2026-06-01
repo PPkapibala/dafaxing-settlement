@@ -2595,7 +2595,7 @@ function _renderGenBillModal(){
         return`<option value="${m}" ${selPeriod===m?'selected':''}>${m}${segNote}</option>`;
       }).join('')}
     </select>
-    ${availPeriods.length===0?'<span style="font-size:12px;color:var(--muted)">暂无可用账期</span>':''}
+    ${availMonths.length===0?'<span style="font-size:12px;color:var(--muted)">暂无可用账期</span>':''}
   </div>`;
 
   // 表格区域：仅在选定账期后展示
