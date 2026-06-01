@@ -2232,7 +2232,7 @@ function openPubRuleForm(){
       <label style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
         <input type="checkbox" id="rf_tier_enabled" onchange="document.getElementById('rf_tier_box').style.display=this.checked?'grid':'none'" />
         <b style="color:var(--primary)">启用阶梯分润</b>
-        <span style="color:var(--muted);font-size:12px">以平台应用上线当月起连续12个自然月为窗口；窗口内累计收入流水达阈值后，后续账期切换为高档比例</span>
+        <span style="color:var(--muted);font-size:12px">自平台应用上线当月起算，12个自然月内累计收入流水达到阈值，则后续账期切换为高档分成比例</span>
       </label>
       <div id="rf_tier_box" style="display:none;grid-template-columns:1fr 1fr;gap:10px 14px">
         <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">累计流水阈值（万元）</div><input class="input" type="number" style="width:100%" placeholder="如 3000" min="0"/></div>
@@ -2464,21 +2464,32 @@ function _gbsState(){
 function openGenBillStatement(){
   if(!isPublisher()){alert('当前角色无权生成对账单');return;}
   window._gbsSel=new Set();
+  window._gbsPeriod=null;
+  _renderGenBillModal();
+}
+function _gbsSetPeriod(val){
+  window._gbsPeriod=val||null;
+  window._gbsSel=new Set();
   _renderGenBillModal();
 }
 function _renderGenBillModal(){
   const ent=parsedEntity();
   // 只展示当前联运商的已确认账期数据
-  let data=settle.filter(r=>ent.type==='pub'?r.pub===ent.name:true);
-  data=data.filter(r=>isSettleReady(r.period,r.game,r.platform)&&isBillConfirmed(r.period,r.game,r.platform));
+  let allData=settle.filter(r=>ent.type==='pub'?r.pub===ent.name:true);
+  allData=allData.filter(r=>isSettleReady(r.period,r.game,r.platform)&&isBillConfirmed(r.period,r.game,r.platform));
   // 占用映射：有效（非作废）的对账单 → 占用了哪些 key
   const occupiedMap={};
   (window._generatedStatements||[]).forEach(s=>{
     (s.keys||[]).forEach(k=>{if(!occupiedMap[k])occupiedMap[k]=s.sn;});
   });
   // 直接过滤掉已占用的明细，列表只展示可勾选的
-  data=data.filter(r=>!occupiedMap[`${r.period}__${r.game}__${r.platform}`]);
-  data.sort((a,b)=>b.period.localeCompare(a.period)||a.game.localeCompare(b.game));
+  allData=allData.filter(r=>!occupiedMap[`${r.period}__${r.game}__${r.platform}`]);
+  // 可选账期列表（去重、倒序）
+  const availPeriods=[...new Set(allData.map(r=>r.period))].sort((a,b)=>b.localeCompare(a));
+  // 按已选账期过滤
+  const selPeriod=window._gbsPeriod||null;
+  let data=selPeriod?allData.filter(r=>r.period===selPeriod):[];
+  data.sort((a,b)=>a.game.localeCompare(b.game));
   const sel=_gbsState();
   // 清掉已不在可选列表中的勾选
   [...sel].forEach(k=>{
@@ -2524,7 +2535,6 @@ function _renderGenBillModal(){
         const rowSpan=apps.length;
         const firstCells=idx===0
           ? `<td rowspan="${rowSpan}" style="width:38px;text-align:center;vertical-align:middle"><input type="checkbox" class="gbsCheck" value="${k}" ${checked?'checked':''} onchange="_gbsToggle(this)" style="accent-color:var(--primary)"></td>
-             <td rowspan="${rowSpan}" style="vertical-align:middle">${r.period}</td>
              <td rowspan="${rowSpan}" style="vertical-align:middle">《${r.game}》</td>
              <td rowspan="${rowSpan}" style="vertical-align:middle">${r.platform}</td>
              <td rowspan="${rowSpan}" style="vertical-align:middle">${r.pub}</td>`
@@ -2545,19 +2555,30 @@ function _renderGenBillModal(){
       });
     });
   }else{
-    rowsHtml=`<tr><td colspan="15" style="text-align:center;color:var(--weak);padding:20px">暂无可生成对账单的明细<div style="font-size:11.5px;margin-top:4px">（已生成对账单 / 未三方确认 / 未确认对账 的账期不在此处展示）</div></td></tr>`;
+    rowsHtml=`<tr><td colspan="14" style="text-align:center;color:var(--weak);padding:20px">暂无可生成对账单的明细<div style="font-size:11.5px;margin-top:4px">（已生成对账单 / 未三方确认 / 未确认对账 的账期不在此处展示）</div></td></tr>`;
   }
 
-  openModal('生成对账单',
-    `<div class="notice" style="margin-bottom:12px;border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 仅展示<b>已完成三方确认 + 联运商对账确认</b>且<b>尚未被任何对账单占用</b>的账期；勾选后将合并生成一份对账单。<br/><span style="font-size:11.5px;color:var(--muted)">字段与「联运商分账明细」保持一致；同一账期×游戏×平台下多个平台应用同步勾选。</span></div>
+  // 账期选择器
+  const periodSelector=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px 14px;background:#f7faff;border:1px solid #d0e8ff;border-radius:6px">
+    <span style="font-size:13px;font-weight:700;color:#1a4a80;white-space:nowrap">选择账期<span style="color:var(--red)">*</span></span>
+    <select class="select" style="min-width:140px;font-weight:700" onchange="_gbsSetPeriod(this.value)">
+      <option value="">— 请选择账期 —</option>
+      ${availPeriods.map(p=>`<option value="${p}" ${selPeriod===p?'selected':''}>${p}</option>`).join('')}
+    </select>
+    ${availPeriods.length===0?'<span style="font-size:12px;color:var(--muted)">暂无可用账期</span>':''}
+  </div>`;
+
+  // 表格区域：仅在选定账期后展示
+  const tableArea=selPeriod?`
+    <div class="notice" style="margin-bottom:12px;border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 仅展示 <b>${selPeriod}</b> 账期中<b>已完成三方确认 + 联运商对账确认</b>且<b>尚未被任何对账单占用</b>的明细；勾选后将合并生成一份对账单。<br/><span style="font-size:11.5px;color:var(--muted)">字段与「联运商分账明细」保持一致；同一账期×游戏×平台下多个平台应用同步勾选。</span></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12.5px;color:var(--muted)">
       <div>可选 <b>${data.length}</b> 条 · 已选 <b style="color:var(--primary)">${sel.size}</b> 条</div>
       <div>合计：<b style="color:var(--primary)">现金 ${mn(totalPubCash)}</b> · 广告金 ${mn(totalPubV)}</div>
     </div>
-    <div class="tw" style="max-height:420px;overflow:auto"><table class="table" style="margin:0;font-size:12px;min-width:1180px">
+    <div class="tw" style="max-height:380px;overflow:auto"><table class="table" style="margin:0;font-size:12px;min-width:1100px">
       <thead><tr>
         <th style="width:38px;text-align:center"><input type="checkbox" ${allChecked?'checked':''} onchange="_gbsToggleAll(this)"></th>
-        <th>账期</th><th>游戏</th><th>平台</th><th>联运商</th><th>平台应用</th>
+        <th>游戏</th><th>平台</th><th>联运商</th><th>平台应用</th>
         <th style="text-align:right">现金收入</th><th style="text-align:right">广告金收入</th>
         <th style="text-align:right">总消耗</th><th style="text-align:right">现金成本</th><th style="text-align:right">广告金成本</th>
         <th style="text-align:right">现金利润</th><th style="text-align:right">广告金利润</th>
@@ -2565,9 +2586,13 @@ function _renderGenBillModal(){
         <th style="text-align:right">可结算（现金）</th><th style="text-align:right">可结算（广告金）</th>
       </tr></thead>
       <tbody>${rowsHtml}</tbody>
-    </table></div>`,
+    </table></div>`
+  :`<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px;background:#fafafa;border-radius:6px;border:1px dashed #d8e4f0">请先选择账期，系统将展示该账期下可生成对账单的明细</div>`;
+
+  openModal('生成对账单',
+    periodSelector+tableArea,
     `<button class="btn g" onclick="closeModal()">取消</button>
-     <button class="btn p" ${sel.size===0?'disabled':''} onclick="_gbsSubmit()">生成对账单</button>`);
+     <button class="btn p" ${(!selPeriod||sel.size===0)?'disabled':''} onclick="_gbsSubmit()">生成对账单</button>`);
 }
 function _gbsToggle(cb){const sel=_gbsState();if(cb.checked)sel.add(cb.value);else sel.delete(cb.value);_renderGenBillModal()}
 function _gbsToggleAll(cb){
@@ -3737,8 +3762,7 @@ function pgSettlePubClosed(){
       <td style="font-weight:700">${cashOk?`${ps.rate}%${tierBadge}`:dash}</td>
       <td style="font-weight:800">${ready?mn(pubCashShared)+lossTag(ps.cashIsLossTransfer):dash}</td>
       <td>${ready?mn(pubVShared)+lossTag(ps.vIsLossTransfer):dash}</td>
-      <td>${confirmCell}</td>
-      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${r.period}__${r.game}__${r.platform}')">确认对账单</button>`:''}</td>
+      <td>${confirmCell}${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${r.period}__${r.game}__${r.platform}')">确认对账单</button>`:''}</td>
     </tr>`;
   });
   return `<div class="ph"><div><div class="pt">联运商分账明细</div><div class="pd">展示各联运商当期可结算金额（现金利润 × 联运商分成比例）。按「平台应用」最细粒度展示；同联运商同游戏同平台下若有多个平台应用，金额按各应用真实收入比例拆分。三方确认按平台应用逐条进行。${isPublisher()?'<br/><span style="color:var(--muted);font-size:12px">生成对账单请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick=\'go("statements")\'>对账单管理</button>」。</span>':''}</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
@@ -3774,7 +3798,7 @@ function pgSettlePubClosed(){
     前三方确认后该账期自动出账并流转至本页，联运商在本页「确认对账单」后即可到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('statements')">对账单管理</button>」生成对账单并发起打款。
     <br/><span style="font-size:12px;color:var(--muted)">分账计算规则以「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('pubRules')">联运商分成规则</button>」与「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cpRules')">CP分成规则</button>」中每条规则的具体配置为准。</span>
   </div>
-  ${tbl(['账期','游戏','平台','联运商','平台应用','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','联运商分成%','联运商可结算（现金）','联运商可结算（广告金）','确认状态','每日明细'],rows,{pageKey:'settlePub'})}`;
+  ${tbl(['账期','游戏','平台','联运商','平台应用','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','联运商分成%','联运商可结算（现金）','联运商可结算（广告金）','确认状态'],rows,{pageKey:'settlePub'})}`;
 }
 
 function openDailyDetail(key,period,game,platform,pub){
