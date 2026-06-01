@@ -338,7 +338,8 @@ const pubRules=[
   {id:'RU-PUB-202604-002',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',appIds:['tt-hjcs-009'],start:'2026-04-01',end:'2026-12-31',pubRate:55,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'审批中',bpm:'BPM-IAA-00026',approved:'—'},
   {id:'RU-PUB-202603-008',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',appIds:[],start:'2026-03-01',end:'2026-03-31',pubRate:60,tierEnabled:true,tierThreshold:300000,tierHighRate:65,status:'已到期',bpm:'BPM-IAA-00013',approved:'2026-03-01 10:10'},
   {id:'RU-PUB-202604-004',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',appIds:[],start:'2026-04-01',end:'2026-12-31',pubRate:65,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'草稿',bpm:'—',approved:'—'},
-  {id:'RU-PUB-202603-009',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',appIds:[],start:'2026-03-01',end:'2026-12-31',pubRate:50,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'生效中',bpm:'BPM-IAA-00018',approved:'2026-03-02 10:00'}
+  {id:'RU-PUB-202603-009',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',appIds:[],start:'2026-03-01',end:'2026-04-14',pubRate:50,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'已到期',bpm:'BPM-IAA-00018',approved:'2026-03-02 10:00'},
+  {id:'RU-PUB-202604-010',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',appIds:[],start:'2026-04-15',end:'2027-04-14',pubRate:55,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'生效中',bpm:'BPM-IAA-00032',approved:'2026-04-14 16:30'}
 ];
 // CP 分成规则：游戏级（绑定 [游戏 + CP]），约定扣除联运商利润和服务器成本后的剩余池里 CP 占比
 const cpRules=[
@@ -353,11 +354,16 @@ const settle=[
   {period:'2026-05',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:336000,vRev:71000,cost:194000,cashCost:160040,vCost:33960,serverCost:29100,cashP:175960,vP:37040,pubRate:60,cpRate:20},
   {period:'2026-05',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:498000,vRev:125000,cost:268000,cashCost:214400,vCost:53600,serverCost:40200,cashP:283600,vP:71400,pubRate:60,cpRate:20},
   {period:'2026-05',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:162000,vRev:38000,cost:86000,cashCost:69972,vCost:16028,serverCost:12900,cashP:92028,vP:21972,pubRate:65,cpRate:15},
+  // 弹球传奇 2026-05：新规则全月（55%）
+  {period:'2026-05',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',cp:'梦工厂',cashRev:242000,vRev:46000,cost:136000,cashCost:111520,vCost:24480,serverCost:15900,cashP:130480,vP:21520,pubRate:55,cpRate:25},
   // 2026-04
   {period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:320000,vRev:68000,cost:185000,cashCost:152577,vCost:32423,serverCost:27750,cashP:167423,vP:35577,pubRate:60,cpRate:20},
   {period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:210000,vRev:92000,cost:345000,cashCost:239901,vCost:105099,serverCost:51750,cashP:-29901,vP:-13099,pubRate:55,cpRate:25},
   {period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:480000,vRev:120000,cost:260000,cashCost:208000,vCost:52000,serverCost:39000,cashP:272000,vP:68000,pubRate:60,cpRate:20},
   {period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:155000,vRev:36000,cost:82000,cashCost:66576,vCost:15424,serverCost:12300,cashP:88424,vP:20576,pubRate:65,cpRate:15},
+  // 弹球传奇 2026-04 拆两段：旧规则 50%（4/1–4/14）→ 新规则 55%（4/15–4/30）
+  {period:'2026-04-01~2026-04-14',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',cp:'梦工厂',cashRev:107000,vRev:19600,cost:59500,cashCost:48790,vCost:10710,serverCost:6950,cashP:58210,vP:8890,pubRate:50,cpRate:25},
+  {period:'2026-04-15~2026-04-30',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',cp:'梦工厂',cashRev:124000,vRev:22800,cost:69200,cashCost:56744,vCost:12456,serverCost:8080,cashP:67256,vP:10344,pubRate:55,cpRate:25},
   // 2026-03
   {period:'2026-03',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:298000,vRev:61000,cost:172000,cashCost:141440,vCost:30560,serverCost:25800,cashP:156560,vP:30440,pubRate:60,cpRate:20},
   {period:'2026-03',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:245000,vRev:85000,cost:310000,cashCost:215150,vCost:94850,serverCost:46500,cashP:29850,vP:-9850,pubRate:55,cpRate:25},
@@ -401,6 +407,25 @@ const syncs=[
 ];
 
 /* ──────────── HELPERS ──────────── */
+/* period 辅助：兼容全月格式 'YYYY-MM' 和区间格式 'YYYY-MM-DD~YYYY-MM-DD'
+   全月示例：'2026-05'
+   区间示例：'2026-04-15~2026-04-30'（规则换档时首/尾月按合同日期截断） */
+function isPartialPeriod(p){return!!(p&&p.includes('~'));}
+function periodStart(p){if(!p)return'';if(isPartialPeriod(p))return p.split('~')[0];return p+'-01';}
+function periodEnd(p){if(!p)return'';if(isPartialPeriod(p))return p.split('~')[1];const[y,m]=p.split('-').map(Number);return p+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0');}
+function periodMonth(p){if(!p)return'';return(isPartialPeriod(p)?p.split('~')[0]:p).slice(0,7);}
+function periodLabel(p){
+  if(!p||!isPartialPeriod(p))return p||'';
+  const[s,e]=p.split('~');
+  const ym=s.slice(0,7);
+  const sd=parseInt(s.slice(8),10);
+  const ed=parseInt(e.slice(8),10);
+  const[y,mo]=ym.split('-').map(Number);
+  const lastDay=new Date(y,mo,0).getDate();
+  if(sd===1)return`${ym}（至${ed}日）`;
+  if(ed===lastDay)return`${ym}（${sd}日起）`;
+  return`${ym}（${sd}~${ed}日）`;
+}
 function fmt(n){return '¥ '+Number(n).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function mn(n){const cls=n<0?'neg':'pos';return `<span class="money ${cls}">${fmt(n)}</span>`}
 function ts(s){const m={'生效中':'green','审批中':'orange','已到期':'gray','已驳回':'red','草稿':'blue','成功':'green','失败':'red','打款成功':'green','打款中':'orange','打款失败':'red','已终止':'gray','已终止 · 待重新发起':'gray','待执行':'gray','已通过':'green','待审批':'orange','合作中':'green','已授权':'green','待授权':'orange'};return `<span class="tag ${m[s]||'gray'}">${s}</span>`}
@@ -2484,12 +2509,12 @@ function _renderGenBillModal(){
   });
   // 直接过滤掉已占用的明细，列表只展示可勾选的
   allData=allData.filter(r=>!occupiedMap[`${r.period}__${r.game}__${r.platform}`]);
-  // 可选账期列表（去重、倒序）
-  const availPeriods=[...new Set(allData.map(r=>r.period))].sort((a,b)=>b.localeCompare(a));
-  // 按已选账期过滤
+  // 可选账期：按自然月去重，倒序
+  const availMonths=[...new Set(allData.map(r=>periodMonth(r.period)))].sort((a,b)=>b.localeCompare(a));
+  // 按已选自然月过滤（同月多段一并展示）
   const selPeriod=window._gbsPeriod||null;
-  let data=selPeriod?allData.filter(r=>r.period===selPeriod):[];
-  data.sort((a,b)=>a.game.localeCompare(b.game));
+  let data=selPeriod?allData.filter(r=>periodMonth(r.period)===selPeriod):[];
+  data.sort((a,b)=>periodStart(a.period).localeCompare(periodStart(b.period))||a.game.localeCompare(b.game));
   const sel=_gbsState();
   // 清掉已不在可选列表中的勾选
   [...sel].forEach(k=>{
@@ -2535,6 +2560,7 @@ function _renderGenBillModal(){
         const rowSpan=apps.length;
         const firstCells=idx===0
           ? `<td rowspan="${rowSpan}" style="width:38px;text-align:center;vertical-align:middle"><input type="checkbox" class="gbsCheck" value="${k}" ${checked?'checked':''} onchange="_gbsToggle(this)" style="accent-color:var(--primary)"></td>
+             <td rowspan="${rowSpan}" style="vertical-align:middle;white-space:nowrap">${periodLabel(r.period)}</td>
              <td rowspan="${rowSpan}" style="vertical-align:middle">《${r.game}》</td>
              <td rowspan="${rowSpan}" style="vertical-align:middle">${r.platform}</td>
              <td rowspan="${rowSpan}" style="vertical-align:middle">${r.pub}</td>`
@@ -2555,7 +2581,7 @@ function _renderGenBillModal(){
       });
     });
   }else{
-    rowsHtml=`<tr><td colspan="14" style="text-align:center;color:var(--weak);padding:20px">暂无可生成对账单的明细<div style="font-size:11.5px;margin-top:4px">（已生成对账单 / 未三方确认 / 未确认对账 的账期不在此处展示）</div></td></tr>`;
+    rowsHtml=`<tr><td colspan="16" style="text-align:center;color:var(--weak);padding:20px">暂无可生成对账单的明细<div style="font-size:11.5px;margin-top:4px">（已生成对账单 / 未三方确认 / 未确认对账 的账期不在此处展示）</div></td></tr>`;
   }
 
   // 账期选择器
@@ -2563,22 +2589,26 @@ function _renderGenBillModal(){
     <span style="font-size:13px;font-weight:700;color:#1a4a80;white-space:nowrap">选择账期<span style="color:var(--red)">*</span></span>
     <select class="select" style="min-width:140px;font-weight:700" onchange="_gbsSetPeriod(this.value)">
       <option value="">— 请选择账期 —</option>
-      ${availPeriods.map(p=>`<option value="${p}" ${selPeriod===p?'selected':''}>${p}</option>`).join('')}
+      ${availMonths.map(m=>{
+        const segs=[...new Set(allData.filter(r=>periodMonth(r.period)===m).map(r=>r.period))];
+        const segNote=segs.length>1?`（${segs.length}段）`:'';
+        return`<option value="${m}" ${selPeriod===m?'selected':''}>${m}${segNote}</option>`;
+      }).join('')}
     </select>
     ${availPeriods.length===0?'<span style="font-size:12px;color:var(--muted)">暂无可用账期</span>':''}
   </div>`;
 
   // 表格区域：仅在选定账期后展示
   const tableArea=selPeriod?`
-    <div class="notice" style="margin-bottom:12px;border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 仅展示 <b>${selPeriod}</b> 账期中<b>已完成三方确认 + 联运商对账确认</b>且<b>尚未被任何对账单占用</b>的明细；勾选后将合并生成一份对账单。<br/><span style="font-size:11.5px;color:var(--muted)">字段与「联运商分账明细」保持一致；同一账期×游戏×平台下多个平台应用同步勾选。</span></div>
+    <div class="notice" style="margin-bottom:12px;border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 仅展示 <b>${selPeriod}</b> 账期中<b>已完成三方确认 + 联运商对账确认</b>且<b>尚未被任何对账单占用</b>的明细；勾选后将合并生成一份对账单。<br/><span style="font-size:11.5px;color:var(--muted)">字段与「联运商分账明细」保持一致；同一账期×游戏×平台下多个平台应用同步勾选。${data.some(r=>isPartialPeriod(r.period))?'<b style="color:var(--orange)"> 本月存在多段账期（规则换档），已分段展示。</b>':''}</span></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12.5px;color:var(--muted)">
       <div>可选 <b>${data.length}</b> 条 · 已选 <b style="color:var(--primary)">${sel.size}</b> 条</div>
       <div>合计：<b style="color:var(--primary)">现金 ${mn(totalPubCash)}</b> · 广告金 ${mn(totalPubV)}</div>
     </div>
-    <div class="tw" style="max-height:380px;overflow:auto"><table class="table" style="margin:0;font-size:12px;min-width:1100px">
+    <div class="tw" style="max-height:380px;overflow:auto"><table class="table" style="margin:0;font-size:12px;min-width:1160px">
       <thead><tr>
         <th style="width:38px;text-align:center"><input type="checkbox" ${allChecked?'checked':''} onchange="_gbsToggleAll(this)"></th>
-        <th>游戏</th><th>平台</th><th>联运商</th><th>平台应用</th>
+        <th>账期段</th><th>游戏</th><th>平台</th><th>联运商</th><th>平台应用</th>
         <th style="text-align:right">现金收入</th><th style="text-align:right">广告金收入</th>
         <th style="text-align:right">总消耗</th><th style="text-align:right">现金成本</th><th style="text-align:right">广告金成本</th>
         <th style="text-align:right">现金利润</th><th style="text-align:right">广告金利润</th>
@@ -2669,7 +2699,7 @@ function buildMultiBillStatementHtml(keys){
       const pubCashShared=ps.pubCash*sh;
       const rowSpan=apps.length;
       const head=idx===0
-        ? `<td rowspan="${rowSpan}" class="center">${r.period}</td>
+        ? `<td rowspan="${rowSpan}" class="center" style="white-space:nowrap">${periodLabel(r.period)}</td>
            <td rowspan="${rowSpan}" class="left">《${r.game}》</td>
            <td rowspan="${rowSpan}" class="center">${r.platform}</td>`
         : '';
@@ -2766,12 +2796,19 @@ function buildMultiBillStatementHtml(keys){
 /* ── 阶梯分润 + 服务器成本 + 亏损划转（按规则配置） ── */
 // 找到一条 settle 记录对应的联运商分成规则（生效中的优先；否则取同主键最近一条）
 function findPubRuleFor(r){
-  const matched=pubRules.filter(x=>x.game===r.game&&x.platform===r.platform&&x.pub===r.pub);
+  const matched=pubRules.filter(x=>{
+    if(x.game!==r.game||x.platform!==r.platform||x.pub!==r.pub)return false;
+    // 日期区间重叠：rule.start <= periodEnd && rule.end >= periodStart
+    return x.start<=periodEnd(r.period)&&x.end>=periodStart(r.period);
+  });
   return matched.find(x=>x.status==='生效中')||matched.find(x=>x.status==='审批中')||matched[0]||null;
 }
 // 找到一条 settle 记录对应的 CP 分成规则（游戏级，只看 game+cp）
 function findCpRuleFor(r){
-  const matched=cpRules.filter(x=>x.game===r.game&&x.cp===r.cp);
+  const matched=cpRules.filter(x=>{
+    if(x.game!==r.game||x.cp!==r.cp)return false;
+    return x.start<=periodEnd(r.period)&&x.end>=periodStart(r.period);
+  });
   return matched.find(x=>x.status==='生效中')||matched.find(x=>x.status==='审批中')||matched[0]||null;
 }
 // 兼容旧调用：返回一个合并视图（联运商字段 + CP 字段）
@@ -2898,7 +2935,7 @@ function _revBaseFilter(prefix){
   const gameF=window['_'+prefix+'Game']||'all';
   const entityF=window['_'+prefix+'Entity']||'all';
   const appF=window['_'+prefix+'App']||'all'; // 后台游戏应用：pubMappings.id
-  const allPeriods=[...new Set(settle.map(r=>r.period))].sort();
+  const allPeriods=[...new Set(settle.map(r=>periodMonth(r.period)))].sort();
   const platforms=[...new Set(settle.map(r=>r.platform))].sort();
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
   let filterPubName=null,filterCpName=null;
@@ -2920,7 +2957,7 @@ function _revBaseFilter(prefix){
     return true;
   });
   const data=settle.filter(r=>{
-    if(r.period<startF||r.period>endF)return false;
+    if(periodMonth(r.period)<startF||periodMonth(r.period)>endF)return false;
     if(filterPubName&&r.pub!==filterPubName)return false;
     if(filterCpName&&r.cp!==filterCpName)return false;
     if(filterGameName&&r.game!==filterGameName)return false;
@@ -3007,7 +3044,7 @@ function pgCashRevDashboard(){
     slot.finalRev+=finalOf(k,x.cashRev);
     slot.cnt++;
   });
-  const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
+  const periodSummaries=Object.values(byPeriod).sort((a,b)=>periodStart(b.period).localeCompare(periodStart(a.period)));
   const confirmedSet=window._cashRevConfirmed;
   const canConfirm=['财务人员','财务负责人/审批人','系统管理员'].includes(ROLE);
   const inRange=k=>{const p=k.split('__')[0];return p>=startF&&p<=endF;};
@@ -3118,7 +3155,7 @@ function pgVRevDashboard(){
   const total=flatRows.reduce((s,x)=>s+x.vRev,0);
   const byPeriod={};
   flatRows.forEach(x=>{(byPeriod[x.r.period]=byPeriod[x.r.period]||{period:x.r.period,vRev:0,cnt:0}).vRev+=x.vRev;byPeriod[x.r.period].cnt++;});
-  const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
+  const periodSummaries=Object.values(byPeriod).sort((a,b)=>periodStart(b.period).localeCompare(periodStart(a.period)));
   const confirmedSet=window._vRevConfirmed;
   const canConfirm=['业务运营','业务负责人','系统管理员'].includes(ROLE);
   const totalKeys=flatRows.map(x=>appKey(x.r.period,x.r.game,x.r.platform,x.mapping));
@@ -3236,13 +3273,13 @@ function pgCostDashboard(){
   const endF=window._cdEnd||'2026-04';
   const platF=window._cdPlat||'all';
   const gameF=window._cdGame||'all';
-  const allPeriods=[...new Set(settle.map(r=>r.period))].sort();
+  const allPeriods=[...new Set(settle.map(r=>periodMonth(r.period)))].sort();
   const platforms=[...new Set(settle.map(r=>r.platform))].sort();
   const {visiblePubs,visibleGames}=visibleEntities();
   // 数据权限：联运商角色只看自己主体下的游戏；其它角色按 visibleEntities 行为
   const filterGameName=gameF==='all'?null:visibleGames.find(g=>g.id===gameF)?.name||null;
   let data=settle.filter(r=>{
-    if(r.period<startF||r.period>endF)return false;
+    if(periodMonth(r.period)<startF||periodMonth(r.period)>endF)return false;
     if(filterGameName&&r.game!==filterGameName)return false;
     if(platF!=='all'&&r.platform!==platF)return false;
     const pubOk=visiblePubs.length===0||visiblePubs.find(p=>p.name===r.pub);
@@ -3272,7 +3309,7 @@ function pgCostDashboard(){
     byPeriod[x.r.period].vCost+=x.vCost;
     byPeriod[x.r.period].cnt++;
   });
-  const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
+  const periodSummaries=Object.values(byPeriod).sort((a,b)=>periodStart(b.period).localeCompare(periodStart(a.period)));
   // 明细行（成本需联运商 + 业务双方按平台应用确认）
   syncCostConfirmed();
   const pubSet=window._costPubConfirmed;
@@ -3475,14 +3512,14 @@ function openCostDailyDetail(game,platform,period){
  * 角色：财务/管理员可确认；其他角色只读
  */
 function pgCloudCost(){
-  const allPeriodsAsc=[...new Set(settle.map(r=>r.period))].sort();
+  const allPeriodsAsc=[...new Set(settle.map(r=>periodMonth(r.period)))].sort();
   const startF=window._ccStart||'2026-04';
   const endF=window._ccEnd||'2026-04';
   const gameF=window._ccGame||'all';
   // 按账期 × 游戏 × 项目聚合（多对一：一个游戏可绑多个项目，则同账期同游戏拆为多行，每个项目分摊一份成本）
   const rowMap={};
   settle.forEach(r=>{
-    if(r.period<startF||r.period>endF)return;
+    if(periodMonth(r.period)<startF||periodMonth(r.period)>endF)return;
     const g=games.find(x=>x.name===r.game);
     if(!g)return;
     const ids=getGameCloudIds(g);
@@ -3497,7 +3534,7 @@ function pgCloudCost(){
       rowMap[k].cost+=perCost;
     });
   });
-  const rows=Object.values(rowMap).sort((a,b)=>b.period.localeCompare(a.period)||a.gameId.localeCompare(b.gameId));
+  const rows=Object.values(rowMap).sort((a,b)=>periodStart(b.period).localeCompare(periodStart(a.period))||a.gameId.localeCompare(b.gameId));
   const totalCost=rows.reduce((s,r)=>s+r.cost,0);
   const confirmedCnt=rows.filter(r=>(window._cloudCostConfirmed||new Set()).has(r.key)).length;
   const pendingCnt=rows.length-confirmedCnt;
@@ -3656,7 +3693,7 @@ function pgSettlePub(){
 /* Tab A：已出账账期（月度汇总） */
 function pgSettlePubClosed(){
   const ent=parsedEntity();
-  const allPeriodsAsc=[...new Set(settle.map(r=>r.period))].sort();
+  const allPeriodsAsc=[...new Set(settle.map(r=>periodMonth(r.period)))].sort();
   const startF=window._spStart||'2026-04';
   const endF=window._spEnd||'2026-04';
   const platF=window._spPlat||'all';
@@ -3664,7 +3701,7 @@ function pgSettlePubClosed(){
   let data=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
   if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
   if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
-  data=data.filter(r=>r.period>=startF&&r.period<=endF);
+  data=data.filter(r=>periodMonth(r.period)>=startF&&periodMonth(r.period)<=endF);
   if(platF!=='all')data=data.filter(r=>r.platform===platF);
   const cashSet=window._cashRevConfirmed||new Set();
   const vSet=window._vRevConfirmed||new Set();
@@ -3753,7 +3790,7 @@ function pgSettlePubClosed(){
     const pubVShared=Math.round(ps.pubV*sh);
     const corrTag=r._corrected?'<span title="该账期现金收入已被财务更正" style="display:inline-block;margin-left:4px;color:var(--orange);font-size:11px;font-weight:700">✎</span>':'';
     return `<tr ${rowStyle}>
-      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
+      <td style="white-space:nowrap">${periodLabel(r.period)}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
       <td>${appCell}</td>
       <td>${cashOk?mn(cashRev)+corrTag:dash}</td><td>${vOk?mn(vRev):dash}</td>
       <td>${costOk?mn(cost):dash}</td><td>${costOk?mn(cashCost):dash}</td><td>${costOk?mn(vCost):dash}</td>
@@ -3850,12 +3887,12 @@ function openDailyDetail(key,period,game,platform,pub){
 function pgSettleCp(){
   // 新规则：按游戏一行汇总；点击展开看平台明细。云成本按游戏聚合（不按平台拆分）
   const ent=parsedEntity();
-  const allPeriodsAsc=[...new Set(settle.map(r=>r.period))].sort();
+  const allPeriodsAsc=[...new Set(settle.map(r=>periodMonth(r.period)))].sort();
   const startF=window._cpStart||(allPeriodsAsc[allPeriodsAsc.length-1]||'2026-04');
   const endF=window._cpEnd||(allPeriodsAsc[allPeriodsAsc.length-1]||'2026-04');
 
   // 收集 (period × game × cp) 唯一组合
-  let rows=settle.filter(r=>r.period>=startF&&r.period<=endF);
+  let rows=settle.filter(r=>periodMonth(r.period)>=startF&&periodMonth(r.period)<=endF);
   if(FILTER_GAME!=='all')rows=rows.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
   if(ent.type==='pub')rows=rows.filter(r=>r.pub===ent.name);
   if(ent.type==='cp')rows=rows.filter(r=>r.cp===ent.name);
@@ -5015,7 +5052,7 @@ function _renderStmtBreakdown(stmtSn,stmtKeys){
     sumCashRev+=cashRev;sumVRev+=vRev;sumTotalRev+=totalRev;sumCost+=cost;sumCashCost+=cashCost;sumCashP+=cashP;sumPubCash+=ps.pubCash;
     const tierTag=ps.tierApplied?'阶梯Ⅱ':(ps.rule&&ps.rule.tierEnabled?'阶梯Ⅰ':'—');
     return `<tr>
-      <td class="sbk-c">${r.period}</td>
+      <td class="sbk-c" style="white-space:nowrap">${periodLabel(r.period)}</td>
       <td class="sbk-l">《${r.game}》</td>
       <td class="sbk-c">${r.platform}</td>
       <td class="sbk-n">${mn(cashRev)}</td>
