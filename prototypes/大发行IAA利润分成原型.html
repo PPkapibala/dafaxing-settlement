@@ -30,6 +30,8 @@
 .login-btn:hover{background:#174f9f}
 .login-tip{font-size:12px;color:var(--weak);text-align:center;margin-top:14px;line-height:1.7}
 .login-err{background:var(--redBg);border:1px solid #f8b4b4;border-radius:var(--r2);padding:8px 12px;color:var(--red);font-size:12.5px;margin-bottom:12px;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 /* 未授权等待页 */
 .unauth-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:40px}
 .unauth-icon{font-size:52px;margin-bottom:18px;opacity:.4}
@@ -59,7 +61,7 @@
   <div class="login-box">
     <div class="login-hd">
       <div class="title">游戏发行结算平台</div>
-      <div class="sub">IAA PROFIT SHARING PLATFORM</div>
+      <div class="sub">GAME PUBLISHING SETTLEMENT PLATFORM</div>
     </div>
     <div class="login-body">
       <div class="login-tabs">
@@ -69,19 +71,26 @@
       <div id="loginErr" class="login-err"></div>
       <!-- SSO -->
       <div id="loginPanelSso">
-        <div id="ssoIdentityCard" style="background:linear-gradient(135deg,#f0f6ff 0%,#e6f0ff 100%);border:1px solid #c8daf4;border-radius:8px;padding:18px 18px 16px;margin-bottom:14px">
+        <!-- 身份卡：初始隐藏，识别完成后显示 -->
+        <div id="ssoIdentityCard" style="display:none;background:linear-gradient(135deg,#f0f6ff 0%,#e6f0ff 100%);border:1px solid #c8daf4;border-radius:8px;padding:18px 18px 16px;margin-bottom:14px;animation:fadeUp .22s ease both">
           <div style="display:flex;align-items:center;gap:12px">
             <div id="ssoAvatar" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0">—</div>
             <div style="flex:1;min-width:0">
               <div style="font-size:11px;color:#5871a0;letter-spacing:.04em;margin-bottom:3px">已识别企业身份</div>
-              <div id="ssoIdentityName" style="font-size:15px;font-weight:800;color:#1a3666;line-height:1.3">检测中…</div>
+              <div id="ssoIdentityName" style="font-size:15px;font-weight:800;color:#1a3666;line-height:1.3">—</div>
               <div id="ssoIdentityAcc" style="font-size:12px;color:#5871a0;font-family:monospace;margin-top:2px">—</div>
             </div>
             <span style="background:#dcfce7;border:1px solid #86efac;color:#166534;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">●&nbsp;在线</span>
           </div>
         </div>
-        <button class="login-btn" onclick="doLoginSSO()">一键登录</button>
-        <div class="login-tip">系统已自动识别当前 Windows / 企业目录账号<br>无需输入账号密码<br><span style="display:inline-block;margin-top:6px;color:#7b8aad;font-size:11.5px">非本人？<a href="javascript:void(0)" onclick="switchSsoIdentity()" style="color:var(--primary);text-decoration:underline">切换账号</a></span></div>
+        <!-- 识别中状态 -->
+        <div id="ssoDetecting" style="display:none;flex-direction:column;align-items:center;padding:18px 0 8px;gap:12px;animation:fadeUp .22s ease both">
+          <div style="width:34px;height:34px;border-radius:50%;border:3px solid #bae7ff;border-top-color:#1890ff;animation:spin .8s linear infinite"></div>
+          <span style="font-size:13px;color:#8c9ab5;letter-spacing:.03em">正在识别企业身份...</span>
+        </div>
+        <!-- 按钮：初始「一键登录」，识别完成后变「确认登录」 -->
+        <button class="login-btn" id="ssoLoginBtn" onclick="startSsoDetect()">一键登录</button>
+        <div class="login-tip">系统将自动识别当前 Windows / 企业目录账号<br>无需输入账号密码</div>
       </div>
       <!-- SMS -->
       <div id="loginPanelSms" style="display:none">
@@ -104,7 +113,7 @@
 </div>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><div class="name">游戏发行结算平台</div><div class="sub">IAA PROFIT SHARING · V1 PROTOTYPE</div></div>
+    <div class="brand"><div class="name">游戏发行结算平台</div><div class="sub">GAME PUBLISHING SETTLEMENT PLATFORM</div></div>
     <div class="nav" id="navEl"></div>
   </aside>
   <main class="main">
@@ -627,6 +636,28 @@ function renderSsoIdentity(){
   if(nm)nm.textContent=`${u.display||u.account}${u.role?`　·　${u.role}`:''}`;
   if(ac)ac.textContent=`${u.account}　|　${u.phone||''}`;
 }
+function resetSsoLoginFlow(){
+  const card=document.getElementById('ssoIdentityCard');
+  const detecting=document.getElementById('ssoDetecting');
+  const btn=document.getElementById('ssoLoginBtn');
+  if(card)card.style.display='none';
+  if(detecting)detecting.style.display='none';
+  if(btn){btn.textContent='一键登录';btn.onclick=startSsoDetect;btn.disabled=false;}
+}
+function startSsoDetect(){
+  const card=document.getElementById('ssoIdentityCard');
+  const detecting=document.getElementById('ssoDetecting');
+  const btn=document.getElementById('ssoLoginBtn');
+  if(card)card.style.display='none';
+  if(detecting)detecting.style.display='flex';
+  if(btn){btn.style.display='none';}
+  setTimeout(()=>{
+    detectSsoIdentity();
+    if(detecting)detecting.style.display='none';
+    if(card)card.style.display='block';
+    if(btn){btn.style.display='block';btn.textContent='确认登录';btn.onclick=doLoginSSO;}
+  },1600);
+}
 function switchSsoIdentity(){
   const ssoUsers=USER_DB.filter(u=>u.loginType==='sso');
   const cur=_ssoIdentity?ssoUsers.findIndex(u=>u.account===_ssoIdentity.account):-1;
@@ -726,6 +757,7 @@ function parseDataPerm(p){
   }
   if(p.startsWith('app:'))return{kind:'app',mappingId:p.slice(4)};
   if(p.startsWith('cg:'))return{kind:'cg',gameId:p.slice(3)};
+  if(p.startsWith('ig:'))return{kind:'ig',gameId:p.slice(3)};
   if(p.startsWith('pub:'))return{kind:'pub',id:p.slice(4)};
   if(p.startsWith('cp:'))return{kind:'cp',id:p.slice(3)};
   return null;
@@ -759,7 +791,7 @@ function visibleGamePlatforms(){
     else if(it.kind==='app'){
       const m=pubMappings.find(x=>x.id===it.mappingId);
       if(m)set.add(`${m.gameId}__${m.platform}`);
-    }else if(it.kind==='cg'){
+    }else if(it.kind==='ig'||it.kind==='cg'){
       pubMappings.filter(m=>m.gameId===it.gameId).forEach(m=>set.add(`${m.gameId}__${m.platform}`));
     }
   });
@@ -775,7 +807,7 @@ function visibleMappingIds(){
     if(it.kind==='app')set.add(it.mappingId);
     else if(it.kind==='gp'){
       pubMappings.filter(m=>m.gameId===it.gameId&&m.platform===it.platform).forEach(m=>set.add(m.id));
-    }else if(it.kind==='cg'){
+    }else if(it.kind==='ig'||it.kind==='cg'){
       pubMappings.filter(m=>m.gameId===it.gameId).forEach(m=>set.add(m.id));
     }
   });
@@ -789,9 +821,9 @@ function visibleEntities(){
   }
   const gp=visibleGamePlatforms();
   const {pubIds:explicitPubs,cpIds:explicitCps}=_entityPermsOf(dp);
-  // 显式 cg: 项收集游戏
+  // 显式 cg:/ig: 项收集游戏
   const explicitCgGames=new Set();
-  (dp||[]).forEach(p=>{const it=parseDataPerm(p);if(it&&it.kind==='cg')explicitCgGames.add(it.gameId);});
+  (dp||[]).forEach(p=>{const it=parseDataPerm(p);if(it&&(it.kind==='cg'||it.kind==='ig'))explicitCgGames.add(it.gameId);});
   // gp / app 反推主体+游戏
   const inferredPubIds=new Set();
   const inferredGameIds=new Set([...explicitCgGames]);
@@ -817,7 +849,7 @@ function visibleEntities(){
 
 function renderPage(){
   const map={games:pgGames,platformApps:pgPlatformApps,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgPubRules,pubRules:pgPubRules,cpRules:pgCpRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,cloudCost:pgCloudCost,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,statements:pgStatements,invoices:pgInvoices,idsAccounts:pgIdsAccounts,syncTasks:pgSyncTasks,bpmApprovers:pgBpmApprovers,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'联运授权',cpMapping:'CP合作',publishers:'联运商',cps:'CP',rules:'联运商分成规则',pubRules:'联运商分成规则',cpRules:'CP分成规则',cashRev:'现金收入确认',vRev:'广告金收入确认',costDashboard:'投放成本确认',cloudCost:'云服务成本确认',dailyRecon:'每日收支预估',settlePub:'联运商分账明细',settleCp:'CP分账明细',balance:'账户流水',payments:'付款单管理',myPayments:'付款申请',statements:'对账单管理',invoices:'票据管理',idsAccounts:'出账账户',syncTasks:'数据同步任务',bpmApprovers:'审批人配置',permConfig:'权限配置',userMgmt:'用户管理'};
+  const pageTitles={games:'游戏管理',platformApps:'平台应用',pubMapping:'联运授权',cpMapping:'CP合作',publishers:'联运商',cps:'CP',rules:'联运商分成规则',pubRules:'联运商分成规则',cpRules:'CP分成规则',cashRev:'现金收入确认',vRev:'广告金收入确认',costDashboard:'投放成本确认',cloudCost:'云服务成本确认',dailyRecon:'每日收支预估',settlePub:'联运商分账明细',settleCp:'CP分账明细',balance:'账户流水',payments:'付款单管理',myPayments:'付款申请',statements:'对账单管理',invoices:'票据管理',idsAccounts:'出账账户',syncTasks:'数据同步任务',bpmApprovers:'审批人配置',permConfig:'权限配置',userMgmt:'用户管理'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -3910,11 +3942,15 @@ function pgSettleCp(){
     const cloudOk=_cloudOkForAgg(a);
     const dash='<span style="color:var(--weak)">—</span>';
     const ready=a.allReady && cloudOk;
+    const finConfirmed=(window._cpFinConfirmed||new Set()).has(eid);
+    const recalcTime=(window._cpRecalcTime||new Map()).get(eid);
     const statusBadge=!a.allReady
       ? `<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待三方确认 ${a.notReadyCnt}/${a.totalRows}</span>`
       : (!cloudOk
           ? `<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待云成本确认</span>`
-          : `<span class="tag green" style="font-size:11px">✓ 已确认</span>`);
+          : (!finConfirmed
+              ? `<span class="tag" style="background:#e8f4ff;color:#1a4a80;font-size:11px;border:1px solid #b0d4f5">待财务确认${recalcTime?'<span style="font-weight:400"> · 已重算</span>':''}</span>`
+              : `<span class="tag green" style="font-size:11px">✓ 财务已确认</span>`));
     const cpCashCell = ready
       ? `<span style="font-weight:800;color:${a.cpCash<0?'var(--red)':'var(--text)'}">${mn(a.cpCash)}</span>${a.cpCash<0?'<div style="font-size:10.5px;color:var(--red);font-weight:400">▼ 负值·下账期冲抵</div>':''}`
       : dash;
@@ -3938,7 +3974,10 @@ function pgSettleCp(){
       <td>${cpCashCell}</td>
       <td>${cpVCell}</td>
       <td>${statusBadge}</td>
-      <td><button class="link" onclick="openCpSettleDetail('${eid}')">详情</button></td>
+      <td>
+        <button class="link" onclick="openCpSettleDetail('${eid}')">详情</button>
+        ${ready&&!finConfirmed&&canFin()?`<button class="link" style="color:#7a52b3;margin-left:6px" onclick="recalcCpSettle('${eid}')">重新计算</button><button class="link" style="color:var(--primary);font-weight:700;margin-left:6px" onclick="openCpFinConfirmModal('${eid}')">财务确认</button>`:''}
+      </td>
     </tr>`;
   });
 
@@ -3965,6 +4004,7 @@ function pgSettleCp(){
     <span style="display:inline-block;margin:0 6px"><b>③ 结果可为负</b>：负值在下账期与新结果合并冲抵，不当期支付</span><br/>
     <span style="display:inline-block;margin:0 6px;color:var(--muted)">CP 占比以「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置 · CP 部分</button>」中每条规则的「CP 占比%」为准（按游戏配置）</span>
   </div>
+  <div class="notice" style="border-color:#b0d4f5;background:#e8f4ff;color:#1a4a80;margin-top:0">⚠ <b>财务确认机制：</b>三方确认 + 云成本确认后，进入「待财务确认」状态。若存在联运商规则后补导致部分联运商出账晚于其他联运商，财务可点击「重新计算」汇总最新出账数据，核查所有联运商均已出账后，点击「财务确认」锁定最终 CP 分账金额。财务确认后不再随新增联运商出账自动变动。</div>
   ${tbl(['账期','游戏','CP','明细数','Σ 现金利润','Σ 联运商分掉','云服务成本','现金分账基数','Σ 广告金利润','Σ 联运商分掉','广告金分账基数','CP 占比','CP 现金分账','CP 广告金分账','状态','操作'],tableRows,{pageKey:'settleCp'})}`;
 }
 
@@ -4000,11 +4040,16 @@ function openCpSettleDetail(eid){
     <td style="text-align:right">${mn(pr.vP)}</td>
     <td style="text-align:right">${mn(pr.pubV)}</td>
   </tr>`).join('');
+  const finKey=`${period}__${gameName}__${cpName}`;
+  const finConfirmed=(window._cpFinConfirmed||new Set()).has(finKey);
+  const recalcTime=(window._cpRecalcTime||new Map()).get(finKey);
   const statusTag=!a.allReady
     ? `<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待三方确认 ${a.notReadyCnt}/${a.totalRows}</span>`
     : (!cloudOk
         ? `<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待云成本确认</span>`
-        : `<span class="tag green" style="font-size:11px">✓ 已确认</span>`);
+        : (!finConfirmed
+            ? `<span class="tag" style="background:#e8f4ff;color:#1a4a80;font-size:11px;border:1px solid #b0d4f5">待财务确认${recalcTime?` · <span style="font-weight:400">已重算 ${recalcTime}</span>`:''}</span>`
+            : `<span class="tag green" style="font-size:11px">✓ 财务已确认</span>`));
   const cashCpStr=ready?`${mn(a.cpCash)}${a.cpCash<0?' <span style="color:var(--red);font-size:11px">▼ 负值·下账期冲抵</span>':''}`:'<span style="color:var(--weak)">—</span>';
   const vCpStr=ready?`${mn(a.cpV)}${a.cpV<0?' <span style="color:var(--red);font-size:11px">▼ 负值·下账期冲抵</span>':''}`:'<span style="color:var(--weak)">—</span>';
   const cloudNote=a.shareServer?'已扣减':'未扣减（规则未启用）';
@@ -4052,7 +4097,90 @@ function openCpSettleDetail(eid){
         </div>
       </div>
     </div>`;
-  openModal(`CP 分账详情 · 《${a.gameName}》· ${a.period}`,body);
+  openModal(`CP 分账详情 · 《${a.gameName}》· ${a.period}`,body,
+    `<button class="btn g" onclick="closeModal()">关闭</button>`+
+    (ready&&!finConfirmed&&canFin()
+      ?` <button class="btn" style="background:#7a52b3;color:#fff" onclick="closeModal();recalcCpSettle('${finKey}')">重新计算</button> <button class="btn p" onclick="closeModal();openCpFinConfirmModal('${finKey}')">财务确认</button>`
+      :''));
+}
+
+/* 财务确认弹窗：展示该游戏×账期所有联运商出账清单，供财务逐一核查 */
+function openCpFinConfirmModal(eid){
+  if(!canFin()){alert('仅财务人员可执行财务确认');return;}
+  const [period,gameName,cpName]=eid.split('__');
+  const a=calcCpSettleByGame(period,gameName,cpName);
+  if(!a){alert('未找到分账记录');return;}
+  const cloudOk=_cloudOkForAgg(a);
+  const recalcTime=(window._cpRecalcTime||new Map()).get(eid);
+
+  // 联运商出账清单：按 pub×platform 行展开
+  const rows=settle.filter(r=>r.period===period&&r.game===gameName&&r.cp===cpName);
+  const settledCnt=rows.filter(r=>isSettleReady(r.period,r.game,r.platform)).length;
+  const listRows=rows.map(r=>{
+    const ok=isSettleReady(r.period,r.game,r.platform);
+    const ps=calcPubSettle(r);
+    return `<tr style="${ok?'':'background:#fffbf5'}">
+      <td>${r.pub}</td>
+      <td>${r.platform}</td>
+      <td>${ok
+        ?'<span class="tag green" style="font-size:11px">✓ 已出账</span>'
+        :'<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">未出账</span>'}</td>
+      <td style="text-align:right">${ok?mn(ps.pubCash):'—'}</td>
+      <td style="text-align:right">${ok?mn(ps.pubV):'—'}</td>
+    </tr>`;
+  }).join('');
+  const allOut=settledCnt===rows.length;
+
+  const body=`
+    <div class="notice" style="border-color:#b0d4f5;background:#e8f4ff;color:#1a4a80;margin-bottom:12px">
+      <b>核查目的：</b>若存在联运商分账规则后补情况，CP 分账可能基于不完整的联运商集合计算。请确认下方所有联运商均已出账后再锁定 CP 分账金额。
+    </div>
+    <div class="kv" style="margin-bottom:12px">
+      <span class="k">账期</span><span class="v" style="font-weight:700">${period}</span>
+      <span class="k">游戏</span><span class="v">《${gameName}》</span>
+      <span class="k">CP</span><span class="v">${cpName}</span>
+      <span class="k">重新计算</span><span class="v">${recalcTime?`${recalcTime}`:'<span style="color:var(--muted)">尚未手动重算（使用实时数据）</span>'}</span>
+    </div>
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin:12px 0 6px">📋 联运商出账清单（${settledCnt} / ${rows.length} 已出账）</div>
+    <div class="tw"><table class="table">
+      <thead><tr>
+        <th>联运商</th><th>平台</th><th>出账状态</th>
+        <th style="text-align:right">联运商现金分账</th>
+        <th style="text-align:right">联运商广告金分账</th>
+      </tr></thead>
+      <tbody>${listRows||'<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--weak)">无记录</td></tr>'}</tbody>
+    </table></div>
+    ${!allOut?`<div class="notice" style="border-color:#ffcdd2;background:#fff5f5;color:#c0392b;margin-top:10px">⚠ 尚有 <b>${rows.length-settledCnt}</b> 个联运商未完成出账。若确认后续不再补充，可继续确认；否则建议等待所有联运商出账后再操作。</div>`:''}
+    <div style="background:#fafdff;border:1px solid #cfe0f5;border-radius:8px;padding:12px 14px;margin-top:12px;font-size:12.5px">
+      <div style="font-weight:700;color:#1a4a80;margin-bottom:6px">💰 当前 CP 分账计算结果</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><span style="color:var(--muted)">CP 现金分账：</span><b style="font-size:14px;color:${a.cpCash<0?'var(--red)':'var(--text)'}">${mn(a.cpCash)}</b></div>
+        <div><span style="color:var(--muted)">CP 广告金分账：</span><b style="font-size:14px;color:${a.cpV<0?'var(--red)':'var(--text)'}">${mn(a.cpV)}</b></div>
+      </div>
+    </div>`;
+
+  openModal(`财务确认 CP 分账 · 《${gameName}》· ${period}`,body,
+    `<button class="btn g" onclick="closeModal()">取消</button> <button class="btn" style="background:#7a52b3;color:#fff" onclick="closeModal();recalcCpSettle('${eid}')">重新计算</button> <button class="btn p" onclick="doCpFinConfirm('${eid}')">${allOut?'确认并锁定':'仍然确认并锁定'}</button>`);
+}
+
+function doCpFinConfirm(eid){
+  if(!canFin()){alert('仅财务人员可执行财务确认');return;}
+  if(!window._cpFinConfirmed)window._cpFinConfirmed=new Set();
+  window._cpFinConfirmed.add(eid);
+  closeModal();
+  alert('CP 分账已财务确认并锁定。');
+  document.getElementById('contentEl').innerHTML=pgSettleCp();
+}
+
+function recalcCpSettle(eid){
+  if(!canFin()){alert('仅财务人员可触发重新计算');return;}
+  if(!window._cpRecalcTime)window._cpRecalcTime=new Map();
+  const now=new Date();
+  const ts=`${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  window._cpRecalcTime.set(eid,ts);
+  document.getElementById('contentEl').innerHTML=pgSettleCp();
+  const [,,gameName]=eid.split('__');
+  alert(`《${gameName}》CP 分账已重新计算（${ts}）。\n计算基于当前所有已出账联运商数据，请确认联运商清单无遗漏后执行「财务确认」。`);
 }
 
 /* PAGE: 账户打款流水 */
@@ -5832,6 +5960,9 @@ function pgUserMgmt(){
         if(it.kind==='app'){
           const m=pubMappings.find(x=>x.id===it.mappingId);
           if(m){const appId=m.platform==='微信小游戏'?m.wxAppId:m.dyAppId;items.push({label:`${m.appName||appId}`,full:`《${m.game}》·${m.platform}·${appId}`});}
+        }else if(it.kind==='ig'){
+          const g=games.find(x=>x.id===it.gameId);
+          if(g)items.push({label:`《${g.name}》`,full:`《${g.name}》`});
         }else if(it.kind==='cg'){
           const g=games.find(x=>x.id===it.gameId);
           if(g)items.push({label:`《${g.name}》`,full:`《${g.name}》（CP游戏）`});
@@ -5977,11 +6108,19 @@ function openGrantData(uid){
   });
   const isPub=u.role==='联运商';
   const isCp=u.role==='CP';
+  // 内部角色：解析 ig: 或将旧 gp: 归并为游戏粒度
+  const igGameIds=new Set();
+  (u.dataPerms||[]).forEach(p=>{
+    const it=parseDataPerm(p);if(!it)return;
+    if(it.kind==='ig')igGameIds.add(it.gameId);
+    else if(it.kind==='gp')igGameIds.add(it.gameId); // 旧数据兼容：gp 归并到游戏级
+  });
   window._dpState={
     uid,kw:'',gameF:'all',platF:'all',page:1,pageSize:10,
     selectedApps:appIds,         // 联运商：平台应用 mapping.id
     selectedGames:cgGameIds,     // CP：游戏 id
-    selectedGp:gpKeys,           // 兼容：内部角色保留 gp 颗粒度
+    selectedIg:igGameIds,        // 内部角色：游戏 id
+    selectedGp:gpKeys,           // 兼容旧数据（不再写入）
     selectedPubs:new Set([...pubIds]),
     selectedCps:new Set([...cpIds]),
     isPub,isCp,
@@ -6037,6 +6176,7 @@ function _dpCollectChecks(){
     let target=null;
     if(kind==='app')target=st.selectedApps;
     else if(kind==='cg')target=st.selectedGames;
+    else if(kind==='ig')target=st.selectedIg;
     else if(kind==='gp')target=st.selectedGp;
     if(!target)return;
     if(cb.checked)target.add(v);else target.delete(v);
@@ -6191,46 +6331,35 @@ function _renderDpRowsForCp(){
   return {empty:false,html};
 }
 
-// 内部角色：游戏×平台粒度（沿用旧逻辑，使用 gp: 前缀）
+// 内部角色：游戏粒度（一行一个游戏，使用 ig: 前缀）
 function _renderDpRowsForInternal(){
   const st=window._dpState;
-  // 全集：去重 game × platform
-  const rows=[];const seen=new Set();
-  pubMappings.forEach(m=>{
-    const k=`${m.gameId}__${m.platform}`;if(seen.has(k))return;seen.add(k);
-    const pubs=[...new Set(pubMappings.filter(x=>x.gameId===m.gameId&&x.platform===m.platform).map(x=>x.pub))].join(' · ');
-    rows.push({gameId:m.gameId,gameName:m.game,platform:m.platform,pubs,v:k});
-  });
   const kw=(st.kw||'').trim().toLowerCase();
-  const filtered=rows.filter(r=>{
-    if(kw&&!r.gameName.toLowerCase().includes(kw)&&!r.gameId.toLowerCase().includes(kw))return false;
-    if(st.gameF!=='all'&&r.gameId!==st.gameF)return false;
-    if(st.platF!=='all'&&r.platform!==st.platF)return false;
+  const rows=games.filter(g=>{
+    if(kw&&!g.name.toLowerCase().includes(kw)&&!g.id.toLowerCase().includes(kw))return false;
+    if(st.gameF!=='all'&&g.id!==st.gameF)return false;
     return true;
   });
-  const total=filtered.length;
+  const total=rows.length;
   const totalPages=Math.max(1,Math.ceil(total/st.pageSize));
   if(st.page>totalPages)st.page=totalPages;
   const start=(st.page-1)*st.pageSize;
-  const pageRows=filtered.slice(start,start+st.pageSize);
-  const allOnPageChecked=pageRows.length>0&&pageRows.every(r=>st.selectedGp.has(r.v));
-  const tableBody=pageRows.length?pageRows.map(r=>{
-    const checked=st.selectedGp.has(r.v);
+  const pageRows=rows.slice(start,start+st.pageSize);
+  const allOnPageChecked=pageRows.length>0&&pageRows.every(g=>st.selectedIg.has(g.id));
+  const tableBody=pageRows.length?pageRows.map(g=>{
+    const checked=st.selectedIg.has(g.id);
+    const platBadges=(g.platforms||[]).map(p=>p==='微信小游戏'?'<span class="tag green" style="font-size:11px">微小</span>':'<span class="tag blue" style="font-size:11px">抖小</span>').join(' ');
     return `<tr>
-      <td style="width:40px;text-align:center"><input type="checkbox" class="dpCheck" data-kind="gp" value="${r.v}" ${checked?'checked':''} style="accent-color:var(--primary)"></td>
-      <td style="font-family:monospace;font-size:11.5px;color:var(--muted)">${r.gameId}</td>
-      <td><b>《${r.gameName}》</b></td>
-      <td>${r.platform}</td>
-      <td style="color:var(--muted);font-size:12px">${r.pubs||'—'}</td>
+      <td style="width:40px;text-align:center"><input type="checkbox" class="dpCheck" data-kind="ig" value="${g.id}" ${checked?'checked':''} style="accent-color:var(--primary)"></td>
+      <td style="font-family:monospace;font-size:11.5px;color:var(--muted)">${g.id}</td>
+      <td><b>《${g.name}》</b></td>
+      <td>${platBadges||'—'}</td>
     </tr>`;
-  }).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--weak);padding:20px">无匹配的游戏-平台组合</td></tr>';
-  const gameList=[...new Set(rows.map(r=>r.gameId))];
-  const gameOpts=gameList.map(gid=>{const g=games.find(x=>x.id===gid);return `<option value="${gid}" ${st.gameF===gid?'selected':''}>${g?g.name:gid}</option>`;}).join('');
-  const platList=[...new Set(rows.map(r=>r.platform))];
-  const platOpts=platList.map(p=>`<option value="${p}" ${st.platF===p?'selected':''}>${p}</option>`).join('');
+  }).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--weak);padding:20px">无匹配游戏</td></tr>';
+  const gameOpts=games.map(g=>`<option value="${g.id}" ${st.gameF===g.id?'selected':''}>${g.name}</option>`).join('');
   const pageBtn=(n,label,disabled)=>`<button class="btn g sm" ${disabled?'disabled':''} onclick="window._dpState.page=${n};_dpRerender()">${label}</button>`;
   const pager=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:var(--muted)">
-    <div>共 <b>${total}</b> 条（已选 <b style="color:var(--primary)">${st.selectedGp.size}</b> 条）</div>
+    <div>共 <b>${total}</b> 个游戏（已选 <b style="color:var(--primary)">${st.selectedIg.size}</b> 个）</div>
     <div style="display:flex;align-items:center;gap:6px">
       ${pageBtn(1,'« 首页',st.page===1)}
       ${pageBtn(Math.max(1,st.page-1),'‹ 上一页',st.page===1)}
@@ -6239,18 +6368,17 @@ function _renderDpRowsForInternal(){
       ${pageBtn(totalPages,'末页 »',st.page===totalPages)}
     </div>
   </div>`;
-  const html=`<div class="sec-title" style="margin-top:0">游戏 × 平台权限</div>
+  const html=`<div class="sec-title" style="margin-top:0">游戏权限</div>
     <div class="filter" style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <input class="input" id="dpKwInput" style="width:180px" placeholder="搜索游戏名称 / ID…" value="${st.kw||''}" oninput="window._dpState.kw=this.value;window._dpState.page=1;_dpRerender();const i=document.getElementById('dpKwInput');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}"/>
       <select class="select" onchange="window._dpState.gameF=this.value;window._dpState.page=1;_dpRerender()"><option value="all" ${st.gameF==='all'?'selected':''}>全部游戏</option>${gameOpts}</select>
-      <select class="select" onchange="window._dpState.platF=this.value;window._dpState.page=1;_dpRerender()"><option value="all" ${st.platF==='all'?'selected':''}>全部平台</option>${platOpts}</select>
-      <button class="btn g sm" onclick="_dpCollectChecks();[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=true;window._dpState.selectedGp.add(cb.value)});_dpRerender()" title="全选当前页">✓ 本页全选</button>
-      <button class="btn g sm" onclick="_dpCollectChecks();[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=false;window._dpState.selectedGp.delete(cb.value)});_dpRerender()" title="清空当前页">✕ 本页清空</button>
-      <button class="btn g sm" onclick="if(confirm('确认清空全部勾选？')){window._dpState.selectedGp=new Set();_dpRerender()}">清空全部</button>
+      <button class="btn g sm" onclick="_dpCollectChecks();[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=true;window._dpState.selectedIg.add(cb.value)});_dpRerender()" title="全选当前页">✓ 本页全选</button>
+      <button class="btn g sm" onclick="_dpCollectChecks();[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=false;window._dpState.selectedIg.delete(cb.value)});_dpRerender()" title="清空当前页">✕ 本页清空</button>
+      <button class="btn g sm" onclick="if(confirm('确认清空全部勾选？')){window._dpState.selectedIg=new Set();_dpRerender()}">清空全部</button>
     </div>
     <div class="tw" style="max-height:320px;overflow:auto"><table class="table" style="margin:0"><thead><tr>
-      <th style="width:40px;text-align:center"><input type="checkbox" ${allOnPageChecked?'checked':''} onchange="_dpCollectChecks();const on=this.checked;[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=on;if(on)window._dpState.selectedGp.add(cb.value);else window._dpState.selectedGp.delete(cb.value)});_dpRerender()"></th>
-      <th>游戏ID</th><th>游戏名称</th><th>平台</th><th>联运商</th>
+      <th style="width:40px;text-align:center"><input type="checkbox" ${allOnPageChecked?'checked':''} onchange="_dpCollectChecks();const on=this.checked;[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=on;if(on)window._dpState.selectedIg.add(cb.value);else window._dpState.selectedIg.delete(cb.value)});_dpRerender()"></th>
+      <th>游戏ID</th><th>游戏名称</th><th>上架平台</th>
     </tr></thead><tbody>${tableBody}</tbody></table></div>
     ${pager}`;
   return {empty:false,html};
@@ -6279,7 +6407,7 @@ function confirmGrantData(uid){
   }else if(st.isCp){
     (st.selectedGames||new Set()).forEach(id=>out.push('cg:'+id));
   }else{
-    (st.selectedGp||new Set()).forEach(v=>out.push('gp:'+v));
+    (st.selectedIg||new Set()).forEach(id=>out.push('ig:'+id));
   }
   u.dataPerms=out;
   closeModal();renderPage();
@@ -6318,7 +6446,7 @@ function confirmGrantData(uid){
   document.addEventListener('click',function(){
     document.getElementById('userCenter').classList.remove('open');
   });
-  detectSsoIdentity();
+  // SSO 识别在用户点击「一键登录」后触发，不在页面加载时自动执行
   // 原型默认展示登录页；点击登录后进入系统
   // 如需直接进入（调试），注释掉下一行，取消注释后一行
   // loginAs(USER_DB.find(u=>u.role==='系统管理员'));
