@@ -195,26 +195,36 @@ let ROLE='财务人员'; // 便于复用原有代码，从 SESSION 同步
 let PAGE='pubRules';
 // 预置已生成对账单 mock（供「对账单管理」演示）
 // paymentIds: 该对账单关联的打款单数组（按发起时间顺序）。空数组 = 尚未发起打款
+// billType: 'cash'=现金对账单，'ad'=广告金对账单
 // ⚠ 每份对账单的 keys 与 paymentIds 的金额、账期严格对齐（金额可通过 calcPubSettle 重算）
 window._generatedStatements=[
   // 终止后重发 · 2026-02 星际/抖音
-  {sn:'BS-20260304-001',keys:['2026-02__星际争霸__抖音小游戏'],createdAt:'2026-03-04 09:10:22',pub:'光速传媒',paymentIds:['PAY-202602-005','PAY-202602-009']},
+  {sn:'BS-20260304-001-CASH',keys:['2026-02__星际争霸__抖音小游戏'],billType:'cash',createdAt:'2026-03-04 09:10:22',pub:'光速传媒',paymentIds:['PAY-202602-005','PAY-202602-009']},
+  {sn:'BS-20260304-001-AD',  keys:['2026-02__星际争霸__抖音小游戏'],billType:'ad',  createdAt:'2026-03-04 09:10:22',pub:'光速传媒',paymentIds:[]},
   // 多游戏合并 · 2026-03 星辰网络
-  {sn:'BS-20260403-001',keys:['2026-03__幻境传说__微信小游戏','2026-03__萌宠大陆__微信小游戏'],createdAt:'2026-04-03 11:18:30',pub:'星辰网络',paymentIds:['PAY-202603-B01']},
+  {sn:'BS-20260403-001-CASH',keys:['2026-03__幻境传说__微信小游戏','2026-03__萌宠大陆__微信小游戏'],billType:'cash',createdAt:'2026-04-03 11:18:30',pub:'星辰网络',paymentIds:['PAY-202603-B01']},
+  {sn:'BS-20260403-001-AD',  keys:['2026-03__幻境传说__微信小游戏','2026-03__萌宠大陆__微信小游戏'],billType:'ad',  createdAt:'2026-04-03 11:18:30',pub:'星辰网络',paymentIds:[]},
   // 单笔常规 · 2026-03 光速 星际/抖音
-  {sn:'BS-20260405-001',keys:['2026-03__星际争霸__抖音小游戏'],createdAt:'2026-04-05 14:18:43',pub:'光速传媒',paymentIds:['PAY-202603-007']},
+  {sn:'BS-20260405-001-CASH',keys:['2026-03__星际争霸__抖音小游戏'],billType:'cash',createdAt:'2026-04-05 14:18:43',pub:'光速传媒',paymentIds:['PAY-202603-007']},
+  {sn:'BS-20260405-001-AD',  keys:['2026-03__星际争霸__抖音小游戏'],billType:'ad',  createdAt:'2026-04-05 14:18:43',pub:'光速传媒',paymentIds:[]},
   // 失败 → 财务重打 · 2026-03 弹球/微信
-  {sn:'BS-20260408-001',keys:['2026-03__弹球传奇__微信小游戏'],createdAt:'2026-04-08 09:32:11',pub:'灵犀互娱',paymentIds:['PAY-202603-008']},
+  {sn:'BS-20260408-001-CASH',keys:['2026-03__弹球传奇__微信小游戏'],billType:'cash',createdAt:'2026-04-08 09:32:11',pub:'灵犀互娱',paymentIds:['PAY-202603-008']},
+  {sn:'BS-20260408-001-AD',  keys:['2026-03__弹球传奇__微信小游戏'],billType:'ad',  createdAt:'2026-04-08 09:32:11',pub:'灵犀互娱',paymentIds:[]},
   // 单笔常规 · 2026-04 星辰 幻境/微信
-  {sn:'BS-20260410-001',keys:['2026-04__幻境传说__微信小游戏'],createdAt:'2026-04-10 10:05:00',pub:'星辰网络',paymentIds:['PAY-202604-001']},
+  {sn:'BS-20260410-001-CASH',keys:['2026-04__幻境传说__微信小游戏'],billType:'cash',createdAt:'2026-04-10 10:05:00',pub:'星辰网络',paymentIds:['PAY-202604-001']},
+  {sn:'BS-20260410-001-AD',  keys:['2026-04__幻境传说__微信小游戏'],billType:'ad',  createdAt:'2026-04-10 10:05:00',pub:'星辰网络',paymentIds:[]},
   // 打款中 · 2026-04 光速 星际/抖音
-  {sn:'BS-20260418-001',keys:['2026-04__星际争霸__抖音小游戏'],createdAt:'2026-04-18 13:40:11',pub:'光速传媒',paymentIds:['PAY-202604-002']},
+  {sn:'BS-20260418-001-CASH',keys:['2026-04__星际争霸__抖音小游戏'],billType:'cash',createdAt:'2026-04-18 13:40:11',pub:'光速传媒',paymentIds:['PAY-202604-002']},
+  {sn:'BS-20260418-001-AD',  keys:['2026-04__星际争霸__抖音小游戏'],billType:'ad',  createdAt:'2026-04-18 13:40:11',pub:'光速传媒',paymentIds:[]},
   // 已驳回 · 2026-04 光速 幻境/抖音（可重新发起）
-  {sn:'BS-20260419-001',keys:['2026-04__幻境传说__抖音小游戏'],createdAt:'2026-04-19 09:20:30',pub:'光速传媒',paymentIds:['PAY-202604-003']},
+  {sn:'BS-20260419-001-CASH',keys:['2026-04__幻境传说__抖音小游戏'],billType:'cash',createdAt:'2026-04-19 09:20:30',pub:'光速传媒',paymentIds:['PAY-202604-003']},
+  {sn:'BS-20260419-001-AD',  keys:['2026-04__幻境传说__抖音小游戏'],billType:'ad',  createdAt:'2026-04-19 09:20:30',pub:'光速传媒',paymentIds:[]},
   // 失败状态 · 2026-04 星辰 萌宠/微信
-  {sn:'BS-20260421-001',keys:['2026-04__萌宠大陆__微信小游戏'],createdAt:'2026-04-21 16:15:50',pub:'星辰网络',paymentIds:['PAY-202604-004']},
+  {sn:'BS-20260421-001-CASH',keys:['2026-04__萌宠大陆__微信小游戏'],billType:'cash',createdAt:'2026-04-21 16:15:50',pub:'星辰网络',paymentIds:['PAY-202604-004']},
+  {sn:'BS-20260421-001-AD',  keys:['2026-04__萌宠大陆__微信小游戏'],billType:'ad',  createdAt:'2026-04-21 16:15:50',pub:'星辰网络',paymentIds:[]},
   // 未打款 · 2026-05 星辰 幻境/微信
-  {sn:'BS-20260506-001',keys:['2026-05__幻境传说__微信小游戏'],createdAt:'2026-05-06 10:25:00',pub:'星辰网络',paymentIds:[]}
+  {sn:'BS-20260506-001-CASH',keys:['2026-05__幻境传说__微信小游戏'],billType:'cash',createdAt:'2026-05-06 10:25:00',pub:'星辰网络',paymentIds:[]},
+  {sn:'BS-20260506-001-AD',  keys:['2026-05__幻境传说__微信小游戏'],billType:'ad',  createdAt:'2026-05-06 10:25:00',pub:'星辰网络',paymentIds:[]}
 ];
 
 // 游戏筛选（非游戏管理页面共用）
@@ -391,19 +401,19 @@ const settle=[
   {period:'2026-01',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:98000,vRev:19000,cost:61000,cashCost:49410,vCost:11590,serverCost:9150,cashP:48590,vP:7410,pubRate:65,cpRate:15}
 ];
 const pays=[
-  {id:'PAY-202604-001',period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',amount:117196.10,approval:'已通过',exec:'打款成功',time:'2026-04-10 11:20',bpm:'BPM-PAY-1001',flow:'YQ-20260410001',bkFlow:'BK-849201',reason:'—',invoiceFile:'发票_星辰网络_2026-04_117196.pdf',billFile:'对账单_BS-20260410-001.pdf',statementSn:'BS-20260410-001',items:[{period:'2026-04',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',amount:117196.10}]},
+  {id:'PAY-202604-001',period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',amount:117196.10,approval:'已通过',exec:'打款成功',time:'2026-04-10 11:20',bpm:'BPM-PAY-1001',flow:'YQ-20260410001',bkFlow:'BK-849201',reason:'—',invoiceFile:'发票_星辰网络_2026-04_117196.pdf',billFile:'对账单_BS-20260410-001.pdf',statementSn:'BS-20260410-001-CASH',items:[{period:'2026-04',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',amount:117196.10}]},
   // —— 2026-03 星辰网络汇总打款示例：两个游戏×平台合开一张申请 ——
-  {id:'PAY-202603-B01',period:'2026-03',game:'多游戏(2)',platform:'多平台',pub:'星辰网络',amount:155904.50,approval:'已通过',exec:'打款成功',time:'2026-04-03 14:42',bpm:'BPM-PAY-0985',flow:'YQ-20260403002',bkFlow:'BK-846210',reason:'—',invoiceFile:'发票_星辰网络_2026-03_155904.pdf',billFile:'对账单_BS-20260403-001.pdf',statementSn:'BS-20260403-001',items:[{period:'2026-03',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',amount:109592},{period:'2026-03',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',amount:46312.50}]},
-  {id:'PAY-202603-007',period:'2026-03',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:149240,approval:'已通过',exec:'打款成功',time:'2026-04-05 16:08',bpm:'BPM-PAY-0992',flow:'YQ-20260405004',bkFlow:'BK-846505',reason:'—',invoiceFile:'发票_光速传媒_2026-03_149240.pdf',billFile:'对账单_BS-20260405-001.pdf',statementSn:'BS-20260405-001',items:[{period:'2026-03',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:149240}]},
-  {id:'PAY-202604-002',period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:176800,approval:'已通过',exec:'打款中',time:'2026-04-18 14:05',bpm:'BPM-PAY-1007',flow:'YQ-20260418002',bkFlow:'—',reason:'—',invoiceFile:'发票_光速传媒_2026-04_176800.pdf',billFile:'对账单_BS-20260418-001.pdf',statementSn:'BS-20260418-001',items:[{period:'2026-04',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:176800}]},
-  {id:'PAY-202604-003',period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',amount:210000,approval:'已驳回',exec:'待执行',time:'2026-04-19 09:40',bpm:'BPM-PAY-1010',flow:'—',bkFlow:'—',reason:'本期亏损全划转，金额不符合提款规则，驳回重审',invoiceFile:'发票_光速传媒_2026-04_210000.pdf',billFile:'对账单_BS-20260419-001.pdf',statementSn:'BS-20260419-001',items:[{period:'2026-04',game:'幻境传说',gameId:'G-1001',platform:'抖音小游戏',amount:210000}]},
-  {id:'PAY-202604-004',period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:57475.60,approval:'已通过',exec:'打款失败',time:'2026-04-21 16:33',bpm:'BPM-PAY-1012',flow:'YQ-20260421009',bkFlow:'BK-851002',reason:'联行号与开户支行不匹配',invoiceFile:'发票_星辰网络_2026-04_57476.pdf',billFile:'对账单_BS-20260421-001.pdf',statementSn:'BS-20260421-001',items:[{period:'2026-04',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',amount:57475.60}]},
+  {id:'PAY-202603-B01',period:'2026-03',game:'多游戏(2)',platform:'多平台',pub:'星辰网络',amount:155904.50,approval:'已通过',exec:'打款成功',time:'2026-04-03 14:42',bpm:'BPM-PAY-0985',flow:'YQ-20260403002',bkFlow:'BK-846210',reason:'—',invoiceFile:'发票_星辰网络_2026-03_155904.pdf',billFile:'对账单_BS-20260403-001.pdf',statementSn:'BS-20260403-001-CASH',items:[{period:'2026-03',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',amount:109592},{period:'2026-03',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',amount:46312.50}]},
+  {id:'PAY-202603-007',period:'2026-03',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:149240,approval:'已通过',exec:'打款成功',time:'2026-04-05 16:08',bpm:'BPM-PAY-0992',flow:'YQ-20260405004',bkFlow:'BK-846505',reason:'—',invoiceFile:'发票_光速传媒_2026-03_149240.pdf',billFile:'对账单_BS-20260405-001.pdf',statementSn:'BS-20260405-001-CASH',items:[{period:'2026-03',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:149240}]},
+  {id:'PAY-202604-002',period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:176800,approval:'已通过',exec:'打款中',time:'2026-04-18 14:05',bpm:'BPM-PAY-1007',flow:'YQ-20260418002',bkFlow:'—',reason:'—',invoiceFile:'发票_光速传媒_2026-04_176800.pdf',billFile:'对账单_BS-20260418-001.pdf',statementSn:'BS-20260418-001-CASH',items:[{period:'2026-04',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:176800}]},
+  {id:'PAY-202604-003',period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',amount:210000,approval:'已驳回',exec:'待执行',time:'2026-04-19 09:40',bpm:'BPM-PAY-1010',flow:'—',bkFlow:'—',reason:'本期亏损全划转，金额不符合提款规则，驳回重审',invoiceFile:'发票_光速传媒_2026-04_210000.pdf',billFile:'对账单_BS-20260419-001.pdf',statementSn:'BS-20260419-001-CASH',items:[{period:'2026-04',game:'幻境传说',gameId:'G-1001',platform:'抖音小游戏',amount:210000}]},
+  {id:'PAY-202604-004',period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:57475.60,approval:'已通过',exec:'打款失败',time:'2026-04-21 16:33',bpm:'BPM-PAY-1012',flow:'YQ-20260421009',bkFlow:'BK-851002',reason:'联行号与开户支行不匹配',invoiceFile:'发票_星辰网络_2026-04_57476.pdf',billFile:'对账单_BS-20260421-001.pdf',statementSn:'BS-20260421-001-CASH',items:[{period:'2026-04',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',amount:57475.60}]},
   // —— 终止流程示例：账户错填 → 失败 → 财务终止 → 联运商修正账户 → 同账期重新发起 → 成功 ——
-  {id:'PAY-202602-005',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:140140,approval:'已通过',exec:'已终止',time:'2026-03-04 10:22',bpm:'BPM-PAY-0830',flow:'YQ-20260304005',bkFlow:'BK-840117',reason:'收款账户名称与开户行不一致',terminatedAt:'2026-03-05 09:15',terminatedBy:'李四（财务）',invoiceFile:'发票_光速传媒_2026-02_140140.pdf',billFile:'对账单_BS-20260304-001.pdf',statementSn:'BS-20260304-001',items:[{period:'2026-02',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:140140}]},
-  {id:'PAY-202602-009',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:140140,approval:'已通过',exec:'打款成功',time:'2026-03-06 14:08',bpm:'BPM-PAY-0838',flow:'YQ-20260306011',bkFlow:'BK-840205',reason:'—',invoiceFile:'发票_光速传媒_2026-02_140140.pdf',billFile:'对账单_BS-20260304-001.pdf',statementSn:'BS-20260304-001',prevTerminatedId:'PAY-202602-005',items:[{period:'2026-02',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:140140}]},
+  {id:'PAY-202602-005',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:140140,approval:'已通过',exec:'已终止',time:'2026-03-04 10:22',bpm:'BPM-PAY-0830',flow:'YQ-20260304005',bkFlow:'BK-840117',reason:'收款账户名称与开户行不一致',terminatedAt:'2026-03-05 09:15',terminatedBy:'李四（财务）',invoiceFile:'发票_光速传媒_2026-02_140140.pdf',billFile:'对账单_BS-20260304-001.pdf',statementSn:'BS-20260304-001-CASH',items:[{period:'2026-02',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:140140}]},
+  {id:'PAY-202602-009',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:140140,approval:'已通过',exec:'打款成功',time:'2026-03-06 14:08',bpm:'BPM-PAY-0838',flow:'YQ-20260306011',bkFlow:'BK-840205',reason:'—',invoiceFile:'发票_光速传媒_2026-02_140140.pdf',billFile:'对账单_BS-20260304-001.pdf',statementSn:'BS-20260304-001-CASH',prevTerminatedId:'PAY-202602-005',items:[{period:'2026-02',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:140140}]},
   // —— 重新打款示例：失败（非账户问题）→ 财务重新执行打款 → 同一申请单第二次流水成功 ——
   // 同一申请单可对应多次银行执行（attempts），原单状态翻新为最新一次执行结果；流水单号在列表中按行展示
-  {id:'PAY-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款成功',time:'2026-04-08 16:30',bpm:'BPM-PAY-0995',flow:'YQ-20260408022',bkFlow:'BK-847105',reason:'—',invoiceFile:'发票_灵犀互娱_2026-03_54200.pdf',billFile:'对账单_BS-20260408-001.pdf',statementSn:'BS-20260408-001',items:[{period:'2026-03',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',amount:54200}],attempts:[
+  {id:'PAY-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款成功',time:'2026-04-08 16:30',bpm:'BPM-PAY-0995',flow:'YQ-20260408022',bkFlow:'BK-847105',reason:'—',invoiceFile:'发票_灵犀互娱_2026-03_54200.pdf',billFile:'对账单_BS-20260408-001.pdf',statementSn:'BS-20260408-001-CASH',items:[{period:'2026-03',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',amount:54200}],attempts:[
     {flow:'YQ-20260408007',bkFlow:'BK-846930',time:'2026-04-08 09:55',status:'打款失败',reason:'对方银行系统繁忙，超时未响应'},
     {flow:'YQ-20260408022',bkFlow:'BK-847105',time:'2026-04-08 16:30',status:'打款成功',reason:'—'}
   ]}
@@ -1942,7 +1952,7 @@ function openPub(id){
   openModal(`联运商档案：${p.name}`,`<div class="kv"><span class="k">主体ID</span><span class="v">${p.id}</span><span class="k">公司名称</span><span class="v">${p.name}</span><span class="k">统一社会信用代码</span><span class="v" style="font-family:monospace">${p.credit}</span><span class="k">联系人</span><span class="v">${p.contact}</span><span class="k">手机号</span><span class="v">${p.phone}</span><span class="k">邮箱</span><span class="v">${p.email}</span><span class="k">营业执照</span><span class="v">${licenseCell(p,'pub')}</span></div><div class="sec-title">银行账户</div><div class="kv"><span class="k">账户名称</span><span class="v">${p.accName}</span><span class="k">开户银行</span><span class="v">${p.bank}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">****${p.acc}</span><span class="k">联行号</span><span class="v" style="font-family:monospace">${p.bankNo}</span></div>`)
 }
 function openPubForm(){
-  openModal('新建联运商',`<div class="fgrid"><div class="field"><label>公司名称 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="与营业执照一致" /></div><div class="field"><label>统一社会信用代码 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="全局唯一" /></div><div class="field"><label>法人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>法人证件号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="加密存储，展示时脱敏" /></div><div class="field"><label>联系人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人手机号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人邮箱</label><input class="input" style="width:100%" /></div>${renderLicenseUpload('pubLicNew','')}</div><div class="sec-title">银行账户</div><div class="fgrid"><div class="field"><label>账户名称 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户银行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户支行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>银行账号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联行号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="跨行转账使用" /></div></div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：提交后档案创建，账户同步至银企直联系统');closeModal()">提交</button>`)
+  openModal('新建联运商',`<div class="fgrid"><div class="field"><label>公司名称 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="与营业执照一致" /></div><div class="field"><label>统一社会信用代码 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="全局唯一" /></div><div class="field"><label>法人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>法人证件号</label><input class="input" style="width:100%" placeholder="加密存储，展示时脱敏" /></div><div class="field"><label>联系人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人电话</label><input class="input" style="width:100%" /></div><div class="field"><label>联系人邮箱</label><input class="input" style="width:100%" /></div><div class="field" style="grid-column:1/-1"><label>联系地址</label><input class="input" style="width:100%" placeholder="省/市/区 + 详细地址" /></div>${renderLicenseUpload('pubLicNew','')}</div><div class="sec-title">银行账户</div><div class="fgrid"><div class="field"><label>账户名称 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户银行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户支行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>银行账号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联行号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="跨行转账使用" /></div></div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：提交后档案创建，账户同步至银企直联系统');closeModal()">提交</button>`)
 }
 function openPubEdit(id){
   const p=publishers.find(x=>x.id===id);
@@ -1950,8 +1960,9 @@ function openPubEdit(id){
     <div class="field"><label>公司名称 <span class="req">*</span></label><input id="pe_name" class="input" style="width:100%" value="${p.name}"/></div>
     <div class="field"><label>统一社会信用代码 <span class="req">*</span></label><input id="pe_credit" class="input" style="width:100%;font-family:monospace" value="${p.credit}"/></div>
     <div class="field"><label>联系人姓名 <span class="req">*</span></label><input id="pe_contact" class="input" style="width:100%" value="${p.contact}"/></div>
-    <div class="field"><label>联系人手机号 <span class="req">*</span></label><input id="pe_phone" class="input" style="width:100%" value="${p.phone}"/></div>
+    <div class="field"><label>联系人电话</label><input id="pe_phone" class="input" style="width:100%" value="${p.phone}"/></div>
     <div class="field"><label>联系人邮箱</label><input id="pe_email" class="input" style="width:100%" value="${p.email}"/></div>
+    <div class="field" style="grid-column:1/-1"><label>联系地址</label><input id="pe_address" class="input" style="width:100%" value="${p.address||''}" placeholder="省/市/区 + 详细地址"/></div>
     ${renderLicenseUpload('pe_license',p.license||'')}
   </div><div class="sec-title">银行账户</div><div class="fgrid">
     <div class="field"><label>账户名称 <span class="req">*</span></label><input id="pe_accName" class="input" style="width:100%" value="${p.accName}"/></div>
@@ -2002,8 +2013,10 @@ function openCPForm(){
     <div class="field"><label>公司名称 <span class="req">*</span></label><input id="cn_name" class="input" style="width:100%" placeholder="与营业执照一致"/></div>
     <div class="field" style="grid-column:1/-1"><label>联系地址 <span class="req">*</span></label><input id="cn_address" class="input" style="width:100%" placeholder="省/市/区 + 详细地址"/></div>
     <div class="field"><label>联系人姓名 <span class="req">*</span></label><input id="cn_contact" class="input" style="width:100%"/></div>
-    <div class="field"><label>联系人手机号 <span class="req">*</span></label><input id="cn_phone" class="input" style="width:100%"/></div>
+    <div class="field"><label>联系人手机号</label><input id="cn_phone" class="input" style="width:100%"/></div>
     <div class="field"><label>联系人邮箱</label><input id="cn_email" class="input" style="width:100%"/></div>
+    <div class="field"><label>法人</label><input id="cn_legal" class="input" style="width:100%"/></div>
+    <div class="field"><label>证件号</label><input id="cn_idno" class="input" style="width:100%" placeholder="加密存储，展示时脱敏"/></div>
     ${renderLicenseUpload('cn_license','')}
   </div>`,
   `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveCPNew()">提交</button>`)
@@ -2016,12 +2029,13 @@ function saveCPNew(){
   const contact=document.getElementById('cn_contact').value.trim();
   if(!contact){alert('联系人姓名不能为空');return;}
   const phone=document.getElementById('cn_phone').value.trim();
-  if(!phone){alert('联系人手机号不能为空');return;}
   const email=document.getElementById('cn_email').value.trim();
+  const legal=document.getElementById('cn_legal').value.trim();
+  const idno=document.getElementById('cn_idno').value.trim();
   const licInput=document.getElementById('cn_license');
   const license=(licInput&&licInput.files&&licInput.files[0])?licInput.files[0].name:'';
   const nextNo=cps.reduce((m,c)=>{const n=parseInt((c.id||'').replace(/\D/g,''),10);return isNaN(n)?m:Math.max(m,n);},3000)+1;
-  cps.push({id:`CP-${nextNo}`,name,address,contact,phone,email,status:'合作中',license});
+  cps.push({id:`CP-${nextNo}`,name,address,contact,phone,email,legal,idno,status:'合作中',license});
   closeModal();
   refreshCPs();
 }
@@ -2031,8 +2045,10 @@ function openCPEdit(id){
     <div class="field"><label>公司名称 <span class="req">*</span></label><input id="ce_name" class="input" style="width:100%" value="${c.name}"/></div>
     <div class="field" style="grid-column:1/-1"><label>联系地址 <span class="req">*</span></label><input id="ce_address" class="input" style="width:100%" value="${c.address||''}"/></div>
     <div class="field"><label>联系人姓名 <span class="req">*</span></label><input id="ce_contact" class="input" style="width:100%" value="${c.contact}"/></div>
-    <div class="field"><label>联系人手机号 <span class="req">*</span></label><input id="ce_phone" class="input" style="width:100%" value="${c.phone}"/></div>
+    <div class="field"><label>联系人手机号</label><input id="ce_phone" class="input" style="width:100%" value="${c.phone}"/></div>
     <div class="field"><label>联系人邮箱</label><input id="ce_email" class="input" style="width:100%" value="${c.email}"/></div>
+    <div class="field"><label>法人</label><input id="ce_legal" class="input" style="width:100%" value="${c.legal||''}"/></div>
+    <div class="field"><label>证件号</label><input id="ce_idno" class="input" style="width:100%" value="${c.idno||''}" placeholder="加密存储，展示时脱敏"/></div>
     ${renderLicenseUpload('ce_license',c.license||'')}
   </div>`,
   `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveCPEdit('${c.id}')">保存</button>`)
@@ -2046,6 +2062,8 @@ function saveCPEdit(id){
   c.contact=document.getElementById('ce_contact').value.trim()||c.contact;
   c.phone=document.getElementById('ce_phone').value.trim()||c.phone;
   c.email=document.getElementById('ce_email').value.trim()||c.email;
+  c.legal=document.getElementById('ce_legal').value.trim()||c.legal;
+  c.idno=document.getElementById('ce_idno').value.trim()||c.idno;
   const licInput=document.getElementById('ce_license');
   if(licInput&&licInput.files&&licInput.files[0])c.license=licInput.files[0].name;
   closeModal();
@@ -2099,14 +2117,17 @@ function pgRules(){return pgPubRules();}
 /* PAGE: CP分成规则 */
 function pgCpRules(){
   const ent=parsedEntity();
+  const statusFilter=window._cpRuleStatusFilter||'all';
   let data=FILTER_GAME==='all'?cpRules:cpRules.filter(r=>games.find(g=>g.id===FILTER_GAME)?.name===r.game);
   if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
+  if(statusFilter!=='all')data=data.filter(r=>r.status===statusFilter);
   return `<div class="ph"><div><div class="pt">CP分成规则</div><div class="pd">每条规则绑定「游戏＋CP」（游戏级合同）。<b>CP 占比%</b> 即 CP 在该游戏分账基数中所占的比例。</div></div><div class="acts">${canEditRule()?'<button class="btn p" onclick="openCpRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>分账规则</b>：CP 分账 =（Σ 现金利润 − Σ 联运商真实分账 − 云服务成本）× CP 占比%；广告金侧不扣云服务成本。同一游戏的所有平台、所有联运商利润合并计算，按游戏一份合同一份占比。</div>
-  ${tbl(['规则ID','游戏','CP','生效期间','CP 占比%','状态','BPM审批单号','操作'],data.map(r=>{
+  <div class="filter"><select class="select" onchange="window._cpRuleStatusFilter=this.value;renderPage()"><option value="all">全部状态</option><option value="草稿">草稿</option><option value="审批中">审批中</option><option value="生效中">生效中</option><option value="已到期">已到期</option><option value="已驳回">已驳回</option></select></div>
+  ${tbl(['规则ID','游戏','CP','生效期间','CP 占比%','CP 承担云服务成本','状态','BPM审批单号','操作'],data.map(r=>{
     const bpmCell=r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>';
     const ops=`<button class="link" onclick="openCpRuleDetail('${r.id}')">查看</button>${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitCpRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyCpRule('${r.id}')">复制</button>`:''}`;
-    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700;color:var(--green)">${r.cpRemainShare}%</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${bpmCell}</td><td>${ops}</td></tr>`;
+    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700;color:var(--green)">${r.cpRemainShare}%</td><td>${r.cpServerCostShare?'<span style="color:var(--green)">承担</span>':'<span style="color:var(--muted)">不承担</span>'}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${bpmCell}</td><td>${ops}</td></tr>`;
   }),{pageKey:'cpRules'})}`;
 }
 function openCpRuleDetail(id){
@@ -2675,28 +2696,74 @@ function _gbsSubmit(){
   const sel=_gbsState();
   if(!sel.size){alert('请勾选至少一条账期数据');return}
   const keys=[...sel];
-  // 占用校验防御：避免并发场景下绕过 UI 提交已被占用的 keys
   if(!window._generatedStatements)window._generatedStatements=[];
+  // 占用校验：同一批 keys 只能属于一个批次（cash/ad 共享占用）
   const conflicts=[];
   keys.forEach(k=>{
     const occ=window._generatedStatements.find(s=>(s.keys||[]).includes(k));
-    if(occ)conflicts.push({key:k,sn:occ.sn});
+    if(occ&&!conflicts.find(c=>c.sn===occ.sn))conflicts.push({key:k,sn:occ.sn});
   });
   if(conflicts.length){
     alert(`无法生成：${conflicts.length} 条明细已被以下对账单占用，请到对账单管理作废后重试：\n`+conflicts.map(c=>`• ${c.key.replace(/__/g,' / ')}  ←  ${c.sn}`).join('\n'));
     return;
   }
-  const html=buildMultiBillStatementHtml(keys);
-  if(!html){alert('未找到匹配数据');return}
-  // 持久化已生成对账单（供「对账单管理」消费）
-  const sn='BS-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+String(window._generatedStatements.length+1).padStart(3,'0');
-  window._generatedStatements.push({sn,keys,createdAt:new Date().toLocaleString('zh-CN',{hour12:false}),pub:rows0Pub(keys),paymentIds:[]});
-  openModal(`对账单预览 · ${sn}`,
-    `<div style="background:#f5f5f5;padding:14px;border-radius:6px">${html}</div>`,
-    `<button class="btn g" onclick="closeModal()">关闭</button><button class="btn p" onclick="alert('原型展示：对账单 ${sn} 已下载 PDF / Excel')">↓ 下载对账单</button>`);
+  const htmlCash=buildMultiBillStatementHtml(keys,'cash');
+  const htmlAd=buildMultiBillStatementHtml(keys,'ad');
+  if(!htmlCash&&!htmlAd){alert('未找到匹配数据');return}
+  // 两张单共享一批 keys，分别写入列表
+  const now=new Date();
+  const dateStr=now.toISOString().slice(0,10).replace(/-/g,'');
+  const idx=String(Math.floor(window._generatedStatements.length/2)+1).padStart(3,'0');
+  const snCash=`BS-${dateStr}-${idx}-CASH`;
+  const snAd=`BS-${dateStr}-${idx}-AD`;
+  const createdAt=now.toLocaleString('zh-CN',{hour12:false});
+  const pubName=rows0Pub(keys);
+  window._generatedStatements.push(
+    {sn:snCash,keys,billType:'cash',createdAt,pub:pubName,paymentIds:[]},
+    {sn:snAd,  keys,billType:'ad',  createdAt,pub:pubName,paymentIds:[]}
+  );
+  // 弹窗：Tab 切换两张单
+  const tabHtml=`
+    <div style="display:flex;gap:0;border-bottom:2px solid #d0e8ff;margin-bottom:14px">
+      <button id="gbsTabCash" onclick="_gbsTab('cash')"
+        style="padding:7px 22px;font-size:13px;font-weight:700;border:none;background:#1a3a6a;color:#fff;cursor:pointer;border-radius:6px 6px 0 0;margin-right:4px">
+        现金对账单
+      </button>
+      <button id="gbsTabAd" onclick="_gbsTab('ad')"
+        style="padding:7px 22px;font-size:13px;font-weight:700;border:none;background:#e8f0fd;color:#1a3a6a;cursor:pointer;border-radius:6px 6px 0 0">
+        广告金对账单
+      </button>
+    </div>
+    <div id="gbsBillCash" style="background:#f5f5f5;padding:14px;border-radius:6px">${htmlCash||'<div style="padding:20px;color:#999">无数据</div>'}</div>
+    <div id="gbsBillAd"  style="display:none;background:#f5f5f5;padding:14px;border-radius:6px">${htmlAd||'<div style="padding:20px;color:#999">无数据</div>'}</div>
+  `;
+  openModal(`对账单预览 · ${snCash} / ${snAd}`,
+    tabHtml,
+    `<button class="btn g" onclick="closeModal()">关闭</button>
+     <button class="btn" style="background:#1a3a6a;color:#fff;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-left:6px" onclick="alert('原型展示：现金对账单 ${snCash} 已下载')">↓ 下载现金对账单</button>
+     <button class="btn" style="background:#1a5a2a;color:#fff;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-left:6px" onclick="alert('原型展示：广告金对账单 ${snAd} 已下载')">↓ 下载广告金对账单</button>`);
+}
+function _gbsTab(type){
+  const cashEl=document.getElementById('gbsBillCash');
+  const adEl=document.getElementById('gbsBillAd');
+  const cashTab=document.getElementById('gbsTabCash');
+  const adTab=document.getElementById('gbsTabAd');
+  if(!cashEl||!adEl)return;
+  if(type==='cash'){
+    cashEl.style.display='';adEl.style.display='none';
+    cashTab.style.background='#1a3a6a';cashTab.style.color='#fff';
+    adTab.style.background='#e8f0fd';adTab.style.color='#1a3a6a';
+  }else{
+    cashEl.style.display='none';adEl.style.display='';
+    adTab.style.background='#1a5a2a';adTab.style.color='#fff';
+    cashTab.style.background='#e8f0fd';cashTab.style.color='#1a3a6a';
+  }
 }
 
-function buildMultiBillStatementHtml(keys){
+// billType: 'cash'（现金对账单，默认）| 'ad'（广告金对账单）
+function buildMultiBillStatementHtml(keys, billType){
+  billType=billType||'cash';
+  const isCash=billType==='cash';
   if(!keys||!keys.length)return '';
   const rows=keys.map(k=>{const [period,game,platform]=k.split('__');const raw=settle.find(x=>x.period===period&&x.game===game&&x.platform===platform);return raw?effectiveSettle(raw):null}).filter(Boolean);
   if(!rows.length)return '';
@@ -2705,13 +2772,19 @@ function buildMultiBillStatementHtml(keys){
   const today=new Date().toISOString().slice(0,10);
   const periods=[...new Set(rows.map(r=>r.period))].sort();
   const periodRange=periods.length===1?periods[0]:`${periods[0]} ~ ${periods[periods.length-1]}`;
-  let sumCashRev=0,sumVRev=0,sumTotalRev=0,sumCost=0,sumCashCost=0,sumCashP=0,sumPubCash=0,totalAppLines=0;
+  // 汇总变量
+  let sumRev=0,sumCost=0,sumP=0,sumSettle=0,totalAppLines=0;
   const lines=rows.map(r=>{
     const ps=calcPubSettle(r);
     const totalRevR=(r.cashRev||0)+(r.vRev||0);
-    const cashCostR=totalRevR>0?Math.round((r.cost||0)*(r.cashRev||0)/totalRevR):0;
-    const cashPR=(r.cashRev||0)-cashCostR;
-    sumCashRev+=r.cashRev;sumVRev+=r.vRev;sumTotalRev+=totalRevR;sumCost+=r.cost;sumCashCost+=cashCostR;sumCashP+=cashPR;sumPubCash+=ps.pubCash;
+    // 按收入比例拆分成本
+    const cashCostR=totalRevR>0?Math.round((r.cost||0)*(r.cashRev||0)/totalRevR):(r.cost||0);
+    const vCostR=(r.cost||0)-cashCostR;
+    if(isCash){
+      sumRev+=r.cashRev||0;sumCost+=cashCostR;sumP+=r.cashP||0;sumSettle+=ps.pubCash||0;
+    }else{
+      sumRev+=r.vRev||0;sumCost+=vCostR;sumP+=r.vP||0;sumSettle+=ps.pubV||0;
+    }
     const tierTag=ps.tierApplied?'阶梯Ⅱ':(ps.rule&&ps.rule.tierEnabled?'阶梯Ⅰ':'—');
     const apps=expandSettleByApp(r);
     totalAppLines+=apps.length;
@@ -2722,13 +2795,14 @@ function buildMultiBillStatementHtml(keys){
       const appCell=m
         ? `<div class="app-id">${appIdStr}</div><div class="app-name">${m.appName||'—'}</div>`
         : '<span style="color:#a00;font-size:11px">未配置映射</span>';
-      const cashRev=r.cashRev*sh;
-      const vRev=r.vRev*sh;
-      const totalRev=cashRev+vRev;
-      const cost=r.cost*sh;
-      const cashCost=totalRev>0?cost*cashRev/totalRev:0;
-      const cashP=cashRev-cashCost;
-      const pubCashShared=ps.pubCash*sh;
+      const totalRevApp=(r.cashRev||0)*sh+(r.vRev||0)*sh;
+      const cashCostApp=totalRevApp>0?(r.cost||0)*sh*(r.cashRev||0)*sh/totalRevApp:0;
+      const vCostApp=(r.cost||0)*sh-cashCostApp;
+      const revApp  =isCash?(r.cashRev||0)*sh:(r.vRev||0)*sh;
+      const costApp =isCash?cashCostApp:vCostApp;
+      const profitApp=isCash?r.cashP*sh:r.vP*sh;
+      const settleApp=isCash?ps.pubCash*sh:ps.pubV*sh;
+      const isLoss  =isCash?ps.cashIsLossTransfer:ps.vIsLossTransfer;
       const rowSpan=apps.length;
       const head=idx===0
         ? `<td rowspan="${rowSpan}" class="center" style="white-space:nowrap">${periodLabel(r.period)}</td>
@@ -2738,30 +2812,38 @@ function buildMultiBillStatementHtml(keys){
       const rateCell=idx===0
         ? `<td rowspan="${rowSpan}" class="center">${ps.rate}%<div class="tier-tag">${tierTag}</div></td>`
         : '';
+      const lossNote=isLoss&&idx===apps.length-1?`<span style="display:inline-block;background:#ffe9e9;color:#c00;border-radius:6px;padding:0 5px;font-size:10px;margin-left:4px">亏损全划转</span>`:'';
       return `<tr>${head}
         <td>${appCell}</td>
-        <td class="num">${mn(cashRev)}</td>
-        <td class="num">${mn(vRev)}</td>
-        <td class="num" style="font-weight:600">${mn(totalRev)}</td>
-        <td class="num">${mn(cost)}</td>
-        <td class="num">${mn(cashCost)}</td>
-        <td class="num" style="font-weight:600">${mn(cashP)}</td>
+        <td class="num">${mn(revApp)}</td>
+        <td class="num">${mn(costApp)}</td>
+        <td class="num" style="font-weight:600;${profitApp<0?'color:#c00':''}">${mn(profitApp)}</td>
         ${rateCell}
-        <td class="num" style="font-weight:700">${mn(pubCashShared)}</td>
+        <td class="num" style="font-weight:700">${mn(settleApp)}${lossNote}</td>
       </tr>`;
     }).join('');
   }).join('');
+  // 标题与颜色主题
+  const titleText=isCash?'现 金 分 账 对 账 单':'广 告 金 分 账 对 账 单';
+  const subText=isCash?'CASH SETTLEMENT STATEMENT':'AD CREDIT SETTLEMENT STATEMENT';
+  const themeColor=isCash?'#1a3a6a':'#1a5a2a';
+  const thHeaderBg=isCash?'#dde7f5':'#d4ead8';
+  const thBg=isCash?'#eef3fb':'#ebf5ec';
+  const footerTotalColor=isCash?'#1f50a0':'#1a6b2a';
+  const typeLabel=isCash?'现金':'广告金';
   return `<style>
     .bs{font-family:"Microsoft YaHei",-apple-system,sans-serif;color:#222;margin:0 auto;padding:20px 22px;background:#fff}
-    .bs h1{text-align:center;font-size:22px;margin:0 0 6px;letter-spacing:4px}
-    .bs .bs-sub{text-align:center;color:#666;font-size:13px;margin-bottom:18px}
+    .bs h1{text-align:center;font-size:22px;margin:0 0 6px;letter-spacing:4px;color:${themeColor}}
+    .bs .bs-sub{text-align:center;color:#666;font-size:12px;margin-bottom:4px;letter-spacing:2px}
+    .bs .bs-type-badge{text-align:center;margin-bottom:16px}
+    .bs .bs-type-badge span{display:inline-block;background:${themeColor};color:#fff;font-size:12px;font-weight:700;padding:2px 14px;border-radius:10px;letter-spacing:1px}
     .bs .bs-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;font-size:13px;border:1px solid #d8d8d8;padding:10px 14px;border-radius:4px;margin-bottom:14px;background:#fafafa}
     .bs .bs-meta .k{color:#666;display:inline-block;min-width:78px}
     .bs-tw{overflow-x:auto;border:1px solid #c4ccd6;border-radius:4px;background:#fff}
     .bs table{border-collapse:collapse;font-size:12px;width:auto;min-width:100%}
     .bs th,.bs td{border:1px solid #d8dde3;padding:6px 10px;line-height:1.45;vertical-align:middle;white-space:nowrap}
-    .bs thead th{background:#eef3fb;font-weight:700;text-align:center;color:#1a3a6a;border-color:#c4ccd6;font-size:12px}
-    .bs thead .gh{background:#dde7f5;border-bottom:1px solid #c4ccd6;letter-spacing:1px;font-size:12px}
+    .bs thead th{background:${thBg};font-weight:700;text-align:center;color:${themeColor};border-color:#c4ccd6;font-size:12px}
+    .bs thead .gh{background:${thHeaderBg};border-bottom:1px solid #c4ccd6;letter-spacing:1px;font-size:12px}
     .bs td.num,.bs th.num{text-align:right;font-family:"SF Mono","Roboto Mono",Consolas,Menlo,monospace;font-variant-numeric:tabular-nums}
     .bs td.center,.bs th.center{text-align:center}
     .bs td.left,.bs th.left{text-align:left}
@@ -2774,47 +2856,45 @@ function buildMultiBillStatementHtml(keys){
     .bs .bs-stamp .lbl{color:#666;margin-bottom:8px}
     .bs .bs-stamp .sig{height:60px;border-bottom:1px solid #ccc}
     .bs .bs-stamp .dt{margin-top:8px;color:#666;font-size:12px}
-    .bs .app-id{font-family:"SF Mono",Consolas,monospace;font-size:11.5px;color:#1a3a6a}
+    .bs .app-id{font-family:"SF Mono",Consolas,monospace;font-size:11.5px;color:${themeColor}}
     .bs .app-name{color:#666;font-size:11px;margin-top:1px}
     .bs .tier-tag{display:inline-block;font-size:10.5px;color:#888;margin-top:2px}
   </style>
   <div class="bs">
-    <h1>分 账 对 账 单</h1>
-    <div class="bs-sub">SETTLEMENT STATEMENT</div>
+    <h1>${titleText}</h1>
+    <div class="bs-sub">${subText}</div>
+    <div class="bs-type-badge"><span>${typeLabel}结算专项对账单</span></div>
     <div class="bs-meta">
       <div><span class="k">联运商：</span><b>${pubLegal}</b></div>
       <div><span class="k">对账期间：</span><b>${periodRange}</b></div>
       <div><span class="k">明细条数：</span>${rows.length} 条 · ${totalAppLines} 个平台应用</div>
       <div><span class="k">出具日期：</span>${today}</div>
       <div><span class="k">填制单位：</span>${SETTLEMENT_PREPARER}</div>
-      <div><span class="k">对账单编号：</span>BS-${today.replace(/-/g,'')}-${(rows[0]&&rows[0].pub||'').slice(0,2)}</div>
+      <div><span class="k">对账单编号：</span>BS-${today.replace(/-/g,'')}-${(rows[0]&&rows[0].pub||'').slice(0,2)}-${isCash?'CASH':'AD'}</div>
     </div>
     <div class="bs-tw"><table>
       <thead>
         <tr class="gh">
           <th colspan="4">基础信息</th>
-          <th colspan="3">收入</th>
-          <th colspan="3">成本与现金利润</th>
+          <th colspan="3">${typeLabel}收益</th>
           <th colspan="2">分账</th>
         </tr>
         <tr>
           <th>账期</th><th class="left">游戏</th><th>平台</th><th>平台应用</th>
-          <th class="num">现金收入</th><th class="num">广告金收入</th><th class="num">总收入</th>
-          <th class="num">总消耗</th><th class="num">现金成本</th><th class="num">现金利润</th>
-          <th>分成比例</th><th class="num">可结算（现金）</th>
+          <th class="num">${typeLabel}收入</th>
+          <th class="num">${typeLabel}成本</th>
+          <th class="num">${typeLabel}利润</th>
+          <th>分成比例</th><th class="num">可结算（${typeLabel}）</th>
         </tr>
       </thead>
       <tbody>${lines}</tbody>
       <tfoot><tr>
         <td colspan="4" class="center">合计</td>
-        <td class="num">${mn(sumCashRev)}</td>
-        <td class="num">${mn(sumVRev)}</td>
-        <td class="num">${mn(sumTotalRev)}</td>
+        <td class="num">${mn(sumRev)}</td>
         <td class="num">${mn(sumCost)}</td>
-        <td class="num">${mn(sumCashCost)}</td>
-        <td class="num">${mn(sumCashP)}</td>
+        <td class="num">${mn(sumP)}</td>
         <td class="center">—</td>
-        <td class="num" style="color:#1f50a0">${mn(sumPubCash)}</td>
+        <td class="num" style="color:${footerTotalColor}">${mn(sumSettle)}</td>
       </tr></tfoot>
     </table></div>
     <div class="bs-foot">经核对，以上数据金额确认无误。本对账单双方盖章一式两份，双方各执一份。</div>
@@ -4767,64 +4847,72 @@ function pgStatements(){
   const statusF=window._stmtStatus||'all';
   const pubF=window._stmtPub||'all';
   const periodF=window._stmtPeriod||'all';
+  const typeF=window._stmtType||'all';
   if(pubF!=='all')data=data.filter(s=>s.pub===pubF);
   if(periodF!=='all')data=data.filter(s=>{
     const ps=[...new Set((s.keys||[]).map(k=>k.split('__')[0]))];
     return ps.includes(periodF);
   });
+  if(typeF!=='all')data=data.filter(s=>s.billType===typeF);
   const allPubs=[...new Set(list.map(s=>s.pub).filter(Boolean))];
   const allPeriods=[...new Set(list.flatMap(s=>(s.keys||[]).map(k=>k.split('__')[0])))].sort().reverse();
   const rows=data.map(s=>{
     const keys=s.keys||[];
     const periods=[...new Set(keys.map(k=>k.split('__')[0]))].sort();
     const games=[...new Set(keys.map(k=>k.split('__')[1]))];
-    // 计算金额合计
+    const isCash=s.billType!=='ad';
+    // 金额按类型取对应侧
     let total=0;
     keys.forEach(k=>{
       const [p,g,pl]=k.split('__');
       const r=settle.find(x=>x.period===p&&x.game===g&&x.platform===pl);
-      if(r){const ps=calcPubSettle(r);total+=ps.pubCash||0;}
+      if(r){const ps=calcPubSettle(r);total+=isCash?(ps.pubCash||0):(ps.pubV||0);}
     });
     const periodTxt=periods.length===1?periods[0]:`${periods[0]} ~ ${periods[periods.length-1]}（${periods.length} 期）`;
-    // 关联打款单：最新一笔决定能否再次发起
+    // 类型标签
+    const typeBadge=isCash
+      ?`<span style="display:inline-block;background:#1a3a6a;color:#fff;font-size:11px;font-weight:700;padding:1px 8px;border-radius:8px;margin-left:6px">现金</span>`
+      :`<span style="display:inline-block;background:#1a5a2a;color:#fff;font-size:11px;font-weight:700;padding:1px 8px;border-radius:8px;margin-left:6px">广告金</span>`;
+    // 关联打款单：广告金对账单不支持打款
     const payIds=Array.isArray(s.paymentIds)?s.paymentIds:(s.paymentId?[s.paymentId]:[]);
     const linkedPays=payIds.map(pid=>(pays||[]).find(p=>p.id===pid)).filter(Boolean);
     const latest=linkedPays.length?linkedPays[linkedPays.length-1]:null;
-    // 最新一笔为「终态-成功」或"打款中"时禁止再发起；为「已终止/已驳回」时允许再发起；无任何打款单时也允许
-    const canStartNewPay=!latest||latest.exec==='已终止'||latest.approval==='已驳回';
+    const canStartNewPay=isCash&&(!latest||latest.exec==='已终止'||latest.approval==='已驳回');
     const execColorMap={'打款成功':'var(--green)','打款失败':'var(--red)','已终止':'var(--muted)','待执行':'#a05000','打款中':'var(--primary)'};
-    const apprColorMap={'已通过':'var(--green)','待审批':'#a05000','已驳回':'var(--red)'};
-    const payCellInner=linkedPays.length===0
-      ? '<span style="color:var(--weak)">—</span>'
-      : `<div style="display:flex;flex-direction:column;gap:3px">
-          ${linkedPays.map((p,i)=>{
-            const isLatest=i===linkedPays.length-1;
-            const shown=p.exec==='打款失败'?'打款中':p.exec; // 联运商视角脱敏
-            const execColor=execColorMap[shown]||'var(--text)';
-            return `<div style="display:flex;align-items:center;gap:6px;font-size:11.5px">
-              <button class="link" style="font-family:monospace;padding:0;${isLatest?'font-weight:700':'opacity:.7'}" onclick="go('myPayments');setTimeout(()=>highlightPay('${p.id}'),50)">${p.id}</button>
-              <span style="background:#f7fafc;border-radius:6px;padding:0 6px;color:${execColor};font-weight:600">${shown}</span>
-              ${isLatest&&linkedPays.length>1?'<span style="font-size:10px;color:var(--weak)">(最新)</span>':''}
-            </div>`;
-          }).join('')}
-          ${linkedPays.length>1?`<div style="font-size:10.5px;color:var(--muted);margin-top:2px">共 ${linkedPays.length} 笔</div>`:''}
-        </div>`;
+    const payCellInner=!isCash
+      ? '<span style="color:var(--muted);font-size:12px">广告金不打款</span>'
+      : linkedPays.length===0
+        ? '<span style="color:var(--weak)">—</span>'
+        : `<div style="display:flex;flex-direction:column;gap:3px">
+            ${linkedPays.map((p,i)=>{
+              const isLatest=i===linkedPays.length-1;
+              const shown=p.exec==='打款失败'?'打款中':p.exec;
+              const execColor=execColorMap[shown]||'var(--text)';
+              return `<div style="display:flex;align-items:center;gap:6px;font-size:11.5px">
+                <button class="link" style="font-family:monospace;padding:0;${isLatest?'font-weight:700':'opacity:.7'}" onclick="go('myPayments');setTimeout(()=>highlightPay('${p.id}'),50)">${p.id}</button>
+                <span style="background:#f7fafc;border-radius:6px;padding:0 6px;color:${execColor};font-weight:600">${shown}</span>
+                ${isLatest&&linkedPays.length>1?'<span style="font-size:10px;color:var(--weak)">(最新)</span>':''}
+              </div>`;
+            }).join('')}
+            ${linkedPays.length>1?`<div style="font-size:10.5px;color:var(--muted);margin-top:2px">共 ${linkedPays.length} 笔</div>`:''}
+          </div>`;
     return `<tr>
-      <td style="font-family:monospace;font-size:12px;font-weight:700">${s.sn}</td>
+      <td style="font-family:monospace;font-size:12px;font-weight:700">${s.sn}${typeBadge}</td>
       <td>${s.pub||'<span style="color:var(--weak)">—</span>'}</td>
       <td>${periodTxt}</td>
       <td>${games.map(g=>`《${g}》`).join('、')}<div style="font-size:10.5px;color:var(--muted);margin-top:2px">${keys.length} 条明细</div></td>
-      <td style="font-weight:700">${mn(total)}</td>
+      <td style="font-weight:700">${mn(total)}<div style="font-size:10.5px;color:var(--muted);font-weight:400">${isCash?'现金可结算':'广告金可结算'}</div></td>
       <td style="color:var(--muted);font-size:12px">${s.createdAt||'—'}</td>
       <td>${payCellInner}</td>
       <td>
         <button class="link" onclick="openStatementPreview('${s.sn}')">预览</button>
         <button class="link" onclick="alert('原型展示：对账单 ${s.sn} 已下载 PDF / Excel')">下载</button>
         ${isPublisher()&&canStartNewPay?`<button class="btn p sm" style="margin-left:6px;box-shadow:0 1px 2px rgba(31,80,160,.18)" onclick="openPayFromStatement('${s.sn}')">${linkedPays.length?'🔁 重新发起打款':'＋ 发起打款'}</button>`:''}
+        ${!isCash?'<span style="font-size:11px;color:var(--muted);margin-left:4px">（广告金不打款）</span>':''}
       </td>
     </tr>`;
   });
-  return `<div class="ph"><div><div class="pt">对账单管理</div><div class="pd">联运商在此勾选多个已确认账期合并生成<b>分账结算对账单</b>，并可在每行直接发起打款；财务/业务可查看历史对账单。</div></div><div class="acts">${isPublisher()?`<button class="btn p" onclick="openGenBillStatement()">＋ 生成对账单</button>`:''}<button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
+  return `<div class="ph"><div><div class="pt">对账单管理</div><div class="pd">联运商在此勾选多个已确认账期合并生成<b>现金对账单</b>与<b>广告金对账单</b>各一份；财务/业务可查看历史对账单。打款仅关联现金对账单。</div></div><div class="acts">${isPublisher()?`<button class="btn p" onclick="openGenBillStatement()">＋ 生成对账单</button>`:''}<button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
   <div class="filter" style="margin-bottom:16px">
     <span style="font-size:12px;color:var(--muted);font-weight:650">联运商</span>
     <select class="select" onchange="window._stmtPub=this.value;document.getElementById('contentEl').innerHTML=pgStatements()">
@@ -4836,7 +4924,13 @@ function pgStatements(){
       <option value="all">全部账期</option>
       ${allPeriods.map(p=>`<option value="${p}" ${periodF===p?'selected':''}>${p}</option>`).join('')}
     </select>
-    ${(pubF!=='all'||periodF!=='all')?`<button class="btn g sm" onclick="window._stmtPub='all';window._stmtPeriod='all';document.getElementById('contentEl').innerHTML=pgStatements()">清除筛选</button>`:''}
+    <span style="font-size:12px;color:var(--muted);font-weight:650;margin-left:8px">类型</span>
+    <select class="select" onchange="window._stmtType=this.value;document.getElementById('contentEl').innerHTML=pgStatements()">
+      <option value="all">全部类型</option>
+      <option value="cash" ${typeF==='cash'?'selected':''}>现金对账单</option>
+      <option value="ad"   ${typeF==='ad'?'selected':''}>广告金对账单</option>
+    </select>
+    ${(pubF!=='all'||periodF!=='all'||typeF!=='all')?`<button class="btn g sm" onclick="window._stmtPub='all';window._stmtPeriod='all';window._stmtType='all';document.getElementById('contentEl').innerHTML=pgStatements()">清除筛选</button>`:''}
     <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 份对账单</span>
   </div>
   ${tbl(['对账单编号','联运商','账期范围','涉及游戏','结算金额','生成时间','关联打款单','操作'],rows,{pageKey:'statements'})}`;
@@ -4844,10 +4938,12 @@ function pgStatements(){
 function openStatementPreview(sn){
   const s=(window._generatedStatements||[]).find(x=>x.sn===sn);
   if(!s){alert('对账单不存在');return;}
-  const html=buildMultiBillStatementHtml(s.keys||[]);
+  const billType=s.billType||'cash';
+  const html=buildMultiBillStatementHtml(s.keys||[],billType);
+  const typeLabel=billType==='ad'?'广告金对账单':'现金对账单';
   openModal(`对账单预览 · ${sn}`,
     `<div style="background:#f5f5f5;padding:14px;border-radius:6px">${html||'<div style="padding:20px;color:var(--muted)">无法重建对账单内容</div>'}</div>`,
-    `<button class="btn g" onclick="closeModal()">关闭</button><button class="btn p" onclick="alert('原型展示：对账单 ${sn} 已下载 PDF / Excel')">↓ 下载对账单</button>`);
+    `<button class="btn g" onclick="closeModal()">关闭</button><button class="btn p" onclick="alert('原型展示：${typeLabel} ${sn} 已下载 PDF / Excel')">↓ 下载${typeLabel}</button>`);
 }
 // 跨页跳转后的高亮辅助：闪烁定位到目标行
 function _flashRow(row){
@@ -4871,9 +4967,11 @@ function highlightStmt(sn){
 }
 // 按对账单一键发起打款：金额锁定为对账单金额合计，强制上传发票。
 // 一份对账单可关联多笔打款单（前次终止/驳回后允许再次发起）。
+// 仅现金对账单（billType!=='ad'）允许发起打款。
 function openPayFromStatement(sn){
   const s=(window._generatedStatements||[]).find(x=>x.sn===sn);
   if(!s){alert('对账单不存在');return;}
+  if(s.billType==='ad'){alert('广告金对账单不支持发起打款，仅现金对账单可发起打款申请。');return;}
   // 兼容老字段：把 s.paymentId 升级成 s.paymentIds 数组
   if(!Array.isArray(s.paymentIds))s.paymentIds=s.paymentId?[s.paymentId]:[];
   const linkedPays=s.paymentIds.map(pid=>(pays||[]).find(p=>p.id===pid)).filter(Boolean);
