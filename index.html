@@ -30,6 +30,8 @@
 .login-btn:hover{background:#174f9f}
 .login-tip{font-size:12px;color:var(--weak);text-align:center;margin-top:14px;line-height:1.7}
 .login-err{background:var(--redBg);border:1px solid #f8b4b4;border-radius:var(--r2);padding:8px 12px;color:var(--red);font-size:12.5px;margin-bottom:12px;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 /* 未授权等待页 */
 .unauth-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:40px}
 .unauth-icon{font-size:52px;margin-bottom:18px;opacity:.4}
@@ -59,7 +61,7 @@
   <div class="login-box">
     <div class="login-hd">
       <div class="title">游戏发行结算平台</div>
-      <div class="sub">IAA PROFIT SHARING PLATFORM</div>
+      <div class="sub">GAME PUBLISHING SETTLEMENT PLATFORM</div>
     </div>
     <div class="login-body">
       <div class="login-tabs">
@@ -69,19 +71,26 @@
       <div id="loginErr" class="login-err"></div>
       <!-- SSO -->
       <div id="loginPanelSso">
-        <div id="ssoIdentityCard" style="background:linear-gradient(135deg,#f0f6ff 0%,#e6f0ff 100%);border:1px solid #c8daf4;border-radius:8px;padding:18px 18px 16px;margin-bottom:14px">
+        <!-- 身份卡：初始隐藏，识别完成后显示 -->
+        <div id="ssoIdentityCard" style="display:none;background:linear-gradient(135deg,#f0f6ff 0%,#e6f0ff 100%);border:1px solid #c8daf4;border-radius:8px;padding:18px 18px 16px;margin-bottom:14px;animation:fadeUp .22s ease both">
           <div style="display:flex;align-items:center;gap:12px">
             <div id="ssoAvatar" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0">—</div>
             <div style="flex:1;min-width:0">
               <div style="font-size:11px;color:#5871a0;letter-spacing:.04em;margin-bottom:3px">已识别企业身份</div>
-              <div id="ssoIdentityName" style="font-size:15px;font-weight:800;color:#1a3666;line-height:1.3">检测中…</div>
+              <div id="ssoIdentityName" style="font-size:15px;font-weight:800;color:#1a3666;line-height:1.3">—</div>
               <div id="ssoIdentityAcc" style="font-size:12px;color:#5871a0;font-family:monospace;margin-top:2px">—</div>
             </div>
             <span style="background:#dcfce7;border:1px solid #86efac;color:#166534;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">●&nbsp;在线</span>
           </div>
         </div>
-        <button class="login-btn" onclick="doLoginSSO()">一键登录</button>
-        <div class="login-tip">系统已自动识别当前 Windows / 企业目录账号<br>无需输入账号密码<br><span style="display:inline-block;margin-top:6px;color:#7b8aad;font-size:11.5px">非本人？<a href="javascript:void(0)" onclick="switchSsoIdentity()" style="color:var(--primary);text-decoration:underline">切换账号</a></span></div>
+        <!-- 识别中状态 -->
+        <div id="ssoDetecting" style="display:none;flex-direction:column;align-items:center;padding:18px 0 8px;gap:12px;animation:fadeUp .22s ease both">
+          <div style="width:34px;height:34px;border-radius:50%;border:3px solid #bae7ff;border-top-color:#1890ff;animation:spin .8s linear infinite"></div>
+          <span style="font-size:13px;color:#8c9ab5;letter-spacing:.03em">正在识别企业身份...</span>
+        </div>
+        <!-- 按钮：初始「一键登录」，识别完成后变「确认登录」 -->
+        <button class="login-btn" id="ssoLoginBtn" onclick="startSsoDetect()">一键登录</button>
+        <div class="login-tip">系统将自动识别当前 Windows / 企业目录账号<br>无需输入账号密码</div>
       </div>
       <!-- SMS -->
       <div id="loginPanelSms" style="display:none">
@@ -104,7 +113,7 @@
 </div>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><div class="name">游戏发行结算平台</div><div class="sub">IAA PROFIT SHARING · V1 PROTOTYPE</div></div>
+    <div class="brand"><div class="name">游戏发行结算平台</div><div class="sub">GAME PUBLISHING SETTLEMENT PLATFORM</div></div>
     <div class="nav" id="navEl"></div>
   </aside>
   <main class="main">
@@ -150,11 +159,11 @@
 /* ──────────── CONFIG ──────────── */
 const ROLES=['系统管理员','业务负责人','业务运营','财务人员','财务负责人/审批人','联运商','CP'];
 const ROLE_PAGES={
-  '系统管理员':['games','platformApps','publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','myPayments','statements','invoices','permConfig','userMgmt'],
+  '系统管理员':['games','platformApps','publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','myPayments','statements','invoices','idsAccounts','syncTasks','bpmApprovers','permConfig','userMgmt','pubCostConfig'],
   '业务负责人':['games','platformApps','publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices'],
-  '业务运营':['games','platformApps','pubMapping','cpMapping','vRev','dailyRecon','settlePub','settleCp','balance'],
-  '财务人员':['publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices'],
-  '财务负责人/审批人':['pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices'],
+  '业务运营':['games','platformApps','pubMapping','cpMapping','pubRules','cpRules','vRev','dailyRecon','settlePub','settleCp','balance'],
+  '财务人员':['publishers','cps','pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices','idsAccounts','syncTasks'],
+  '财务负责人/审批人':['pubMapping','cpMapping','pubRules','cpRules','cashRev','vRev','costDashboard','cloudCost','dailyRecon','settlePub','settleCp','balance','payments','statements','invoices','idsAccounts','syncTasks'],
   '联运商':['pubMapping','cpMapping','costDashboard','dailyRecon','settlePub','balance','statements','myPayments'],
   'CP':['cpMapping','settleCp']
 };
@@ -166,7 +175,7 @@ const NAV=[
   {title:'账期管理',items:[['cashRev','▤','现金收入确认'],['vRev','▤','广告金收入确认'],['costDashboard','▥','投放成本确认'],['cloudCost','☁','云服务成本确认']]},
   {title:'分账明细',items:[['settlePub','≋','联运商分账明细'],['settleCp','◫','CP分账明细']]},
   {title:'资金结算',items:[['statements','📄','对账单管理'],['payments','☑','付款单管理'],['myPayments','💰','付款申请'],['balance','▣','账户流水'],['invoices','📑','票据管理']]},
-  {title:'系统设置',items:[['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理']]}];
+  {title:'系统设置',items:[['idsAccounts','🏦','出账账户'],['syncTasks','🔄','数据同步任务'],['bpmApprovers','✅','审批人配置'],['permConfig','⊞','权限配置'],['userMgmt','👤','用户管理'],['pubCostConfig','🔑','消耗数据访问配置']]}];
 
 /* ── SESSION & 用户列表 ── */
 // 模拟已有用户库（管理员预置 + 已登录过的用户）
@@ -234,15 +243,73 @@ const games=[
 // 主数据：平台应用（微信/抖音 后台 AppID + AppSecret），归属唯一游戏（gameId）
 // 游戏×联运商关系建立时通过平台应用反查游戏，无需再次选择
 const platformApps=[
-  {id:'PA-001',platform:'微信小游戏',gameId:'G-1001',appId:'wx-hjcs-001',appSecret:'a1b2c3d4e5f60718293a4b5c6d7e8f90',appName:'幻境传说·星辰版',remark:'',createdAt:'2026-04-01 10:30',creator:'系统管理员'},
-  {id:'PA-002',platform:'抖音小游戏',gameId:'G-1001',appId:'tt-hjcs-009',appSecret:'b2c3d4e5f60718293a4b5c6d7e8f901a2',appName:'幻境传说·光速主版',remark:'',createdAt:'2026-04-01 10:35',creator:'系统管理员'},
-  {id:'PA-003',platform:'抖音小游戏',gameId:'G-1001',appId:'tt-hjcs-010',appSecret:'c3d4e5f60718293a4b5c6d7e8f901a2b3',appName:'幻境传说·光速子版B',remark:'',createdAt:'2026-04-12 09:20',creator:'系统管理员'},
-  {id:'PA-004',platform:'抖音小游戏',gameId:'G-1002',appId:'tt-xjzb-007',appSecret:'d4e5f60718293a4b5c6d7e8f901a2b3c4',appName:'星际争霸·光速版',remark:'',createdAt:'2026-04-04 11:00',creator:'系统管理员'},
-  {id:'PA-005',platform:'微信小游戏',gameId:'G-1003',appId:'wx-mcdl-003',appSecret:'e5f60718293a4b5c6d7e8f901a2b3c4d5',appName:'萌宠大陆·星辰版',remark:'',createdAt:'2026-04-09 14:15',creator:'系统管理员'},
-  {id:'PA-006',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-011',appSecret:'f60718293a4b5c6d7e8f901a2b3c4d5e6',appName:'弹球传奇·星辰版',remark:'',createdAt:'2026-04-16 09:00',creator:'系统管理员'},
-  {id:'PA-007',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-028',appSecret:'0718293a4b5c6d7e8f901a2b3c4d5e6f7',appName:'弹球传奇·光速版',remark:'',createdAt:'2026-04-16 10:30',creator:'系统管理员'},
-  {id:'PA-008',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-045',appSecret:'18293a4b5c6d7e8f901a2b3c4d5e6f708',appName:'弹球传奇·灵犀版',remark:'',createdAt:'2026-04-17 16:00',creator:'系统管理员'},
-  {id:'PA-009',platform:'抖音小游戏',gameId:'G-1003',appId:'tt-mcdl-021',appSecret:'8293a4b5c6d7e8f901a2b3c4d5e6f7081',appName:'萌宠大陆·抖音待启用版',remark:'抖音端备用应用，未投放',createdAt:'2026-05-10 11:00',creator:'系统管理员'}
+  {id:'PA-001',platform:'微信小游戏',gameId:'G-1001',appId:'wx-hjcs-001',appSecret:'a1b2c3d4e5f60718293a4b5c6d7e8f90',appName:'幻境传说·星辰版',remark:'',launchDate:'2025-06-01',createdAt:'2026-04-01 10:30',creator:'系统管理员'},
+  {id:'PA-002',platform:'抖音小游戏',gameId:'G-1001',appId:'tt-hjcs-009',appSecret:'b2c3d4e5f60718293a4b5c6d7e8f901a2',appName:'幻境传说·光速主版',remark:'',launchDate:'2025-07-15',createdAt:'2026-04-01 10:35',creator:'系统管理员'},
+  {id:'PA-003',platform:'抖音小游戏',gameId:'G-1001',appId:'tt-hjcs-010',appSecret:'c3d4e5f60718293a4b5c6d7e8f901a2b3',appName:'幻境传说·光速子版B',remark:'',launchDate:'2025-09-01',createdAt:'2026-04-12 09:20',creator:'系统管理员'},
+  {id:'PA-004',platform:'抖音小游戏',gameId:'G-1002',appId:'tt-xjzb-007',appSecret:'d4e5f60718293a4b5c6d7e8f901a2b3c4',appName:'星际争霸·光速版',remark:'',launchDate:'2026-01-10',createdAt:'2026-04-04 11:00',creator:'系统管理员'},
+  {id:'PA-005',platform:'微信小游戏',gameId:'G-1003',appId:'wx-mcdl-003',appSecret:'e5f60718293a4b5c6d7e8f901a2b3c4d5',appName:'萌宠大陆·星辰版',remark:'',launchDate:'2026-03-20',createdAt:'2026-04-09 14:15',creator:'系统管理员'},
+  {id:'PA-006',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-011',appSecret:'f60718293a4b5c6d7e8f901a2b3c4d5e6',appName:'弹球传奇·星辰版',remark:'',launchDate:'2026-04-15',createdAt:'2026-04-16 09:00',creator:'系统管理员'},
+  {id:'PA-007',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-028',appSecret:'0718293a4b5c6d7e8f901a2b3c4d5e6f7',appName:'弹球传奇·光速版',remark:'',launchDate:'2026-04-15',createdAt:'2026-04-16 10:30',creator:'系统管理员'},
+  {id:'PA-008',platform:'微信小游戏',gameId:'G-1004',appId:'wx-tqcq-045',appSecret:'18293a4b5c6d7e8f901a2b3c4d5e6f708',appName:'弹球传奇·灵犀版',remark:'',launchDate:'2026-04-15',createdAt:'2026-04-17 16:00',creator:'系统管理员'},
+  {id:'PA-009',platform:'抖音小游戏',gameId:'G-1003',appId:'tt-mcdl-021',appSecret:'8293a4b5c6d7e8f901a2b3c4d5e6f7081',appName:'萌宠大陆·抖音待启用版',remark:'抖音端备用应用，未投放',launchDate:'',createdAt:'2026-05-10 11:00',creator:'系统管理员'}
+];
+const idsAccounts=[
+  {id:'IDS-001',name:'IDS主出账账户',company:'IDS',bank:'中国银行',branch:'北京中关村支行',accountName:'北京IDS科技有限公司',accountNo:'6222020200001234567',bankNo:'104100000001',status:'启用',isDefault:true,remark:'当前唯一出账账户',createdAt:'2026-05-01 10:00',creator:'财务人员',updatedAt:'2026-05-01 10:00'}
+];
+// 数据同步任务（系统预置 9 条；调度时间由运维统一配置，UI 只展示）
+// 投放成本按联运商拆分（数据源是联运方接口，每家联运商分别调用）
+// 其他数据源是平台/系统统一接口，按平台聚合即可
+const syncTasks=[
+  {id:'SYNC-001',name:'现金收入·微信小游戏',type:'现金收入',platform:'微信小游戏',pub:'',source:'微信小游戏后台接口',dimension:'平台应用',freq:'每日',cron:'T+1 02:00',nextRun:'2026-05-27 02:00',downstream:'cashRev',status:'启用'},
+  {id:'SYNC-002',name:'现金收入·抖音小游戏',type:'现金收入',platform:'抖音小游戏',pub:'',source:'抖音小游戏后台接口',dimension:'平台应用',freq:'每日',cron:'T+1 02:05',nextRun:'2026-05-27 02:05',downstream:'cashRev',status:'启用'},
+  {id:'SYNC-003',name:'广告金收入·微信小游戏',type:'广告金收入',platform:'微信小游戏',pub:'',source:'微信小游戏后台接口',dimension:'平台应用',freq:'每日',cron:'T+1 02:10',nextRun:'2026-05-27 02:10',downstream:'vRev',status:'启用'},
+  {id:'SYNC-004',name:'广告金收入·抖音小游戏',type:'广告金收入',platform:'抖音小游戏',pub:'',source:'抖音小游戏后台接口',dimension:'平台应用',freq:'每日',cron:'T+1 02:12',nextRun:'2026-05-27 02:12',downstream:'vRev',status:'启用'},
+  {id:'SYNC-005',name:'投放成本·微信·星辰网络',type:'投放成本',platform:'微信小游戏',pub:'星辰网络',source:'联运方接口（星辰网络）',dimension:'平台应用',freq:'每日',cron:'T+1 02:15',nextRun:'2026-05-27 02:15',downstream:'costDashboard',status:'启用'},
+  {id:'SYNC-006',name:'投放成本·微信·光速传媒',type:'投放成本',platform:'微信小游戏',pub:'光速传媒',source:'联运方接口（光速传媒）',dimension:'平台应用',freq:'每日',cron:'T+1 02:16',nextRun:'2026-05-27 02:16',downstream:'costDashboard',status:'启用'},
+  {id:'SYNC-007',name:'投放成本·微信·灵犀互娱',type:'投放成本',platform:'微信小游戏',pub:'灵犀互娱',source:'联运方接口（灵犀互娱）',dimension:'平台应用',freq:'每日',cron:'T+1 02:17',nextRun:'2026-05-27 02:17',downstream:'costDashboard',status:'启用'},
+  {id:'SYNC-008',name:'投放成本·抖音·光速传媒',type:'投放成本',platform:'抖音小游戏',pub:'光速传媒',source:'联运方接口（光速传媒）',dimension:'平台应用',freq:'每日',cron:'T+1 02:18',nextRun:'2026-05-27 02:18',downstream:'costDashboard',status:'启用'},
+  {id:'SYNC-009',name:'云服务成本·浑天仪',type:'云服务成本',platform:'浑天仪',pub:'',source:'浑天仪',dimension:'浑天仪项目',freq:'每月',cron:'每月 1 日 03:00',nextRun:'2026-06-01 03:00',downstream:'cloudCost',status:'启用'}
+];
+// 执行历史（最近运行结果；列表按 taskId+startTime 倒序）
+// 状态：成功 / 失败 / 部分成功 / 运行中
+// 触发方式：自动调度 / 手动触发 / 失败重跑
+const syncRuns=[
+  // SYNC-001 现金收入·微信小游戏
+  {id:'RUN-26052601',taskId:'SYNC-001',period:'2026-05-25',startTime:'2026-05-26 02:00:03',endTime:'2026-05-26 02:00:15',duration:12,status:'成功',rows:1247,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052501',taskId:'SYNC-001',period:'2026-05-24',startTime:'2026-05-25 02:00:02',endTime:'2026-05-25 02:00:13',duration:11,status:'成功',rows:1198,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052401',taskId:'SYNC-001',period:'2026-05-23',startTime:'2026-05-24 02:00:01',endTime:'2026-05-24 02:00:14',duration:13,status:'成功',rows:1208,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052301',taskId:'SYNC-001',period:'2026-05-22',startTime:'2026-05-23 02:00:02',endTime:'2026-05-23 02:00:12',duration:10,status:'成功',rows:1156,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-002 现金收入·抖音小游戏
+  {id:'RUN-26052602',taskId:'SYNC-002',period:'2026-05-25',startTime:'2026-05-26 02:05:01',endTime:'2026-05-26 02:05:14',duration:13,status:'成功',rows:980,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052502',taskId:'SYNC-002',period:'2026-05-24',startTime:'2026-05-25 02:05:02',endTime:'2026-05-25 02:05:15',duration:13,status:'成功',rows:945,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052402',taskId:'SYNC-002',period:'2026-05-23',startTime:'2026-05-24 02:05:01',endTime:'2026-05-24 02:05:11',duration:10,status:'成功',rows:1012,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-003 广告金收入·微信小游戏
+  {id:'RUN-26052603',taskId:'SYNC-003',period:'2026-05-25',startTime:'2026-05-26 02:10:02',endTime:'2026-05-26 02:10:10',duration:8,status:'成功',rows:542,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052503',taskId:'SYNC-003',period:'2026-05-24',startTime:'2026-05-25 02:10:01',endTime:'2026-05-25 02:10:09',duration:8,status:'成功',rows:518,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-004 广告金收入·抖音小游戏
+  {id:'RUN-26052604',taskId:'SYNC-004',period:'2026-05-25',startTime:'2026-05-26 02:12:01',endTime:'2026-05-26 02:12:08',duration:7,status:'成功',rows:318,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052504',taskId:'SYNC-004',period:'2026-05-24',startTime:'2026-05-25 02:12:02',endTime:'2026-05-25 02:12:09',duration:7,status:'成功',rows:302,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-005 投放成本·微信·星辰网络
+  {id:'RUN-26052605',taskId:'SYNC-005',period:'2026-05-25',startTime:'2026-05-26 02:15:01',endTime:'2026-05-26 02:15:09',duration:8,status:'成功',rows:86,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052505',taskId:'SYNC-005',period:'2026-05-24',startTime:'2026-05-25 02:15:02',endTime:'2026-05-25 02:15:11',duration:9,status:'成功',rows:82,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-006 投放成本·微信·光速传媒（最近一次失败）
+  {id:'RUN-26052606',taskId:'SYNC-006',period:'2026-05-25',startTime:'2026-05-26 02:16:01',endTime:'2026-05-26 02:16:32',duration:31,status:'失败',rows:0,trigger:'自动调度',operator:'系统',errMsg:'联运方接口返回 401 未授权，请检查 access_token 是否过期'},
+  {id:'RUN-26052506',taskId:'SYNC-006',period:'2026-05-24',startTime:'2026-05-25 02:16:01',endTime:'2026-05-25 02:16:10',duration:9,status:'成功',rows:124,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26052406',taskId:'SYNC-006',period:'2026-05-23',startTime:'2026-05-24 02:16:01',endTime:'2026-05-24 02:16:09',duration:8,status:'成功',rows:118,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-007 投放成本·微信·灵犀互娱
+  {id:'RUN-26052607',taskId:'SYNC-007',period:'2026-05-25',startTime:'2026-05-26 02:17:02',endTime:'2026-05-26 02:17:07',duration:5,status:'成功',rows:42,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-008 投放成本·抖音·光速传媒
+  {id:'RUN-26052608',taskId:'SYNC-008',period:'2026-05-25',startTime:'2026-05-26 02:18:01',endTime:'2026-05-26 02:18:11',duration:10,status:'成功',rows:124,trigger:'自动调度',operator:'系统',errMsg:''},
+  // SYNC-009 云服务成本·浑天仪（每月 1 日，最近一次是 5/1）
+  {id:'RUN-26050109',taskId:'SYNC-009',period:'2026-04',startTime:'2026-05-01 03:00:01',endTime:'2026-05-01 03:00:18',duration:17,status:'成功',rows:18,trigger:'自动调度',operator:'系统',errMsg:''},
+  {id:'RUN-26040109',taskId:'SYNC-009',period:'2026-03',startTime:'2026-04-01 03:00:02',endTime:'2026-04-01 03:00:19',duration:17,status:'成功',rows:17,trigger:'自动调度',operator:'系统',errMsg:''}
+];
+// 审批人配置（系统预置 3 条，对接 BPM 流程节点上的角色账号）
+// "项目经理" 是 BPM 流程节点角色，与系统业务角色无关；两个流程的项目经理可独立配置
+// "BPM 发起人" 仅用于打款流程的自动发起场景
+const bpmApprovers=[
+  {id:'APR-RULE-PM',scenario:'分账规则审批',scenarioKey:'rule',role:'项目经理',name:'张三',feishuAccount:'zhangsan@dafaxing.com',updatedAt:'2026-05-20 14:30',updatedBy:'系统管理员'},
+  {id:'APR-PAY-INITIATOR',scenario:'打款流程审批',scenarioKey:'payment',role:'BPM 发起人',name:'结算系统机器人',feishuAccount:'settle_bot@dafaxing.com',updatedAt:'2026-05-01 09:00',updatedBy:'系统管理员'}
 ];
 // 平台应用 helpers
 function getPlatformApp(id){return platformApps.find(a=>a.id===id);}
@@ -280,7 +347,8 @@ const pubRules=[
   {id:'RU-PUB-202604-002',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',appIds:['tt-hjcs-009'],start:'2026-04-01',end:'2026-12-31',pubRate:55,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'审批中',bpm:'BPM-IAA-00026',approved:'—'},
   {id:'RU-PUB-202603-008',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',appIds:[],start:'2026-03-01',end:'2026-03-31',pubRate:60,tierEnabled:true,tierThreshold:300000,tierHighRate:65,status:'已到期',bpm:'BPM-IAA-00013',approved:'2026-03-01 10:10'},
   {id:'RU-PUB-202604-004',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',appIds:[],start:'2026-04-01',end:'2026-12-31',pubRate:65,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'草稿',bpm:'—',approved:'—'},
-  {id:'RU-PUB-202603-009',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',appIds:[],start:'2026-03-01',end:'2026-12-31',pubRate:50,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'生效中',bpm:'BPM-IAA-00018',approved:'2026-03-02 10:00'}
+  {id:'RU-PUB-202603-009',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',appIds:[],start:'2026-03-01',end:'2026-04-14',pubRate:50,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'已到期',bpm:'BPM-IAA-00018',approved:'2026-03-02 10:00'},
+  {id:'RU-PUB-202604-010',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',appIds:[],start:'2026-04-15',end:'2027-04-14',pubRate:55,tierEnabled:false,tierThreshold:0,tierHighRate:0,status:'生效中',bpm:'BPM-IAA-00032',approved:'2026-04-14 16:30'}
 ];
 // CP 分成规则：游戏级（绑定 [游戏 + CP]），约定扣除联运商利润和服务器成本后的剩余池里 CP 占比
 const cpRules=[
@@ -295,11 +363,16 @@ const settle=[
   {period:'2026-05',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:336000,vRev:71000,cost:194000,cashCost:160040,vCost:33960,serverCost:29100,cashP:175960,vP:37040,pubRate:60,cpRate:20},
   {period:'2026-05',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:498000,vRev:125000,cost:268000,cashCost:214400,vCost:53600,serverCost:40200,cashP:283600,vP:71400,pubRate:60,cpRate:20},
   {period:'2026-05',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:162000,vRev:38000,cost:86000,cashCost:69972,vCost:16028,serverCost:12900,cashP:92028,vP:21972,pubRate:65,cpRate:15},
+  // 弹球传奇 2026-05：新规则全月（55%）
+  {period:'2026-05',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',cp:'梦工厂',cashRev:242000,vRev:46000,cost:136000,cashCost:111520,vCost:24480,serverCost:15900,cashP:130480,vP:21520,pubRate:55,cpRate:25},
   // 2026-04
   {period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:320000,vRev:68000,cost:185000,cashCost:152577,vCost:32423,serverCost:27750,cashP:167423,vP:35577,pubRate:60,cpRate:20},
   {period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:210000,vRev:92000,cost:345000,cashCost:239901,vCost:105099,serverCost:51750,cashP:-29901,vP:-13099,pubRate:55,cpRate:25},
   {period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:480000,vRev:120000,cost:260000,cashCost:208000,vCost:52000,serverCost:39000,cashP:272000,vP:68000,pubRate:60,cpRate:20},
   {period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:155000,vRev:36000,cost:82000,cashCost:66576,vCost:15424,serverCost:12300,cashP:88424,vP:20576,pubRate:65,cpRate:15},
+  // 弹球传奇 2026-04 拆两段：旧规则 50%（4/1–4/14）→ 新规则 55%（4/15–4/30）
+  {period:'2026-04-01~2026-04-14',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',cp:'梦工厂',cashRev:107000,vRev:19600,cost:59500,cashCost:48790,vCost:10710,serverCost:6950,cashP:58210,vP:8890,pubRate:50,cpRate:25},
+  {period:'2026-04-15~2026-04-30',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',cp:'梦工厂',cashRev:124000,vRev:22800,cost:69200,cashCost:56744,vCost:12456,serverCost:8080,cashP:67256,vP:10344,pubRate:55,cpRate:25},
   // 2026-03
   {period:'2026-03',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:298000,vRev:61000,cost:172000,cashCost:141440,vCost:30560,serverCost:25800,cashP:156560,vP:30440,pubRate:60,cpRate:20},
   {period:'2026-03',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',cp:'梦工厂',cashRev:245000,vRev:85000,cost:310000,cashCost:215150,vCost:94850,serverCost:46500,cashP:29850,vP:-9850,pubRate:55,cpRate:25},
@@ -318,19 +391,19 @@ const settle=[
   {period:'2026-01',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',cp:'梦工厂',cashRev:98000,vRev:19000,cost:61000,cashCost:49410,vCost:11590,serverCost:9150,cashP:48590,vP:7410,pubRate:65,cpRate:15}
 ];
 const pays=[
-  {id:'PAY-202604-001',period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',amount:117196.10,approval:'已通过',exec:'打款成功',time:'2026-04-10 11:20',bpm:'BPM-PAY-1001',flow:'YQ-20260410001',bkFlow:'BK-849201',reason:'—',invoiceFile:'发票_星辰网络_2026-04_117196.pdf',billFile:'对账单_BS-20260410-001.pdf',statementSn:'BS-20260410-001',items:[{period:'2026-04',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',amount:117196.10}]},
+  {id:'PAY-202604-001',period:'2026-04',game:'幻境传说',platform:'微信小游戏',pub:'星辰网络',amount:117196.10,approval:'已通过',exec:'打款成功',time:'2026-04-10 11:20',bpm:'BPM-PAY-1001',flow:'YQ-20260410001',bkFlow:'BK-849201',reason:'—',invoiceFile:'发票_星辰网络_2026-04_117196.pdf',billFile:'对账单_BS-20260410-001.pdf',statementSn:'BS-20260410-001-CASH',items:[{period:'2026-04',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',amount:117196.10}]},
   // —— 2026-03 星辰网络汇总打款示例：两个游戏×平台合开一张申请 ——
-  {id:'PAY-202603-B01',period:'2026-03',game:'多游戏(2)',platform:'多平台',pub:'星辰网络',amount:155904.50,approval:'已通过',exec:'打款成功',time:'2026-04-03 14:42',bpm:'BPM-PAY-0985',flow:'YQ-20260403002',bkFlow:'BK-846210',reason:'—',invoiceFile:'发票_星辰网络_2026-03_155904.pdf',billFile:'对账单_BS-20260403-001.pdf',statementSn:'BS-20260403-001',items:[{period:'2026-03',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',amount:109592},{period:'2026-03',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',amount:46312.50}]},
-  {id:'PAY-202603-007',period:'2026-03',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:149240,approval:'已通过',exec:'打款成功',time:'2026-04-05 16:08',bpm:'BPM-PAY-0992',flow:'YQ-20260405004',bkFlow:'BK-846505',reason:'—',invoiceFile:'发票_光速传媒_2026-03_149240.pdf',billFile:'对账单_BS-20260405-001.pdf',statementSn:'BS-20260405-001',items:[{period:'2026-03',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:149240}]},
-  {id:'PAY-202604-002',period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:176800,approval:'已通过',exec:'打款中',time:'2026-04-18 14:05',bpm:'BPM-PAY-1007',flow:'YQ-20260418002',bkFlow:'—',reason:'—',invoiceFile:'发票_光速传媒_2026-04_176800.pdf',billFile:'对账单_BS-20260418-001.pdf',statementSn:'BS-20260418-001',items:[{period:'2026-04',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:176800}]},
-  {id:'PAY-202604-003',period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',amount:210000,approval:'已驳回',exec:'待执行',time:'2026-04-19 09:40',bpm:'BPM-PAY-1010',flow:'—',bkFlow:'—',reason:'本期亏损全划转，金额不符合提款规则，驳回重审',invoiceFile:'发票_光速传媒_2026-04_210000.pdf',billFile:'对账单_BS-20260419-001.pdf',statementSn:'BS-20260419-001',items:[{period:'2026-04',game:'幻境传说',gameId:'G-1001',platform:'抖音小游戏',amount:210000}]},
-  {id:'PAY-202604-004',period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:57475.60,approval:'已通过',exec:'打款失败',time:'2026-04-21 16:33',bpm:'BPM-PAY-1012',flow:'YQ-20260421009',bkFlow:'BK-851002',reason:'联行号与开户支行不匹配',invoiceFile:'发票_星辰网络_2026-04_57476.pdf',billFile:'对账单_BS-20260421-001.pdf',statementSn:'BS-20260421-001',items:[{period:'2026-04',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',amount:57475.60}]},
+  {id:'PAY-202603-B01',period:'2026-03',game:'多游戏(2)',platform:'多平台',pub:'星辰网络',amount:155904.50,approval:'已通过',exec:'打款成功',time:'2026-04-03 14:42',bpm:'BPM-PAY-0985',flow:'YQ-20260403002',bkFlow:'BK-846210',reason:'—',invoiceFile:'发票_星辰网络_2026-03_155904.pdf',billFile:'对账单_BS-20260403-001.pdf',statementSn:'BS-20260403-001-CASH',items:[{period:'2026-03',game:'幻境传说',gameId:'G-1001',platform:'微信小游戏',amount:109592},{period:'2026-03',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',amount:46312.50}]},
+  {id:'PAY-202603-007',period:'2026-03',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:149240,approval:'已通过',exec:'打款成功',time:'2026-04-05 16:08',bpm:'BPM-PAY-0992',flow:'YQ-20260405004',bkFlow:'BK-846505',reason:'—',invoiceFile:'发票_光速传媒_2026-03_149240.pdf',billFile:'对账单_BS-20260405-001.pdf',statementSn:'BS-20260405-001-CASH',items:[{period:'2026-03',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:149240}]},
+  {id:'PAY-202604-002',period:'2026-04',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:176800,approval:'已通过',exec:'打款中',time:'2026-04-18 14:05',bpm:'BPM-PAY-1007',flow:'YQ-20260418002',bkFlow:'—',reason:'—',invoiceFile:'发票_光速传媒_2026-04_176800.pdf',billFile:'对账单_BS-20260418-001.pdf',statementSn:'BS-20260418-001-CASH',items:[{period:'2026-04',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:176800}]},
+  {id:'PAY-202604-003',period:'2026-04',game:'幻境传说',platform:'抖音小游戏',pub:'光速传媒',amount:210000,approval:'已驳回',exec:'待执行',time:'2026-04-19 09:40',bpm:'BPM-PAY-1010',flow:'—',bkFlow:'—',reason:'本期亏损全划转，金额不符合提款规则，驳回重审',invoiceFile:'发票_光速传媒_2026-04_210000.pdf',billFile:'对账单_BS-20260419-001.pdf',statementSn:'BS-20260419-001-CASH',items:[{period:'2026-04',game:'幻境传说',gameId:'G-1001',platform:'抖音小游戏',amount:210000}]},
+  {id:'PAY-202604-004',period:'2026-04',game:'萌宠大陆',platform:'微信小游戏',pub:'星辰网络',amount:57475.60,approval:'已通过',exec:'打款失败',time:'2026-04-21 16:33',bpm:'BPM-PAY-1012',flow:'YQ-20260421009',bkFlow:'BK-851002',reason:'联行号与开户支行不匹配',invoiceFile:'发票_星辰网络_2026-04_57476.pdf',billFile:'对账单_BS-20260421-001.pdf',statementSn:'BS-20260421-001-CASH',items:[{period:'2026-04',game:'萌宠大陆',gameId:'G-1003',platform:'微信小游戏',amount:57475.60}]},
   // —— 终止流程示例：账户错填 → 失败 → 财务终止 → 联运商修正账户 → 同账期重新发起 → 成功 ——
-  {id:'PAY-202602-005',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:140140,approval:'已通过',exec:'已终止',time:'2026-03-04 10:22',bpm:'BPM-PAY-0830',flow:'YQ-20260304005',bkFlow:'BK-840117',reason:'收款账户名称与开户行不一致',terminatedAt:'2026-03-05 09:15',terminatedBy:'李四（财务）',invoiceFile:'发票_光速传媒_2026-02_140140.pdf',billFile:'对账单_BS-20260304-001.pdf',statementSn:'BS-20260304-001',items:[{period:'2026-02',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:140140}]},
-  {id:'PAY-202602-009',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:140140,approval:'已通过',exec:'打款成功',time:'2026-03-06 14:08',bpm:'BPM-PAY-0838',flow:'YQ-20260306011',bkFlow:'BK-840205',reason:'—',invoiceFile:'发票_光速传媒_2026-02_140140.pdf',billFile:'对账单_BS-20260304-001.pdf',statementSn:'BS-20260304-001',prevTerminatedId:'PAY-202602-005',items:[{period:'2026-02',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:140140}]},
+  {id:'PAY-202602-005',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:140140,approval:'已通过',exec:'已终止',time:'2026-03-04 10:22',bpm:'BPM-PAY-0830',flow:'YQ-20260304005',bkFlow:'BK-840117',reason:'收款账户名称与开户行不一致',terminatedAt:'2026-03-05 09:15',terminatedBy:'李四（财务）',invoiceFile:'发票_光速传媒_2026-02_140140.pdf',billFile:'对账单_BS-20260304-001.pdf',statementSn:'BS-20260304-001-CASH',items:[{period:'2026-02',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:140140}]},
+  {id:'PAY-202602-009',period:'2026-02',game:'星际争霸',platform:'抖音小游戏',pub:'光速传媒',amount:140140,approval:'已通过',exec:'打款成功',time:'2026-03-06 14:08',bpm:'BPM-PAY-0838',flow:'YQ-20260306011',bkFlow:'BK-840205',reason:'—',invoiceFile:'发票_光速传媒_2026-02_140140.pdf',billFile:'对账单_BS-20260304-001.pdf',statementSn:'BS-20260304-001-CASH',prevTerminatedId:'PAY-202602-005',items:[{period:'2026-02',game:'星际争霸',gameId:'G-1002',platform:'抖音小游戏',amount:140140}]},
   // —— 重新打款示例：失败（非账户问题）→ 财务重新执行打款 → 同一申请单第二次流水成功 ——
   // 同一申请单可对应多次银行执行（attempts），原单状态翻新为最新一次执行结果；流水单号在列表中按行展示
-  {id:'PAY-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款成功',time:'2026-04-08 16:30',bpm:'BPM-PAY-0995',flow:'YQ-20260408022',bkFlow:'BK-847105',reason:'—',invoiceFile:'发票_灵犀互娱_2026-03_54200.pdf',billFile:'对账单_BS-20260408-001.pdf',statementSn:'BS-20260408-001',items:[{period:'2026-03',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',amount:54200}],attempts:[
+  {id:'PAY-202603-008',period:'2026-03',game:'弹球传奇',platform:'微信小游戏',pub:'灵犀互娱',amount:54200,approval:'已通过',exec:'打款成功',time:'2026-04-08 16:30',bpm:'BPM-PAY-0995',flow:'YQ-20260408022',bkFlow:'BK-847105',reason:'—',invoiceFile:'发票_灵犀互娱_2026-03_54200.pdf',billFile:'对账单_BS-20260408-001.pdf',statementSn:'BS-20260408-001-CASH',items:[{period:'2026-03',game:'弹球传奇',gameId:'G-1004',platform:'微信小游戏',amount:54200}],attempts:[
     {flow:'YQ-20260408007',bkFlow:'BK-846930',time:'2026-04-08 09:55',status:'打款失败',reason:'对方银行系统繁忙，超时未响应'},
     {flow:'YQ-20260408022',bkFlow:'BK-847105',time:'2026-04-08 16:30',status:'打款成功',reason:'—'}
   ]}
@@ -343,6 +416,25 @@ const syncs=[
 ];
 
 /* ──────────── HELPERS ──────────── */
+/* period 辅助：兼容全月格式 'YYYY-MM' 和区间格式 'YYYY-MM-DD~YYYY-MM-DD'
+   全月示例：'2026-05'
+   区间示例：'2026-04-15~2026-04-30'（规则换档时首/尾月按合同日期截断） */
+function isPartialPeriod(p){return!!(p&&p.includes('~'));}
+function periodStart(p){if(!p)return'';if(isPartialPeriod(p))return p.split('~')[0];return p+'-01';}
+function periodEnd(p){if(!p)return'';if(isPartialPeriod(p))return p.split('~')[1];const[y,m]=p.split('-').map(Number);return p+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0');}
+function periodMonth(p){if(!p)return'';return(isPartialPeriod(p)?p.split('~')[0]:p).slice(0,7);}
+function periodLabel(p){
+  if(!p||!isPartialPeriod(p))return p||'';
+  const[s,e]=p.split('~');
+  const ym=s.slice(0,7);
+  const sd=parseInt(s.slice(8),10);
+  const ed=parseInt(e.slice(8),10);
+  const[y,mo]=ym.split('-').map(Number);
+  const lastDay=new Date(y,mo,0).getDate();
+  if(sd===1)return`${ym}（至${ed}日）`;
+  if(ed===lastDay)return`${ym}（${sd}日起）`;
+  return`${ym}（${sd}~${ed}日）`;
+}
 function fmt(n){return '¥ '+Number(n).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function mn(n){const cls=n<0?'neg':'pos';return `<span class="money ${cls}">${fmt(n)}</span>`}
 function ts(s){const m={'生效中':'green','审批中':'orange','已到期':'gray','已驳回':'red','草稿':'blue','成功':'green','失败':'red','打款成功':'green','打款中':'orange','打款失败':'red','已终止':'gray','已终止 · 待重新发起':'gray','待执行':'gray','已通过':'green','待审批':'orange','合作中':'green','已授权':'green','待授权':'orange'};return `<span class="tag ${m[s]||'gray'}">${s}</span>`}
@@ -468,12 +560,13 @@ function confirmDialog(title,msg,onYes,yesLabel,yesStyle){
 }
 const canEdit=()=>['系统管理员','业务负责人','业务运营'].includes(ROLE);
 const canFin=()=>['财务人员','财务负责人/审批人'].includes(ROLE);
+const canEditRule=()=>['财务人员','财务负责人/审批人','业务负责人','业务运营'].includes(ROLE);
 const isPublisher=()=>ROLE==='联运商';
 const isAdmin=()=>ROLE==='系统管理员';
 // PRD 4.1.3 权限细化
 const canAdminGame=()=>ROLE==='系统管理员';           // 新建/编辑/删除游戏基础信息
 const canBizMapping=()=>ROLE==='系统管理员';          // 新增/编辑映射关系（三元组、应用ID、解绑巨量ID）仅系统管理员
-const canConfigJl=()=>['系统管理员','业务负责人','业务运营'].includes(ROLE); // 配置巨量ID：业务可追加，但不能取消已绑定（已通过 disabled 锁定）
+const canConfigJl=()=>['系统管理员','业务负责人','业务运营'].includes(ROLE);
 
 /* ──────────── NAV ──────────── */
 function renderNav(){
@@ -542,6 +635,28 @@ function renderSsoIdentity(){
   if(av)av.textContent=(u.display||u.account||'?').slice(0,1);
   if(nm)nm.textContent=`${u.display||u.account}${u.role?`　·　${u.role}`:''}`;
   if(ac)ac.textContent=`${u.account}　|　${u.phone||''}`;
+}
+function resetSsoLoginFlow(){
+  const card=document.getElementById('ssoIdentityCard');
+  const detecting=document.getElementById('ssoDetecting');
+  const btn=document.getElementById('ssoLoginBtn');
+  if(card)card.style.display='none';
+  if(detecting)detecting.style.display='none';
+  if(btn){btn.textContent='一键登录';btn.onclick=startSsoDetect;btn.disabled=false;}
+}
+function startSsoDetect(){
+  const card=document.getElementById('ssoIdentityCard');
+  const detecting=document.getElementById('ssoDetecting');
+  const btn=document.getElementById('ssoLoginBtn');
+  if(card)card.style.display='none';
+  if(detecting)detecting.style.display='flex';
+  if(btn){btn.style.display='none';}
+  setTimeout(()=>{
+    detectSsoIdentity();
+    if(detecting)detecting.style.display='none';
+    if(card)card.style.display='block';
+    if(btn){btn.style.display='block';btn.textContent='确认登录';btn.onclick=doLoginSSO;}
+  },1600);
 }
 function switchSsoIdentity(){
   const ssoUsers=USER_DB.filter(u=>u.loginType==='sso');
@@ -642,6 +757,7 @@ function parseDataPerm(p){
   }
   if(p.startsWith('app:'))return{kind:'app',mappingId:p.slice(4)};
   if(p.startsWith('cg:'))return{kind:'cg',gameId:p.slice(3)};
+  if(p.startsWith('ig:'))return{kind:'ig',gameId:p.slice(3)};
   if(p.startsWith('pub:'))return{kind:'pub',id:p.slice(4)};
   if(p.startsWith('cp:'))return{kind:'cp',id:p.slice(3)};
   return null;
@@ -675,7 +791,7 @@ function visibleGamePlatforms(){
     else if(it.kind==='app'){
       const m=pubMappings.find(x=>x.id===it.mappingId);
       if(m)set.add(`${m.gameId}__${m.platform}`);
-    }else if(it.kind==='cg'){
+    }else if(it.kind==='ig'||it.kind==='cg'){
       pubMappings.filter(m=>m.gameId===it.gameId).forEach(m=>set.add(`${m.gameId}__${m.platform}`));
     }
   });
@@ -691,7 +807,7 @@ function visibleMappingIds(){
     if(it.kind==='app')set.add(it.mappingId);
     else if(it.kind==='gp'){
       pubMappings.filter(m=>m.gameId===it.gameId&&m.platform===it.platform).forEach(m=>set.add(m.id));
-    }else if(it.kind==='cg'){
+    }else if(it.kind==='ig'||it.kind==='cg'){
       pubMappings.filter(m=>m.gameId===it.gameId).forEach(m=>set.add(m.id));
     }
   });
@@ -705,9 +821,9 @@ function visibleEntities(){
   }
   const gp=visibleGamePlatforms();
   const {pubIds:explicitPubs,cpIds:explicitCps}=_entityPermsOf(dp);
-  // 显式 cg: 项收集游戏
+  // 显式 cg:/ig: 项收集游戏
   const explicitCgGames=new Set();
-  (dp||[]).forEach(p=>{const it=parseDataPerm(p);if(it&&it.kind==='cg')explicitCgGames.add(it.gameId);});
+  (dp||[]).forEach(p=>{const it=parseDataPerm(p);if(it&&(it.kind==='cg'||it.kind==='ig'))explicitCgGames.add(it.gameId);});
   // gp / app 反推主体+游戏
   const inferredPubIds=new Set();
   const inferredGameIds=new Set([...explicitCgGames]);
@@ -732,8 +848,8 @@ function visibleEntities(){
 }
 
 function renderPage(){
-  const map={games:pgGames,platformApps:pgPlatformApps,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgPubRules,pubRules:pgPubRules,cpRules:pgCpRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,cloudCost:pgCloudCost,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,statements:pgStatements,invoices:pgInvoices,permConfig:pgPermConfig,userMgmt:pgUserMgmt};
-  const pageTitles={games:'游戏管理',pubMapping:'联运授权',cpMapping:'CP合作',publishers:'联运商',cps:'CP',rules:'联运商分成规则',pubRules:'联运商分成规则',cpRules:'CP分成规则',cashRev:'现金收入确认',vRev:'广告金收入确认',costDashboard:'投放成本确认',cloudCost:'云服务成本确认',dailyRecon:'每日收支预估',settlePub:'联运商分账明细',settleCp:'CP分账明细',balance:'账户流水',payments:'付款单管理',myPayments:'付款申请',statements:'对账单管理',invoices:'票据管理',permConfig:'权限配置',userMgmt:'用户管理'};
+  const map={games:pgGames,platformApps:pgPlatformApps,pubMapping:pgPubMapping,cpMapping:pgCpMapping,publishers:pgPublishers,cps:pgCPs,rules:pgPubRules,pubRules:pgPubRules,cpRules:pgCpRules,cashRev:pgCashRevDashboard,vRev:pgVRevDashboard,costDashboard:pgCostDashboard,cloudCost:pgCloudCost,dailyRecon:pgDailyRecon,settlePub:pgSettlePub,settleCp:pgSettleCp,balance:pgBalance,payments:pgPayments,myPayments:pgMyPayments,statements:pgStatements,invoices:pgInvoices,idsAccounts:pgIdsAccounts,syncTasks:pgSyncTasks,bpmApprovers:pgBpmApprovers,permConfig:pgPermConfig,userMgmt:pgUserMgmt,pubCostConfig:pgPubCostConfig};
+  const pageTitles={games:'游戏管理',platformApps:'平台应用',pubMapping:'联运授权',cpMapping:'CP合作',publishers:'联运商',cps:'CP',rules:'联运商分成规则',pubRules:'联运商分成规则',cpRules:'CP分成规则',cashRev:'现金收入确认',vRev:'广告金收入确认',costDashboard:'投放成本确认',cloudCost:'云服务成本确认',dailyRecon:'每日收支预估',settlePub:'联运商分账明细',settleCp:'CP分账明细',balance:'账户流水',payments:'付款单管理',myPayments:'付款申请',statements:'对账单管理',invoices:'票据管理',idsAccounts:'出账账户',syncTasks:'数据同步任务',bpmApprovers:'审批人配置',permConfig:'权限配置',userMgmt:'用户管理',pubCostConfig:'消耗数据访问配置'};
   document.getElementById('crumbEl').textContent=pageTitles[PAGE]||PAGE;
   const isMaster=MASTER_PAGES.includes(PAGE);
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
@@ -793,7 +909,7 @@ function pgGames(){
       <td>${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</td>
       <td>${cloudTag}</td>
       <td style="color:var(--muted)">${g.remark||'—'}</td>
-      <td>${cpRel?cpRel.cp:'<span style="color:var(--red)">未配置</span>'}</td>
+      <td>${cpRel?cpRel.cp:'—'}</td>
       <td style="color:var(--muted);font-size:12px">${g.creator}</td>
       <td style="color:var(--muted);font-size:12px">${g.created}</td>
       <td>
@@ -1023,7 +1139,7 @@ function openGameDetail(id){
     </div>
     <div class="sec-title">绑定CP关系</div>
     <div class="kv">
-      <span class="k">CP</span><span class="v">${cpRel?cpRel.cp:'<span style="color:var(--red)">未配置</span>'}</span>
+      <span class="k">CP</span><span class="v">${cpRel?cpRel.cp:'—'}</span>
       <span class="k">CPID</span><span class="v" style="font-family:monospace">${cpRel?cpRel.cpId:'—'}</span>
     </div>
     <div class="sec-title">平台-联运商-平台应用映射（${pms.length} 条）</div>
@@ -1114,66 +1230,100 @@ function confirmDeleteGame(id){
 }
 
 function openPubMappingForm(presetGameId){
-  openModal('新增联运授权',`
-    <div class="notice">一个游戏可被多家联运商运营；同一联运商在同一平台下可绑定多个平台应用（每条映射对应一个应用）。<b>平台应用从主数据「平台应用」中直接选择，所属游戏由应用自动反推</b>；同一个平台应用<b>不能同时被多条映射引用</b>。如需新增平台应用，请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="closeModal();go('platformApps')">平台应用</button>」中维护。</div>
+  const presetGame=presetGameId?games.find(g=>g.id===presetGameId):null;
+  openModal('新增游戏-联运商关系',`
+    <div class="notice">一个游戏可被多家联运商运营；同一联运商在同一平台下可绑定多个平台应用（每条映射对应一个应用）。请按 <b>联运商 → 游戏 → 平台 → 平台应用</b> 顺序填写；下游下拉范围会随上游变化自动收敛。<br/>同一个平台应用<b>不能同时被多条映射引用</b>。如需新增平台应用，请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="closeModal();go('platformApps')">平台应用</button>」中维护。</div>
+    <div class="fgrid">
+      <div class="field"><label>联运商 <span class="req">*</span></label>
+        <select class="select" id="pmPubSel" style="width:100%" onchange="refreshPubMappingGameOpts()">
+          <option value="">-- 选择联运商 --</option>
+          ${publishers.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>所属游戏 <span class="req">*</span></label>
+        <select class="select" id="pmGameSel" style="width:100%" onchange="refreshPubMappingPlatOpts()" ${presetGameId?'disabled':''}>
+          <option value="">-- 请先选择联运商 --</option>
+          ${presetGame?`<option value="${presetGame.id}" selected>《${presetGame.name}》（${presetGame.id}）</option>`:''}
+        </select>
+        ${presetGameId?'<div class="hint">已锁定为入口预置游戏</div>':'<div class="hint">仅展示当前平台应用主数据中存在的游戏</div>'}
+      </div>
+    </div>
     <div class="fgrid">
       <div class="field"><label>平台类型 <span class="req">*</span></label>
-        <select class="select" style="width:100%" id="pmPlatSel" onchange="refreshPubMappingAppOpts()">
-          <option value="">-- 选择 --</option><option>微信小游戏</option><option>抖音小游戏</option>
+        <select class="select" id="pmPlatSel" style="width:100%" onchange="refreshPubMappingAppOpts()">
+          <option value="">-- 请先选择游戏 --</option>
         </select>
       </div>
-      <div class="field"><label>联运商 <span class="req">*</span></label><select class="select" id="pmPubSel" style="width:100%"><option value="">-- 选择 --</option>${publishers.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
-    </div>
-    <div class="fgrid">
-      <div class="field" style="grid-column:1/-1"><label>平台应用 <span class="req">*</span></label>
-        <select class="select" id="pmAppSel" style="width:100%" onchange="reflectPubMappingGame()">
-          <option value="">-- 请先选择平台类型 --</option>
+      <div class="field"><label>平台应用 <span class="req">*</span></label>
+        <select class="select" id="pmAppSel" style="width:100%">
+          <option value="">-- 请先选择平台 --</option>
         </select>
-        <div class="hint">只展示<b>该平台下</b>且<b>当前空闲（未被任何映射引用）</b>的应用。${presetGameId?'<span style="color:var(--primary)">已按当前游戏筛选。</span>':''}</div>
-      </div>
-    </div>
-    <div class="fgrid">
-      <div class="field" style="grid-column:1/-1"><label>所属游戏</label>
-        <input class="input" id="pmGameDisp" style="width:100%;background:#f5f7fa" value="${presetGameId?(games.find(g=>g.id===presetGameId)?'《'+games.find(g=>g.id===presetGameId).name+'》（'+presetGameId+'）':''):''}" placeholder="选择平台应用后自动带出" disabled/>
-        <input type="hidden" id="pmGameSel" value="${presetGameId||''}"/>
-        <div class="hint">由所选平台应用自动反推</div>
+        <div class="hint">只展示<b>该游戏 × 该平台</b>下当前空闲（未被任何映射引用）的应用</div>
       </div>
     </div>`,
-    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="submitPubMapping()">保存映射</button>`)
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="submitPubMapping()">保存映射</button>`);
+  // 若预置了游戏，初始联动平台下拉
+  if(presetGameId)setTimeout(refreshPubMappingPlatOpts,0);
+}
+// 仅列出"平台应用主数据中已有应用"的游戏，且按联运商过滤掉已被该联运商完全占用的应用所属游戏没意义——保留全部
+function refreshPubMappingGameOpts(){
+  const sel=document.getElementById('pmGameSel');
+  if(!sel||sel.disabled){refreshPubMappingPlatOpts();return;}
+  const pubId=document.getElementById('pmPubSel').value;
+  if(!pubId){
+    sel.innerHTML='<option value="">-- 请先选择联运商 --</option>';
+    refreshPubMappingPlatOpts();
+    return;
+  }
+  // 候选游戏：平台应用主数据里出现过的 gameId（即"有数据通道的游戏"）
+  const usedIds=new Set(pubMappings.map(m=>m.appRefId).filter(Boolean));
+  const gameIdsWithFreeApp=new Set(platformApps.filter(a=>!usedIds.has(a.id)).map(a=>a.gameId));
+  const gameOpts=games.filter(g=>gameIdsWithFreeApp.has(g.id));
+  if(!gameOpts.length){
+    sel.innerHTML='<option value="">-- 暂无可用游戏（平台应用均已被占用） --</option>';
+  }else{
+    sel.innerHTML='<option value="">-- 选择游戏 --</option>'+
+      gameOpts.map(g=>`<option value="${g.id}">《${g.name}》（${g.id}）</option>`).join('');
+  }
+  refreshPubMappingPlatOpts();
+}
+function refreshPubMappingPlatOpts(){
+  const platSel=document.getElementById('pmPlatSel');
+  const gameId=document.getElementById('pmGameSel').value;
+  if(!gameId){
+    platSel.innerHTML='<option value="">-- 请先选择游戏 --</option>';
+    refreshPubMappingAppOpts();
+    return;
+  }
+  const usedIds=new Set(pubMappings.map(m=>m.appRefId).filter(Boolean));
+  // 该游戏下还有空闲应用的平台
+  const platforms=[...new Set(platformApps.filter(a=>a.gameId===gameId&&!usedIds.has(a.id)).map(a=>a.platform))];
+  if(!platforms.length){
+    platSel.innerHTML='<option value="">-- 该游戏暂无空闲平台应用 --</option>';
+  }else{
+    platSel.innerHTML='<option value="">-- 选择平台 --</option>'+
+      platforms.map(p=>`<option value="${p}">${p}</option>`).join('');
+  }
+  refreshPubMappingAppOpts();
 }
 function refreshPubMappingAppOpts(){
+  const appSel=document.getElementById('pmAppSel');
   const plat=document.getElementById('pmPlatSel').value;
-  const sel=document.getElementById('pmAppSel');
-  const presetGameId=document.getElementById('pmGameSel').value;
-  if(!plat){sel.innerHTML='<option value="">-- 请先选择平台类型 --</option>';return;}
+  const gameId=document.getElementById('pmGameSel').value;
+  if(!plat||!gameId){
+    appSel.innerHTML='<option value="">-- 请先选择平台 --</option>';
+    return;
+  }
   const usedIds=new Set(pubMappings.map(m=>m.appRefId).filter(Boolean));
-  let candidates=platformApps.filter(a=>a.platform===plat&&!usedIds.has(a.id));
-  if(presetGameId)candidates=candidates.filter(a=>a.gameId===presetGameId);
+  const candidates=platformApps.filter(a=>a.platform===plat&&a.gameId===gameId&&!usedIds.has(a.id));
   if(!candidates.length){
-    sel.innerHTML=`<option value="">-- 暂无空闲的${plat}应用${presetGameId?'（当前游戏）':''} --</option>`;
-    reflectPubMappingGame();
+    appSel.innerHTML=`<option value="">-- 暂无空闲的${plat}应用 --</option>`;
     return;
   }
-  sel.innerHTML='<option value="">-- 选择平台应用 --</option>'+
-    candidates.map(a=>{
-      const g=games.find(x=>x.id===a.gameId);
-      return `<option value="${a.id}">${a.appId}｜${a.appName}${g?'（'+g.name+'）':''}</option>`;
-    }).join('');
-}
-function reflectPubMappingGame(){
-  const appRefId=document.getElementById('pmAppSel').value;
-  const disp=document.getElementById('pmGameDisp');
-  const hidden=document.getElementById('pmGameSel');
-  if(!appRefId){
-    // 若是预置游戏场景，保留预置值；否则清空
-    if(!hidden.dataset.preset){disp.value='';hidden.value='';}
-    return;
-  }
-  const a=getPlatformApp(appRefId);
-  if(!a||!a.gameId){disp.value='';hidden.value='';return;}
-  const g=games.find(x=>x.id===a.gameId);
-  disp.value=g?`《${g.name}》（${a.gameId}）`:a.gameId;
-  hidden.value=a.gameId;
+  appSel.innerHTML='<option value="">-- 选择平台应用 --</option>'+
+    candidates.map(a=>`<option value="${a.id}">${a.appId}｜${a.appName}</option>`).join('');
+  // 只有一个候选时自动选中
+  if(candidates.length===1)appSel.value=candidates[0].id;
 }
 function submitPubMapping(){
   const platform=document.getElementById('pmPlatSel').value;
@@ -1410,7 +1560,7 @@ function openCpMappingDetail(gameId){
       <span class="k">游戏名称</span><span class="v">《${g.name}》</span>
       <span class="k">上架平台</span><span class="v">${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</span>
       <span class="k">CPID</span><span class="v" style="font-family:monospace">${rel?rel.cpId:'—'}</span>
-      <span class="k">CP名称</span><span class="v">${rel?rel.cp:'<span style="color:var(--red)">未配置</span>'}</span>
+      <span class="k">CP名称</span><span class="v">${rel?rel.cp:'—'}</span>
       <span class="k">创建人</span><span class="v">${rel?rel.creator:'—'}</span>
       <span class="k">创建时间</span><span class="v">${rel?rel.created:'—'}</span>
     </div>`)
@@ -1467,7 +1617,7 @@ function pgCpMapping(){
       <td><b>《${g.name}》</b></td>
       <td>${g.platforms.map(p=>p==='微信小游戏'?'<span class="tag green">微信小游戏</span>':'<span class="tag blue">抖音小游戏</span>').join(' ')}</td>
       <td style="font-family:monospace;font-size:12px">${rel?rel.cpId:'—'}</td>
-      <td>${rel?rel.cp:`<span style="color:var(--red)">未配置</span>`}</td>
+      <td>${rel?rel.cp:'—'}</td>
       <td style="color:var(--muted);font-size:12px">${rel?rel.creator+' · '+rel.created:'—'}</td>
       <td>${rel
         ? `<button class="link" onclick="openCpMappingDetail('${g.id}')">查看</button>${canBizMapping()?`<button class="link" style="margin-left:6px" onclick="openCpMappingEdit('${g.id}')">编辑</button>`:''}`
@@ -1515,12 +1665,13 @@ function pgPlatformApps(){
       <td style="font-family:monospace;font-size:12px;color:#31557d">${a.appId}</td>
       <td>${a.appName||'<span style="color:var(--weak)">—</span>'}</td>
       <td><span style="font-family:monospace;font-size:12px;color:var(--muted)">${maskSecret(a.appSecret)}</span><button class="link" style="margin-left:6px;font-size:11px" onclick="viewFullSecret('${a.id}')">查看完整</button></td>
+      <td style="color:var(--muted);font-size:12px">${a.launchDate||'<span style="color:var(--weak)">—</span>'}</td>
       <td>${occupied}</td>
       <td style="color:var(--muted);font-size:12px">${a.createdAt||'—'}</td>
       <td>${ops.join(' ')}</td>
     </tr>`;
   });
-  if(!rows.length)rows.push(`<tr><td colspan="9" style="text-align:center;color:var(--weak);padding:24px">暂无平台应用，请点击右上角「新建」</td></tr>`);
+  if(!rows.length)rows.push(`<tr><td colspan="10" style="text-align:center;color:var(--weak);padding:24px">暂无平台应用，请点击右上角「新建」</td></tr>`);
   return `<div class="ph">
     <div><div class="pt">平台应用</div><div class="pd">维护微信/抖音小游戏的<b>平台应用 AppID + AppSecret</b>。每个平台应用归属唯一游戏；AppID 全局唯一；联运授权建立时<b>直接从本列表选择</b>，无需手填。AppSecret 默认脱敏展示，点击「查看完整」需二次确认。</div></div>
     <div class="acts">${canEdit?'<button class="btn p" onclick="openPlatformAppForm()">＋ 新建平台应用</button>':''}<button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
@@ -1537,7 +1688,7 @@ function pgPlatformApps(){
     <button class="btn g sm" onclick="window._paPlat='all';window._paKw='';document.getElementById('contentEl').innerHTML=pgPlatformApps()">重置</button>
     <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 条</span>
   </div>
-  ${tbl(['应用ID','平台','所属游戏','AppID','应用名称','AppSecret','占用情况','创建时间','操作'],rows,{pageKey:'platformApps'})}`;
+  ${tbl(['应用ID','平台','所属游戏','AppID','应用名称','AppSecret','上线日期','占用情况','创建时间','操作'],rows,{pageKey:'platformApps'})}`;
 }
 function openPlatformAppDetail(id){
   const a=getPlatformApp(id);
@@ -1557,6 +1708,7 @@ function openPlatformAppDetail(id){
       <span class="k">AppID</span><span class="v" style="font-family:monospace;font-size:13px">${a.appId}</span>
       <span class="k">应用名称</span><span class="v">${a.appName||'—'}</span>
       <span class="k">AppSecret</span><span class="v" style="font-family:monospace">${maskSecret(a.appSecret)} <button class="link" style="margin-left:6px;font-size:11px" onclick="viewFullSecret('${a.id}')">查看完整</button></span>
+      <span class="k">应用上线日期</span><span class="v">${a.launchDate||'<span style="color:var(--weak)">未填写</span>'}</span>
       <span class="k">备注</span><span class="v">${a.remark||'—'}</span>
       <span class="k">创建时间</span><span class="v">${a.createdAt}</span>
       <span class="k">创建人</span><span class="v">${a.creator}</span>
@@ -1618,6 +1770,10 @@ function openPlatformAppForm(id){
       ${isEdit
         ?`<input class="input" style="width:100%;font-family:monospace" value="${maskSecret(a.appSecret)}" disabled/><div class="hint">编辑模式下不直接展示，如需更换请使用列表中的「重置Secret」</div>`
         :`<input class="input" id="paf_secret" style="width:100%;font-family:monospace" placeholder="32 位字符，留空将自动生成"/><div class="hint">留空时由系统生成；提交后默认脱敏存储</div>`}
+    </div>
+    <div class="field"><label>应用上线日期</label>
+      <input class="input" type="date" id="paf_launchDate" style="width:100%" value="${a?a.launchDate||'':''}" />
+      <div class="hint">填写该应用在对应平台的实际上线日期；用于判断阶梯分润的12个月计算窗口</div>
     </div>
     <div class="field" style="grid-column:1/-1"><label>备注</label>
       <textarea class="input" id="paf_remark" style="width:100%;height:60px;resize:vertical">${a?a.remark||'':''}</textarea>
@@ -1786,7 +1942,7 @@ function openPub(id){
   openModal(`联运商档案：${p.name}`,`<div class="kv"><span class="k">主体ID</span><span class="v">${p.id}</span><span class="k">公司名称</span><span class="v">${p.name}</span><span class="k">统一社会信用代码</span><span class="v" style="font-family:monospace">${p.credit}</span><span class="k">联系人</span><span class="v">${p.contact}</span><span class="k">手机号</span><span class="v">${p.phone}</span><span class="k">邮箱</span><span class="v">${p.email}</span><span class="k">营业执照</span><span class="v">${licenseCell(p,'pub')}</span></div><div class="sec-title">银行账户</div><div class="kv"><span class="k">账户名称</span><span class="v">${p.accName}</span><span class="k">开户银行</span><span class="v">${p.bank}</span><span class="k">银行账号</span><span class="v" style="font-family:monospace">****${p.acc}</span><span class="k">联行号</span><span class="v" style="font-family:monospace">${p.bankNo}</span></div>`)
 }
 function openPubForm(){
-  openModal('新建联运商',`<div class="fgrid"><div class="field"><label>公司名称 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="与营业执照一致" /></div><div class="field"><label>统一社会信用代码 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="全局唯一" /></div><div class="field"><label>法人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>法人证件号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="加密存储，展示时脱敏" /></div><div class="field"><label>联系人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人手机号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人邮箱</label><input class="input" style="width:100%" /></div>${renderLicenseUpload('pubLicNew','')}</div><div class="sec-title">银行账户</div><div class="fgrid"><div class="field"><label>账户名称 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户银行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户支行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>银行账号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联行号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="跨行转账使用" /></div></div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：提交后档案创建，账户同步至银企直联系统');closeModal()">提交</button>`)
+  openModal('新建联运商',`<div class="fgrid"><div class="field"><label>公司名称 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="与营业执照一致" /></div><div class="field"><label>统一社会信用代码 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="全局唯一" /></div><div class="field"><label>法人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>法人证件号</label><input class="input" style="width:100%" placeholder="加密存储，展示时脱敏" /></div><div class="field"><label>联系人姓名 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联系人电话</label><input class="input" style="width:100%" /></div><div class="field"><label>联系人邮箱</label><input class="input" style="width:100%" /></div><div class="field" style="grid-column:1/-1"><label>联系地址</label><input class="input" style="width:100%" placeholder="省/市/区 + 详细地址" /></div>${renderLicenseUpload('pubLicNew','')}</div><div class="sec-title">银行账户</div><div class="fgrid"><div class="field"><label>账户名称 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户银行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>开户支行 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>银行账号 <span class="req">*</span></label><input class="input" style="width:100%" /></div><div class="field"><label>联行号 <span class="req">*</span></label><input class="input" style="width:100%" placeholder="跨行转账使用" /></div></div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="alert('原型展示：提交后档案创建，账户同步至银企直联系统');closeModal()">提交</button>`)
 }
 function openPubEdit(id){
   const p=publishers.find(x=>x.id===id);
@@ -1794,8 +1950,9 @@ function openPubEdit(id){
     <div class="field"><label>公司名称 <span class="req">*</span></label><input id="pe_name" class="input" style="width:100%" value="${p.name}"/></div>
     <div class="field"><label>统一社会信用代码 <span class="req">*</span></label><input id="pe_credit" class="input" style="width:100%;font-family:monospace" value="${p.credit}"/></div>
     <div class="field"><label>联系人姓名 <span class="req">*</span></label><input id="pe_contact" class="input" style="width:100%" value="${p.contact}"/></div>
-    <div class="field"><label>联系人手机号 <span class="req">*</span></label><input id="pe_phone" class="input" style="width:100%" value="${p.phone}"/></div>
+    <div class="field"><label>联系人电话</label><input id="pe_phone" class="input" style="width:100%" value="${p.phone}"/></div>
     <div class="field"><label>联系人邮箱</label><input id="pe_email" class="input" style="width:100%" value="${p.email}"/></div>
+    <div class="field" style="grid-column:1/-1"><label>联系地址</label><input id="pe_address" class="input" style="width:100%" value="${p.address||''}" placeholder="省/市/区 + 详细地址"/></div>
     ${renderLicenseUpload('pe_license',p.license||'')}
   </div><div class="sec-title">银行账户</div><div class="fgrid">
     <div class="field"><label>账户名称 <span class="req">*</span></label><input id="pe_accName" class="input" style="width:100%" value="${p.accName}"/></div>
@@ -1846,8 +2003,10 @@ function openCPForm(){
     <div class="field"><label>公司名称 <span class="req">*</span></label><input id="cn_name" class="input" style="width:100%" placeholder="与营业执照一致"/></div>
     <div class="field" style="grid-column:1/-1"><label>联系地址 <span class="req">*</span></label><input id="cn_address" class="input" style="width:100%" placeholder="省/市/区 + 详细地址"/></div>
     <div class="field"><label>联系人姓名 <span class="req">*</span></label><input id="cn_contact" class="input" style="width:100%"/></div>
-    <div class="field"><label>联系人手机号 <span class="req">*</span></label><input id="cn_phone" class="input" style="width:100%"/></div>
+    <div class="field"><label>联系人手机号</label><input id="cn_phone" class="input" style="width:100%"/></div>
     <div class="field"><label>联系人邮箱</label><input id="cn_email" class="input" style="width:100%"/></div>
+    <div class="field"><label>法人</label><input id="cn_legal" class="input" style="width:100%"/></div>
+    <div class="field"><label>证件号</label><input id="cn_idno" class="input" style="width:100%" placeholder="加密存储，展示时脱敏"/></div>
     ${renderLicenseUpload('cn_license','')}
   </div>`,
   `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveCPNew()">提交</button>`)
@@ -1860,12 +2019,13 @@ function saveCPNew(){
   const contact=document.getElementById('cn_contact').value.trim();
   if(!contact){alert('联系人姓名不能为空');return;}
   const phone=document.getElementById('cn_phone').value.trim();
-  if(!phone){alert('联系人手机号不能为空');return;}
   const email=document.getElementById('cn_email').value.trim();
+  const legal=document.getElementById('cn_legal').value.trim();
+  const idno=document.getElementById('cn_idno').value.trim();
   const licInput=document.getElementById('cn_license');
   const license=(licInput&&licInput.files&&licInput.files[0])?licInput.files[0].name:'';
   const nextNo=cps.reduce((m,c)=>{const n=parseInt((c.id||'').replace(/\D/g,''),10);return isNaN(n)?m:Math.max(m,n);},3000)+1;
-  cps.push({id:`CP-${nextNo}`,name,address,contact,phone,email,status:'合作中',license});
+  cps.push({id:`CP-${nextNo}`,name,address,contact,phone,email,legal,idno,status:'合作中',license});
   closeModal();
   refreshCPs();
 }
@@ -1875,8 +2035,10 @@ function openCPEdit(id){
     <div class="field"><label>公司名称 <span class="req">*</span></label><input id="ce_name" class="input" style="width:100%" value="${c.name}"/></div>
     <div class="field" style="grid-column:1/-1"><label>联系地址 <span class="req">*</span></label><input id="ce_address" class="input" style="width:100%" value="${c.address||''}"/></div>
     <div class="field"><label>联系人姓名 <span class="req">*</span></label><input id="ce_contact" class="input" style="width:100%" value="${c.contact}"/></div>
-    <div class="field"><label>联系人手机号 <span class="req">*</span></label><input id="ce_phone" class="input" style="width:100%" value="${c.phone}"/></div>
+    <div class="field"><label>联系人手机号</label><input id="ce_phone" class="input" style="width:100%" value="${c.phone}"/></div>
     <div class="field"><label>联系人邮箱</label><input id="ce_email" class="input" style="width:100%" value="${c.email}"/></div>
+    <div class="field"><label>法人</label><input id="ce_legal" class="input" style="width:100%" value="${c.legal||''}"/></div>
+    <div class="field"><label>证件号</label><input id="ce_idno" class="input" style="width:100%" value="${c.idno||''}" placeholder="加密存储，展示时脱敏"/></div>
     ${renderLicenseUpload('ce_license',c.license||'')}
   </div>`,
   `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveCPEdit('${c.id}')">保存</button>`)
@@ -1890,6 +2052,8 @@ function saveCPEdit(id){
   c.contact=document.getElementById('ce_contact').value.trim()||c.contact;
   c.phone=document.getElementById('ce_phone').value.trim()||c.phone;
   c.email=document.getElementById('ce_email').value.trim()||c.email;
+  c.legal=document.getElementById('ce_legal').value.trim()||c.legal;
+  c.idno=document.getElementById('ce_idno').value.trim()||c.idno;
   const licInput=document.getElementById('ce_license');
   if(licInput&&licInput.files&&licInput.files[0])c.license=licInput.files[0].name;
   closeModal();
@@ -1932,9 +2096,9 @@ function pgPubRules(){
     const namesLine=visible.map(a=>a.appName).join(' · ');
     const moreSpan=remain>0?` <span style="color:var(--primary);cursor:help" title="${fullList}">…+${remain} 个</span>`:'';
     const appCell=`<span style="${badgeStyle};border-radius:8px;padding:1px 7px;font-size:11px;font-weight:700">${badgeText}</span><div style="font-size:10.5px;color:var(--muted);margin-top:3px;max-width:220px;line-height:1.5" title="${fullList}">${namesLine||'<span style="color:var(--weak)">—</span>'}${moreSpan}</div>`;
-    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${appCell}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openPubRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
+    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${appCell}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openPubRuleDetail('${r.id}')">查看</button>${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
   });
-  return `<div class="ph"><div><div class="pt">联运商分成规则</div><div class="pd">每条规则绑定「游戏＋平台＋联运商」，可指定生效的平台应用 AppID（默认覆盖该联运商下全部 AppID）；同一条规则内所有 AppID 共用同一份比例与阶梯。CP 端分成规则请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cpRules')">CP分成规则</button>」中配置。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openPubRuleForm()">＋ 新建规则</button>':''}</div></div>
+  return `<div class="ph"><div><div class="pt">联运商分成规则</div><div class="pd">每条规则绑定「游戏＋平台＋联运商」，可指定生效的平台应用 AppID（默认覆盖该联运商下全部 AppID）；同一条规则内所有 AppID 共用同一份比例与阶梯。CP 端分成规则请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cpRules')">CP分成规则</button>」中配置。</div></div><div class="acts">${canEditRule()?'<button class="btn p" onclick="openPubRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="filter"><select class="select"><option>全部平台</option><option>微信小游戏</option><option>抖音小游戏</option></select><select class="select"><option>全部状态</option><option>草稿</option><option>审批中</option><option>生效中</option><option>已到期</option><option>已驳回</option></select></div>
   ${tbl(['规则ID','游戏','平台','联运商','平台应用','生效期间','联运商分成（含阶梯）','状态','BPM审批单号','操作'],rows,{pageKey:'pubRules'})}`;
 }
@@ -1943,14 +2107,17 @@ function pgRules(){return pgPubRules();}
 /* PAGE: CP分成规则 */
 function pgCpRules(){
   const ent=parsedEntity();
+  const statusFilter=window._cpRuleStatusFilter||'all';
   let data=FILTER_GAME==='all'?cpRules:cpRules.filter(r=>games.find(g=>g.id===FILTER_GAME)?.name===r.game);
   if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
-  return `<div class="ph"><div><div class="pt">CP分成规则</div><div class="pd">每条规则绑定「游戏＋CP」（游戏级合同）。<b>CP 占比%</b> 即 CP 在该游戏分账基数中所占的比例。</div></div><div class="acts">${canFin()?'<button class="btn p" onclick="openCpRuleForm()">＋ 新建规则</button>':''}</div></div>
+  if(statusFilter!=='all')data=data.filter(r=>r.status===statusFilter);
+  return `<div class="ph"><div><div class="pt">CP分成规则</div><div class="pd">每条规则绑定「游戏＋CP」（游戏级合同）。<b>CP 占比%</b> 即 CP 在该游戏分账基数中所占的比例。</div></div><div class="acts">${canEditRule()?'<button class="btn p" onclick="openCpRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>分账规则</b>：CP 分账 =（Σ 现金利润 − Σ 联运商真实分账 − 云服务成本）× CP 占比%；广告金侧不扣云服务成本。同一游戏的所有平台、所有联运商利润合并计算，按游戏一份合同一份占比。</div>
-  ${tbl(['规则ID','游戏','CP','生效期间','CP 占比%','状态','BPM审批单号','操作'],data.map(r=>{
+  <div class="filter"><select class="select" onchange="window._cpRuleStatusFilter=this.value;renderPage()"><option value="all">全部状态</option><option value="草稿">草稿</option><option value="审批中">审批中</option><option value="生效中">生效中</option><option value="已到期">已到期</option><option value="已驳回">已驳回</option></select></div>
+  ${tbl(['规则ID','游戏','CP','生效期间','CP 占比%','CP 承担云服务成本','状态','BPM审批单号','操作'],data.map(r=>{
     const bpmCell=r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>';
-    const ops=`<button class="link" onclick="openCpRuleDetail('${r.id}')">查看</button>${canFin()&&r.status==='草稿'?`<button class="link" onclick="submitCpRule('${r.id}')">提交审批</button>`:''}${canFin()?`<button class="link" onclick="copyCpRule('${r.id}')">复制</button>`:''}`;
-    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700;color:var(--green)">${r.cpRemainShare}%</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${bpmCell}</td><td>${ops}</td></tr>`;
+    const ops=`<button class="link" onclick="openCpRuleDetail('${r.id}')">查看</button>${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitCpRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyCpRule('${r.id}')">复制</button>`:''}`;
+    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700;color:var(--green)">${r.cpRemainShare}%</td><td>${r.cpServerCostShare?'<span style="color:var(--green)">承担</span>':'<span style="color:var(--muted)">不承担</span>'}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${bpmCell}</td><td>${ops}</td></tr>`;
   }),{pageKey:'cpRules'})}`;
 }
 function openCpRuleDetail(id){
@@ -2133,10 +2300,10 @@ function openPubRuleForm(){
       <label style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
         <input type="checkbox" id="rf_tier_enabled" onchange="document.getElementById('rf_tier_box').style.display=this.checked?'grid':'none'" />
         <b style="color:var(--primary)">启用阶梯分润</b>
-        <span style="color:var(--muted);font-size:12px">单款·单平台·单联运商月流水超过阈值后切换为高档比例</span>
+        <span style="color:var(--muted);font-size:12px">自平台应用上线当月起算，12个自然月内累计收入流水达到阈值，则后续账期切换为高档分成比例</span>
       </label>
       <div id="rf_tier_box" style="display:none;grid-template-columns:1fr 1fr;gap:10px 14px">
-        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">月流水阈值（万元）</div><input class="input" type="number" style="width:100%" placeholder="如 3000" min="0"/></div>
+        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">累计流水阈值（万元）</div><input class="input" type="number" style="width:100%" placeholder="如 3000" min="0"/></div>
         <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">超阈值后联运商比例（%）</div><input class="input" type="number" style="width:100%" placeholder="如 70" min="0" max="100"/></div>
       </div>
     </div>
@@ -2365,21 +2532,32 @@ function _gbsState(){
 function openGenBillStatement(){
   if(!isPublisher()){alert('当前角色无权生成对账单');return;}
   window._gbsSel=new Set();
+  window._gbsPeriod=null;
+  _renderGenBillModal();
+}
+function _gbsSetPeriod(val){
+  window._gbsPeriod=val||null;
+  window._gbsSel=new Set();
   _renderGenBillModal();
 }
 function _renderGenBillModal(){
   const ent=parsedEntity();
   // 只展示当前联运商的已确认账期数据
-  let data=settle.filter(r=>ent.type==='pub'?r.pub===ent.name:true);
-  data=data.filter(r=>isSettleReady(r.period,r.game,r.platform)&&isBillConfirmed(r.period,r.game,r.platform));
+  let allData=settle.filter(r=>ent.type==='pub'?r.pub===ent.name:true);
+  allData=allData.filter(r=>isSettleReady(r.period,r.game,r.platform)&&isBillConfirmed(r.period,r.game,r.platform));
   // 占用映射：有效（非作废）的对账单 → 占用了哪些 key
   const occupiedMap={};
   (window._generatedStatements||[]).forEach(s=>{
     (s.keys||[]).forEach(k=>{if(!occupiedMap[k])occupiedMap[k]=s.sn;});
   });
   // 直接过滤掉已占用的明细，列表只展示可勾选的
-  data=data.filter(r=>!occupiedMap[`${r.period}__${r.game}__${r.platform}`]);
-  data.sort((a,b)=>b.period.localeCompare(a.period)||a.game.localeCompare(b.game));
+  allData=allData.filter(r=>!occupiedMap[`${r.period}__${r.game}__${r.platform}`]);
+  // 可选账期：按自然月去重，倒序
+  const availMonths=[...new Set(allData.map(r=>periodMonth(r.period)))].sort((a,b)=>b.localeCompare(a));
+  // 按已选自然月过滤（同月多段一并展示）
+  const selPeriod=window._gbsPeriod||null;
+  let data=selPeriod?allData.filter(r=>periodMonth(r.period)===selPeriod):[];
+  data.sort((a,b)=>periodStart(a.period).localeCompare(periodStart(b.period))||a.game.localeCompare(b.game));
   const sel=_gbsState();
   // 清掉已不在可选列表中的勾选
   [...sel].forEach(k=>{
@@ -2425,7 +2603,7 @@ function _renderGenBillModal(){
         const rowSpan=apps.length;
         const firstCells=idx===0
           ? `<td rowspan="${rowSpan}" style="width:38px;text-align:center;vertical-align:middle"><input type="checkbox" class="gbsCheck" value="${k}" ${checked?'checked':''} onchange="_gbsToggle(this)" style="accent-color:var(--primary)"></td>
-             <td rowspan="${rowSpan}" style="vertical-align:middle">${r.period}</td>
+             <td rowspan="${rowSpan}" style="vertical-align:middle;white-space:nowrap">${periodLabel(r.period)}</td>
              <td rowspan="${rowSpan}" style="vertical-align:middle">《${r.game}》</td>
              <td rowspan="${rowSpan}" style="vertical-align:middle">${r.platform}</td>
              <td rowspan="${rowSpan}" style="vertical-align:middle">${r.pub}</td>`
@@ -2446,19 +2624,34 @@ function _renderGenBillModal(){
       });
     });
   }else{
-    rowsHtml=`<tr><td colspan="15" style="text-align:center;color:var(--weak);padding:20px">暂无可生成对账单的明细<div style="font-size:11.5px;margin-top:4px">（已生成对账单 / 未三方确认 / 未确认对账 的账期不在此处展示）</div></td></tr>`;
+    rowsHtml=`<tr><td colspan="16" style="text-align:center;color:var(--weak);padding:20px">暂无可生成对账单的明细<div style="font-size:11.5px;margin-top:4px">（已生成对账单 / 未三方确认 / 未确认对账 的账期不在此处展示）</div></td></tr>`;
   }
 
-  openModal('生成对账单',
-    `<div class="notice" style="margin-bottom:12px;border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 仅展示<b>已完成三方确认 + 联运商对账确认</b>且<b>尚未被任何对账单占用</b>的账期；勾选后将合并生成一份对账单。<br/><span style="font-size:11.5px;color:var(--muted)">字段与「联运商分账明细」保持一致；同一账期×游戏×平台下多个平台应用同步勾选。</span></div>
+  // 账期选择器
+  const periodSelector=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px 14px;background:#f7faff;border:1px solid #d0e8ff;border-radius:6px">
+    <span style="font-size:13px;font-weight:700;color:#1a4a80;white-space:nowrap">选择账期<span style="color:var(--red)">*</span></span>
+    <select class="select" style="min-width:140px;font-weight:700" onchange="_gbsSetPeriod(this.value)">
+      <option value="">— 请选择账期 —</option>
+      ${availMonths.map(m=>{
+        const segs=[...new Set(allData.filter(r=>periodMonth(r.period)===m).map(r=>r.period))];
+        const segNote=segs.length>1?`（${segs.length}段）`:'';
+        return`<option value="${m}" ${selPeriod===m?'selected':''}>${m}${segNote}</option>`;
+      }).join('')}
+    </select>
+    ${availMonths.length===0?'<span style="font-size:12px;color:var(--muted)">暂无可用账期</span>':''}
+  </div>`;
+
+  // 表格区域：仅在选定账期后展示
+  const tableArea=selPeriod?`
+    <div class="notice" style="margin-bottom:12px;border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 仅展示 <b>${selPeriod}</b> 账期中<b>已完成三方确认 + 联运商对账确认</b>且<b>尚未被任何对账单占用</b>的明细；勾选后将合并生成一份对账单。<br/><span style="font-size:11.5px;color:var(--muted)">字段与「联运商分账明细」保持一致；同一账期×游戏×平台下多个平台应用同步勾选。${data.some(r=>isPartialPeriod(r.period))?'<b style="color:var(--orange)"> 本月存在多段账期（规则换档），已分段展示。</b>':''}</span></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12.5px;color:var(--muted)">
       <div>可选 <b>${data.length}</b> 条 · 已选 <b style="color:var(--primary)">${sel.size}</b> 条</div>
       <div>合计：<b style="color:var(--primary)">现金 ${mn(totalPubCash)}</b> · 广告金 ${mn(totalPubV)}</div>
     </div>
-    <div class="tw" style="max-height:420px;overflow:auto"><table class="table" style="margin:0;font-size:12px;min-width:1180px">
+    <div class="tw" style="max-height:380px;overflow:auto"><table class="table" style="margin:0;font-size:12px;min-width:1160px">
       <thead><tr>
         <th style="width:38px;text-align:center"><input type="checkbox" ${allChecked?'checked':''} onchange="_gbsToggleAll(this)"></th>
-        <th>账期</th><th>游戏</th><th>平台</th><th>联运商</th><th>平台应用</th>
+        <th>账期段</th><th>游戏</th><th>平台</th><th>联运商</th><th>平台应用</th>
         <th style="text-align:right">现金收入</th><th style="text-align:right">广告金收入</th>
         <th style="text-align:right">总消耗</th><th style="text-align:right">现金成本</th><th style="text-align:right">广告金成本</th>
         <th style="text-align:right">现金利润</th><th style="text-align:right">广告金利润</th>
@@ -2466,9 +2659,13 @@ function _renderGenBillModal(){
         <th style="text-align:right">可结算（现金）</th><th style="text-align:right">可结算（广告金）</th>
       </tr></thead>
       <tbody>${rowsHtml}</tbody>
-    </table></div>`,
+    </table></div>`
+  :`<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px;background:#fafafa;border-radius:6px;border:1px dashed #d8e4f0">请先选择账期，系统将展示该账期下可生成对账单的明细</div>`;
+
+  openModal('生成对账单',
+    periodSelector+tableArea,
     `<button class="btn g" onclick="closeModal()">取消</button>
-     <button class="btn p" ${sel.size===0?'disabled':''} onclick="_gbsSubmit()">生成对账单</button>`);
+     <button class="btn p" ${(!selPeriod||sel.size===0)?'disabled':''} onclick="_gbsSubmit()">生成对账单</button>`);
 }
 function _gbsToggle(cb){const sel=_gbsState();if(cb.checked)sel.add(cb.value);else sel.delete(cb.value);_renderGenBillModal()}
 function _gbsToggleAll(cb){
@@ -2489,12 +2686,12 @@ function _gbsSubmit(){
   const sel=_gbsState();
   if(!sel.size){alert('请勾选至少一条账期数据');return}
   const keys=[...sel];
-  // 占用校验防御：避免并发场景下绕过 UI 提交已被占用的 keys
   if(!window._generatedStatements)window._generatedStatements=[];
+  // 占用校验：同一批 keys 只能属于一个批次（cash/ad 共享占用）
   const conflicts=[];
   keys.forEach(k=>{
     const occ=window._generatedStatements.find(s=>(s.keys||[]).includes(k));
-    if(occ)conflicts.push({key:k,sn:occ.sn});
+    if(occ&&!conflicts.find(c=>c.sn===occ.sn))conflicts.push({key:k,sn:occ.sn});
   });
   if(conflicts.length){
     alert(`无法生成：${conflicts.length} 条明细已被以下对账单占用，请到对账单管理作废后重试：\n`+conflicts.map(c=>`• ${c.key.replace(/__/g,' / ')}  ←  ${c.sn}`).join('\n'));
@@ -2502,12 +2699,17 @@ function _gbsSubmit(){
   }
   const html=buildMultiBillStatementHtml(keys);
   if(!html){alert('未找到匹配数据');return}
-  // 持久化已生成对账单（供「对账单管理」消费）
-  const sn='BS-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+String(window._generatedStatements.length+1).padStart(3,'0');
-  window._generatedStatements.push({sn,keys,createdAt:new Date().toLocaleString('zh-CN',{hour12:false}),pub:rows0Pub(keys),paymentIds:[]});
+  const now=new Date();
+  const dateStr=now.toISOString().slice(0,10).replace(/-/g,'');
+  const idx=String((window._generatedStatements.length+1)).padStart(3,'0');
+  const sn=`BS-${dateStr}-${idx}`;
+  const createdAt=now.toLocaleString('zh-CN',{hour12:false});
+  const pubName=rows0Pub(keys);
+  window._generatedStatements.push({sn,keys,createdAt,pub:pubName,paymentIds:[]});
   openModal(`对账单预览 · ${sn}`,
     `<div style="background:#f5f5f5;padding:14px;border-radius:6px">${html}</div>`,
-    `<button class="btn g" onclick="closeModal()">关闭</button><button class="btn p" onclick="alert('原型展示：对账单 ${sn} 已下载 PDF / Excel')">↓ 下载对账单</button>`);
+    `<button class="btn g" onclick="closeModal()">关闭</button>
+     <button class="btn p" style="margin-left:6px" onclick="alert('原型展示：对账单 ${sn} 已下载')">↓ 下载对账单</button>`);
 }
 
 function buildMultiBillStatementHtml(keys){
@@ -2519,13 +2721,14 @@ function buildMultiBillStatementHtml(keys){
   const today=new Date().toISOString().slice(0,10);
   const periods=[...new Set(rows.map(r=>r.period))].sort();
   const periodRange=periods.length===1?periods[0]:`${periods[0]} ~ ${periods[periods.length-1]}`;
-  let sumCashRev=0,sumVRev=0,sumTotalRev=0,sumCost=0,sumCashCost=0,sumCashP=0,sumPubCash=0,totalAppLines=0;
+  // 汇总变量
+  let sumCashRev=0,sumAdRev=0,sumTotalRev=0,sumCost=0,sumCashCost=0,sumCashP=0,sumSettle=0,totalAppLines=0;
   const lines=rows.map(r=>{
     const ps=calcPubSettle(r);
     const totalRevR=(r.cashRev||0)+(r.vRev||0);
-    const cashCostR=totalRevR>0?Math.round((r.cost||0)*(r.cashRev||0)/totalRevR):0;
-    const cashPR=(r.cashRev||0)-cashCostR;
-    sumCashRev+=r.cashRev;sumVRev+=r.vRev;sumTotalRev+=totalRevR;sumCost+=r.cost;sumCashCost+=cashCostR;sumCashP+=cashPR;sumPubCash+=ps.pubCash;
+    const cashCostR=totalRevR>0?Math.round((r.cost||0)*(r.cashRev||0)/totalRevR*100)/100:(r.cost||0);
+    sumCashRev+=r.cashRev||0;sumAdRev+=r.vRev||0;sumTotalRev+=totalRevR;
+    sumCost+=r.cost||0;sumCashCost+=cashCostR;sumCashP+=r.cashP||0;sumSettle+=ps.pubCash||0;
     const tierTag=ps.tierApplied?'阶梯Ⅱ':(ps.rule&&ps.rule.tierEnabled?'阶梯Ⅰ':'—');
     const apps=expandSettleByApp(r);
     totalAppLines+=apps.length;
@@ -2536,16 +2739,17 @@ function buildMultiBillStatementHtml(keys){
       const appCell=m
         ? `<div class="app-id">${appIdStr}</div><div class="app-name">${m.appName||'—'}</div>`
         : '<span style="color:#a00;font-size:11px">未配置映射</span>';
-      const cashRev=r.cashRev*sh;
-      const vRev=r.vRev*sh;
-      const totalRev=cashRev+vRev;
-      const cost=r.cost*sh;
-      const cashCost=totalRev>0?cost*cashRev/totalRev:0;
-      const cashP=cashRev-cashCost;
-      const pubCashShared=ps.pubCash*sh;
+      const cashRevApp=(r.cashRev||0)*sh;
+      const adRevApp=(r.vRev||0)*sh;
+      const totalRevApp=cashRevApp+adRevApp;
+      const totalCostApp=(r.cost||0)*sh;
+      const cashCostApp=totalRevApp>0?totalCostApp*cashRevApp/totalRevApp:0;
+      const cashPApp=(r.cashP||0)*sh;
+      const settleApp=(ps.pubCash||0)*sh;
+      const lossNote=ps.cashIsLossTransfer&&idx===apps.length-1?`<span style="display:inline-block;background:#ffe9e9;color:#c00;border-radius:6px;padding:0 5px;font-size:10px;margin-left:4px">亏损全划转</span>`:'';
       const rowSpan=apps.length;
       const head=idx===0
-        ? `<td rowspan="${rowSpan}" class="center">${r.period}</td>
+        ? `<td rowspan="${rowSpan}" class="center" style="white-space:nowrap">${periodLabel(r.period)}</td>
            <td rowspan="${rowSpan}" class="left">《${r.game}》</td>
            <td rowspan="${rowSpan}" class="center">${r.platform}</td>`
         : '';
@@ -2554,41 +2758,44 @@ function buildMultiBillStatementHtml(keys){
         : '';
       return `<tr>${head}
         <td>${appCell}</td>
-        <td class="num">${mn(cashRev)}</td>
-        <td class="num">${mn(vRev)}</td>
-        <td class="num" style="font-weight:600">${mn(totalRev)}</td>
-        <td class="num">${mn(cost)}</td>
-        <td class="num">${mn(cashCost)}</td>
-        <td class="num" style="font-weight:600">${mn(cashP)}</td>
+        <td class="num">${mn(cashRevApp)}</td>
+        <td class="num">${mn(adRevApp)}</td>
+        <td class="num" style="font-weight:600">${mn(totalRevApp)}</td>
+        <td class="num">${mn(totalCostApp)}</td>
+        <td class="num">${mn(cashCostApp)}</td>
+        <td class="num" style="font-weight:600;${cashPApp<0?'color:#c00':''}">${mn(cashPApp)}</td>
         ${rateCell}
-        <td class="num" style="font-weight:700">${mn(pubCashShared)}</td>
+        <td class="num" style="font-weight:700">${mn(settleApp)}${lossNote}</td>
       </tr>`;
     }).join('');
   }).join('');
+  const themeColor='#1a3a6a';
+  const sn=`BS-${today.replace(/-/g,'')}-${(rows[0]&&rows[0].pub||'').replace(/[^一-龥A-Za-z0-9]/g,'').slice(0,4)}`;
   return `<style>
     .bs{font-family:"Microsoft YaHei",-apple-system,sans-serif;color:#222;margin:0 auto;padding:20px 22px;background:#fff}
-    .bs h1{text-align:center;font-size:22px;margin:0 0 6px;letter-spacing:4px}
-    .bs .bs-sub{text-align:center;color:#666;font-size:13px;margin-bottom:18px}
-    .bs .bs-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;font-size:13px;border:1px solid #d8d8d8;padding:10px 14px;border-radius:4px;margin-bottom:14px;background:#fafafa}
+    .bs h1{text-align:center;font-size:22px;margin:0 0 4px;letter-spacing:4px;color:#222;font-weight:800}
+    .bs .bs-sub{text-align:center;color:#888;font-size:12px;margin-bottom:16px;letter-spacing:2px}
+    .bs .bs-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 32px;font-size:13px;border:1px solid #d8d8d8;padding:10px 14px;border-radius:4px;margin-bottom:14px;background:#fafafa}
     .bs .bs-meta .k{color:#666;display:inline-block;min-width:78px}
     .bs-tw{overflow-x:auto;border:1px solid #c4ccd6;border-radius:4px;background:#fff}
-    .bs table{border-collapse:collapse;font-size:12px;width:auto;min-width:100%}
+    .bs table{border-collapse:collapse;font-size:12px;width:100%}
     .bs th,.bs td{border:1px solid #d8dde3;padding:6px 10px;line-height:1.45;vertical-align:middle;white-space:nowrap}
-    .bs thead th{background:#eef3fb;font-weight:700;text-align:center;color:#1a3a6a;border-color:#c4ccd6;font-size:12px}
+    .bs thead th{background:#eef3fb;font-weight:700;text-align:center;color:${themeColor};border-color:#c4ccd6;font-size:12px}
     .bs thead .gh{background:#dde7f5;border-bottom:1px solid #c4ccd6;letter-spacing:1px;font-size:12px}
     .bs td.num,.bs th.num{text-align:right;font-family:"SF Mono","Roboto Mono",Consolas,Menlo,monospace;font-variant-numeric:tabular-nums}
     .bs td.center,.bs th.center{text-align:center}
-    .bs td.left,.bs th.left{text-align:left}
+    .bs td.left{text-align:left}
     .bs tbody tr:nth-child(odd) td{background:#fcfdff}
     .bs tbody tr:hover td{background:#f4f8ff}
-    .bs tfoot td{background:#fff5d6 !important;font-weight:800;border-top:2px solid #d8c476;padding-top:8px;padding-bottom:8px}
+    .bs tfoot td{background:#fff8e6 !important;font-weight:800;border-top:2px solid #d8c476;padding-top:8px;padding-bottom:8px;text-align:right}
+    .bs tfoot td.center{text-align:center}
     .bs .bs-foot{margin-top:18px;font-size:13px;line-height:1.8;border-top:1px dashed #c8c8c8;padding-top:12px;color:#444}
     .bs .bs-stamps{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:13px}
-    .bs .bs-stamp{border:1px solid #d8d8d8;padding:14px;min-height:110px;border-radius:4px;position:relative}
+    .bs .bs-stamp{border:1px solid #d8d8d8;padding:14px;min-height:110px;border-radius:4px}
     .bs .bs-stamp .lbl{color:#666;margin-bottom:8px}
     .bs .bs-stamp .sig{height:60px;border-bottom:1px solid #ccc}
     .bs .bs-stamp .dt{margin-top:8px;color:#666;font-size:12px}
-    .bs .app-id{font-family:"SF Mono",Consolas,monospace;font-size:11.5px;color:#1a3a6a}
+    .bs .app-id{font-family:"SF Mono",Consolas,monospace;font-size:11.5px;color:${themeColor}}
     .bs .app-name{color:#666;font-size:11px;margin-top:1px}
     .bs .tier-tag{display:inline-block;font-size:10.5px;color:#888;margin-top:2px}
   </style>
@@ -2601,34 +2808,38 @@ function buildMultiBillStatementHtml(keys){
       <div><span class="k">明细条数：</span>${rows.length} 条 · ${totalAppLines} 个平台应用</div>
       <div><span class="k">出具日期：</span>${today}</div>
       <div><span class="k">填制单位：</span>${SETTLEMENT_PREPARER}</div>
-      <div><span class="k">对账单编号：</span>BS-${today.replace(/-/g,'')}-${(rows[0]&&rows[0].pub||'').slice(0,2)}</div>
+      <div><span class="k">对账单编号：</span><b>${sn}</b></div>
     </div>
     <div class="bs-tw"><table>
       <thead>
         <tr class="gh">
           <th colspan="4">基础信息</th>
           <th colspan="3">收入</th>
-          <th colspan="3">成本与现金利润</th>
-          <th colspan="2">分账</th>
+          <th colspan="4">成本与现金利润</th>
         </tr>
         <tr>
           <th>账期</th><th class="left">游戏</th><th>平台</th><th>平台应用</th>
-          <th class="num">现金收入</th><th class="num">广告金收入</th><th class="num">总收入</th>
-          <th class="num">总消耗</th><th class="num">现金成本</th><th class="num">现金利润</th>
-          <th>分成比例</th><th class="num">可结算（现金）</th>
+          <th class="num">现金收入</th>
+          <th class="num">广告金收入</th>
+          <th class="num">总收入</th>
+          <th class="num">总消耗</th>
+          <th class="num">现金成本</th>
+          <th class="num">现金利润</th>
+          <th>分成比例</th>
+          <th class="num">现金可结算</th>
         </tr>
       </thead>
       <tbody>${lines}</tbody>
       <tfoot><tr>
-        <td colspan="4" class="center">合计</td>
-        <td class="num">${mn(sumCashRev)}</td>
-        <td class="num">${mn(sumVRev)}</td>
-        <td class="num">${mn(sumTotalRev)}</td>
-        <td class="num">${mn(sumCost)}</td>
-        <td class="num">${mn(sumCashCost)}</td>
-        <td class="num">${mn(sumCashP)}</td>
+        <td colspan="4" class="center" style="font-weight:800">合计</td>
+        <td>${mn(sumCashRev)}</td>
+        <td>${mn(sumAdRev)}</td>
+        <td style="font-weight:800">${mn(sumTotalRev)}</td>
+        <td>${mn(sumCost)}</td>
+        <td>${mn(sumCashCost)}</td>
+        <td style="font-weight:800;${sumCashP<0?'color:#c00':''}">${mn(sumCashP)}</td>
         <td class="center">—</td>
-        <td class="num" style="color:#1f50a0">${mn(sumPubCash)}</td>
+        <td style="color:${themeColor};font-weight:800">${mn(sumSettle)}</td>
       </tr></tfoot>
     </table></div>
     <div class="bs-foot">经核对，以上数据金额确认无误。本对账单双方盖章一式两份，双方各执一份。</div>
@@ -2642,12 +2853,19 @@ function buildMultiBillStatementHtml(keys){
 /* ── 阶梯分润 + 服务器成本 + 亏损划转（按规则配置） ── */
 // 找到一条 settle 记录对应的联运商分成规则（生效中的优先；否则取同主键最近一条）
 function findPubRuleFor(r){
-  const matched=pubRules.filter(x=>x.game===r.game&&x.platform===r.platform&&x.pub===r.pub);
+  const matched=pubRules.filter(x=>{
+    if(x.game!==r.game||x.platform!==r.platform||x.pub!==r.pub)return false;
+    // 日期区间重叠：rule.start <= periodEnd && rule.end >= periodStart
+    return x.start<=periodEnd(r.period)&&x.end>=periodStart(r.period);
+  });
   return matched.find(x=>x.status==='生效中')||matched.find(x=>x.status==='审批中')||matched[0]||null;
 }
 // 找到一条 settle 记录对应的 CP 分成规则（游戏级，只看 game+cp）
 function findCpRuleFor(r){
-  const matched=cpRules.filter(x=>x.game===r.game&&x.cp===r.cp);
+  const matched=cpRules.filter(x=>{
+    if(x.game!==r.game||x.cp!==r.cp)return false;
+    return x.start<=periodEnd(r.period)&&x.end>=periodStart(r.period);
+  });
   return matched.find(x=>x.status==='生效中')||matched.find(x=>x.status==='审批中')||matched[0]||null;
 }
 // 兼容旧调用：返回一个合并视图（联运商字段 + CP 字段）
@@ -2774,7 +2992,7 @@ function _revBaseFilter(prefix){
   const gameF=window['_'+prefix+'Game']||'all';
   const entityF=window['_'+prefix+'Entity']||'all';
   const appF=window['_'+prefix+'App']||'all'; // 后台游戏应用：pubMappings.id
-  const allPeriods=[...new Set(settle.map(r=>r.period))].sort();
+  const allPeriods=[...new Set(settle.map(r=>periodMonth(r.period)))].sort();
   const platforms=[...new Set(settle.map(r=>r.platform))].sort();
   const {visiblePubs,visibleCps,visibleGames}=visibleEntities();
   let filterPubName=null,filterCpName=null;
@@ -2796,7 +3014,7 @@ function _revBaseFilter(prefix){
     return true;
   });
   const data=settle.filter(r=>{
-    if(r.period<startF||r.period>endF)return false;
+    if(periodMonth(r.period)<startF||periodMonth(r.period)>endF)return false;
     if(filterPubName&&r.pub!==filterPubName)return false;
     if(filterCpName&&r.cp!==filterCpName)return false;
     if(filterGameName&&r.game!==filterGameName)return false;
@@ -2883,7 +3101,7 @@ function pgCashRevDashboard(){
     slot.finalRev+=finalOf(k,x.cashRev);
     slot.cnt++;
   });
-  const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
+  const periodSummaries=Object.values(byPeriod).sort((a,b)=>periodStart(b.period).localeCompare(periodStart(a.period)));
   const confirmedSet=window._cashRevConfirmed;
   const canConfirm=['财务人员','财务负责人/审批人','系统管理员'].includes(ROLE);
   const inRange=k=>{const p=k.split('__')[0];return p>=startF&&p<=endF;};
@@ -2994,7 +3212,7 @@ function pgVRevDashboard(){
   const total=flatRows.reduce((s,x)=>s+x.vRev,0);
   const byPeriod={};
   flatRows.forEach(x=>{(byPeriod[x.r.period]=byPeriod[x.r.period]||{period:x.r.period,vRev:0,cnt:0}).vRev+=x.vRev;byPeriod[x.r.period].cnt++;});
-  const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
+  const periodSummaries=Object.values(byPeriod).sort((a,b)=>periodStart(b.period).localeCompare(periodStart(a.period)));
   const confirmedSet=window._vRevConfirmed;
   const canConfirm=['业务运营','业务负责人','系统管理员'].includes(ROLE);
   const totalKeys=flatRows.map(x=>appKey(x.r.period,x.r.game,x.r.platform,x.mapping));
@@ -3112,13 +3330,13 @@ function pgCostDashboard(){
   const endF=window._cdEnd||'2026-04';
   const platF=window._cdPlat||'all';
   const gameF=window._cdGame||'all';
-  const allPeriods=[...new Set(settle.map(r=>r.period))].sort();
+  const allPeriods=[...new Set(settle.map(r=>periodMonth(r.period)))].sort();
   const platforms=[...new Set(settle.map(r=>r.platform))].sort();
   const {visiblePubs,visibleGames}=visibleEntities();
   // 数据权限：联运商角色只看自己主体下的游戏；其它角色按 visibleEntities 行为
   const filterGameName=gameF==='all'?null:visibleGames.find(g=>g.id===gameF)?.name||null;
   let data=settle.filter(r=>{
-    if(r.period<startF||r.period>endF)return false;
+    if(periodMonth(r.period)<startF||periodMonth(r.period)>endF)return false;
     if(filterGameName&&r.game!==filterGameName)return false;
     if(platF!=='all'&&r.platform!==platF)return false;
     const pubOk=visiblePubs.length===0||visiblePubs.find(p=>p.name===r.pub);
@@ -3148,7 +3366,7 @@ function pgCostDashboard(){
     byPeriod[x.r.period].vCost+=x.vCost;
     byPeriod[x.r.period].cnt++;
   });
-  const periodSummaries=Object.values(byPeriod).sort((a,b)=>b.period.localeCompare(a.period));
+  const periodSummaries=Object.values(byPeriod).sort((a,b)=>periodStart(b.period).localeCompare(periodStart(a.period)));
   // 明细行（成本需联运商 + 业务双方按平台应用确认）
   syncCostConfirmed();
   const pubSet=window._costPubConfirmed;
@@ -3351,14 +3569,14 @@ function openCostDailyDetail(game,platform,period){
  * 角色：财务/管理员可确认；其他角色只读
  */
 function pgCloudCost(){
-  const allPeriodsAsc=[...new Set(settle.map(r=>r.period))].sort();
+  const allPeriodsAsc=[...new Set(settle.map(r=>periodMonth(r.period)))].sort();
   const startF=window._ccStart||'2026-04';
   const endF=window._ccEnd||'2026-04';
   const gameF=window._ccGame||'all';
   // 按账期 × 游戏 × 项目聚合（多对一：一个游戏可绑多个项目，则同账期同游戏拆为多行，每个项目分摊一份成本）
   const rowMap={};
   settle.forEach(r=>{
-    if(r.period<startF||r.period>endF)return;
+    if(periodMonth(r.period)<startF||periodMonth(r.period)>endF)return;
     const g=games.find(x=>x.name===r.game);
     if(!g)return;
     const ids=getGameCloudIds(g);
@@ -3373,7 +3591,7 @@ function pgCloudCost(){
       rowMap[k].cost+=perCost;
     });
   });
-  const rows=Object.values(rowMap).sort((a,b)=>b.period.localeCompare(a.period)||a.gameId.localeCompare(b.gameId));
+  const rows=Object.values(rowMap).sort((a,b)=>periodStart(b.period).localeCompare(periodStart(a.period))||a.gameId.localeCompare(b.gameId));
   const totalCost=rows.reduce((s,r)=>s+r.cost,0);
   const confirmedCnt=rows.filter(r=>(window._cloudCostConfirmed||new Set()).has(r.key)).length;
   const pendingCnt=rows.length-confirmedCnt;
@@ -3400,7 +3618,7 @@ function pgCloudCost(){
   const allGames=games.filter(g=>getGameCloudIds(g).length>0);
 
   return `<div class="ph"><div><div class="pt">云服务成本确认</div><div class="pd">每月从浑天仪同步云服务成本，按账期 × 游戏应用展示（一个游戏对应一个浑天仪项目）。<b style="color:var(--primary)">由财务对账后确认</b>；确认后该账期对应游戏的 CP 分账方可正常出账。</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
-  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>云服务成本归属：</b>云服务成本以「游戏应用」为单位归集，每个游戏在「游戏管理」中关联唯一的浑天仪项目（1:1）。未关联浑天仪项目的游戏不会产生云服务���本归属。</div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 <b>云服务成本归属：</b>云服务成本以「游戏应用」为单位归集，每个游戏在「游戏管理」中关联唯一的浑天仪项目（1:1）。未关联浑天仪项目的游戏不会产生云服务成本归属。</div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0">
     <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">云服务成本合计</div><div style="font-size:20px;font-weight:800;margin-top:4px;color:#7a52b3">${fmt(totalCost)}</div></div>
     <div style="background:#fff;border:1px solid #e8eaee;border-radius:8px;padding:12px 14px"><div style="font-size:12px;color:var(--muted)">已确认</div><div style="font-size:20px;font-weight:800;margin-top:4px;color:var(--green)">${confirmedCnt} 条</div></div>
@@ -3459,7 +3677,9 @@ function pgDailyRecon(){
         const cashRev=Math.round(r.cashRev*w/wSum);
         const vRev=Math.round(r.vRev*w/wSum);
         const cost=Math.round(r.cost*w/wSum);
-        allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,profit:cashRev+vRev-cost,period:r.period});
+        const cashCost=Math.round((r.cashCost||0)*w/wSum);
+        const vCost=Math.round((r.vCost||0)*w/wSum);
+        allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,cashCost,vCost,profit:cashRev+vRev-cost,period:r.period});
       });
     }
     if(isCur){
@@ -3473,7 +3693,9 @@ function pgDailyRecon(){
         const cashRev=Math.round(r.cashRev*scale*w/wSum*CUT_DAY);
         const vRev=Math.round(r.vRev*scale*w/wSum*CUT_DAY);
         const cost=Math.round(r.cost*scale*w/wSum*CUT_DAY);
-        allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,profit:cashRev+vRev-cost,period:CUT_MONTH});
+        const cashCost=Math.round((r.cashCost||0)*scale*w/wSum*CUT_DAY);
+        const vCost=Math.round((r.vCost||0)*scale*w/wSum*CUT_DAY);
+        allRows.push({date,game:r.game,platform:r.platform,pub:r.pub,cashRev,vRev,cost,cashCost,vCost,profit:cashRev+vRev-cost,period:CUT_MONTH});
       });
     }
   });
@@ -3482,11 +3704,11 @@ function pgDailyRecon(){
   if(window._drPlat!=='all')rows=rows.filter(r=>r.platform===window._drPlat);
   rows.sort((a,b)=>a.date===b.date?(a.game+a.platform).localeCompare(b.game+b.platform):b.date.localeCompare(a.date));
 
-  const sum=rows.reduce((s,r)=>{s.cashRev+=r.cashRev;s.vRev+=r.vRev;s.cost+=r.cost;s.profit+=r.profit;return s},{cashRev:0,vRev:0,cost:0,profit:0});
+  const sum=rows.reduce((s,r)=>{s.cashRev+=r.cashRev;s.vRev+=r.vRev;s.cost+=r.cost;s.cashCost+=r.cashCost;s.vCost+=r.vCost;s.profit+=r.profit;return s},{cashRev:0,vRev:0,cost:0,cashCost:0,vCost:0,profit:0});
 
   const estTag='<span class="tag" style="background:#fff3e0;color:var(--orange);font-size:11px">⏳ 预估</span>';
-  const tableRows=rows.map(r=>`<tr style="background:#fffbf5"><td style="font-family:monospace">${r.date}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${renderMediaAppCell(r)}</td><td style="font-weight:700">${fmt(r.cashRev)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="color:var(--purple);font-weight:700">${fmt(r.vRev)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="color:var(--red);font-weight:700">${fmt(r.cost)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="font-weight:700;color:${r.profit>=0?'var(--green)':'var(--red)'}">${fmt(r.profit)}</td><td>${estTag}</td></tr>`);
-  const sumRow=`<tr style="background:#f5f7fa;font-weight:800"><td colspan="5">合计（${rows.length} 行）</td><td>${fmt(sum.cashRev)}</td><td style="color:var(--purple)">${fmt(sum.vRev)}</td><td style="color:var(--red)">${fmt(sum.cost)}</td><td style="color:${sum.profit>=0?'var(--green)':'var(--red)'}">${fmt(sum.profit)}</td><td>—</td></tr>`;
+  const tableRows=rows.map(r=>`<tr style="background:#fffbf5"><td style="font-family:monospace">${r.date}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${renderMediaAppCell(r)}</td><td style="font-weight:700">${fmt(r.cashRev)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="color:var(--purple);font-weight:700">${fmt(r.vRev)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="color:var(--red);font-weight:700">${fmt(r.cost)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="font-weight:700">${fmt(r.cashCost)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="color:var(--purple);font-weight:700">${fmt(r.vCost)}<span style="color:var(--orange);font-size:10px;margin-left:4px">*</span></td><td style="font-weight:700;color:${r.profit>=0?'var(--green)':'var(--red)'}">${fmt(r.profit)}</td><td>${estTag}</td></tr>`);
+  const sumRow=`<tr style="background:#f5f7fa;font-weight:800"><td colspan="5">合计（${rows.length} 行）</td><td>${fmt(sum.cashRev)}</td><td style="color:var(--purple)">${fmt(sum.vRev)}</td><td style="color:var(--red)">${fmt(sum.cost)}</td><td>${fmt(sum.cashCost)}</td><td style="color:var(--purple)">${fmt(sum.vCost)}</td><td style="color:${sum.profit>=0?'var(--green)':'var(--red)'}">${fmt(sum.profit)}</td><td>—</td></tr>`;
 
   // 日期下拉：覆盖历史账期 + 当前账期 1~CUT_DAY
   const dateList=[];
@@ -3515,7 +3737,7 @@ function pgDailyRecon(){
     <button class="btn g sm" onclick="window._drStart='2026-04-01';window._drEnd='${CUT_MONTH}-${String(CUT_DAY).padStart(2,'0')}';window._drPlat='all';document.getElementById('contentEl').innerHTML=pgDailyRecon()">重置</button>
   </div>
   <div style="max-height:520px;overflow:auto;margin-top:10px">
-    ${tbl(['日期','游戏','平台','联运商','平台应用','现金收入','广告金收入','投放成本','毛利','状态'],tableRows.concat([sumRow]))}
+    ${tbl(['日期','游戏','平台','联运商','平台应用','现金收入','广告金收入','投放成本','现金成本','广告金成本','毛利','状态'],tableRows.concat([sumRow]))}
   </div>
   <div style="margin-top:10px;font-size:12px;color:var(--weak)">* 数据基于 T+1 同步，今日数据预计 ${TODAY} 06:00 前到位；本页面为预估参考，最终结果以「联运商分账明细」结算后数据为准。</div>`;
 }
@@ -3528,7 +3750,7 @@ function pgSettlePub(){
 /* Tab A：已出账账期（月度汇总） */
 function pgSettlePubClosed(){
   const ent=parsedEntity();
-  const allPeriodsAsc=[...new Set(settle.map(r=>r.period))].sort();
+  const allPeriodsAsc=[...new Set(settle.map(r=>periodMonth(r.period)))].sort();
   const startF=window._spStart||'2026-04';
   const endF=window._spEnd||'2026-04';
   const platF=window._spPlat||'all';
@@ -3536,7 +3758,7 @@ function pgSettlePubClosed(){
   let data=FILTER_GAME==='all'?settle:settle.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
   if(ent.type==='pub')data=data.filter(r=>r.pub===ent.name);
   if(ent.type==='cp')data=data.filter(r=>r.cp===ent.name);
-  data=data.filter(r=>r.period>=startF&&r.period<=endF);
+  data=data.filter(r=>periodMonth(r.period)>=startF&&periodMonth(r.period)<=endF);
   if(platF!=='all')data=data.filter(r=>r.platform===platF);
   const cashSet=window._cashRevConfirmed||new Set();
   const vSet=window._vRevConfirmed||new Set();
@@ -3625,7 +3847,7 @@ function pgSettlePubClosed(){
     const pubVShared=Math.round(ps.pubV*sh);
     const corrTag=r._corrected?'<span title="该账期现金收入已被财务更正" style="display:inline-block;margin-left:4px;color:var(--orange);font-size:11px;font-weight:700">✎</span>':'';
     return `<tr ${rowStyle}>
-      <td>${r.period}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
+      <td style="white-space:nowrap">${periodLabel(r.period)}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td>
       <td>${appCell}</td>
       <td>${cashOk?mn(cashRev)+corrTag:dash}</td><td>${vOk?mn(vRev):dash}</td>
       <td>${costOk?mn(cost):dash}</td><td>${costOk?mn(cashCost):dash}</td><td>${costOk?mn(vCost):dash}</td>
@@ -3634,8 +3856,7 @@ function pgSettlePubClosed(){
       <td style="font-weight:700">${cashOk?`${ps.rate}%${tierBadge}`:dash}</td>
       <td style="font-weight:800">${ready?mn(pubCashShared)+lossTag(ps.cashIsLossTransfer):dash}</td>
       <td>${ready?mn(pubVShared)+lossTag(ps.vIsLossTransfer):dash}</td>
-      <td>${confirmCell}</td>
-      <td><button class="link" onclick="openDailyDetail('${r.game}__${r.platform}','${r.period}','${r.game}','${r.platform}','${r.pub}')">每日明细</button>${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${r.period}__${r.game}__${r.platform}')">确认对账单</button>`:''}</td>
+      <td>${confirmCell}${ready&&!billOk&&isPublisher()?`<button class="link" style="margin-left:8px;color:var(--orange);font-weight:700" onclick="confirmBill('${r.period}__${r.game}__${r.platform}')">确认对账单</button>`:''}</td>
     </tr>`;
   });
   return `<div class="ph"><div><div class="pt">联运商分账明细</div><div class="pd">展示各联运商当期可结算金额（现金利润 × 联运商分成比例）。按「平台应用」最细粒度展示；同联运商同游戏同平台下若有多个平台应用，金额按各应用真实收入比例拆分。三方确认按平台应用逐条进行。${isPublisher()?'<br/><span style="color:var(--muted);font-size:12px">生成对账单请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick=\'go("statements")\'>对账单管理</button>」。</span>':''}</div></div><div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
@@ -3671,7 +3892,7 @@ function pgSettlePubClosed(){
     前三方确认后该账期自动出账并流转至本页，联运商在本页「确认对账单」后即可到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('statements')">对账单管理</button>」生成对账单并发起打款。
     <br/><span style="font-size:12px;color:var(--muted)">分账计算规则以「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('pubRules')">联运商分成规则</button>」与「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cpRules')">CP分成规则</button>」中每条规则的具体配置为准。</span>
   </div>
-  ${tbl(['账期','游戏','平台','联运商','平台应用','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','联运商分成%','联运商可结算（现金）','联运商可结算（广告金）','确认状态','每日明细'],rows,{pageKey:'settlePub'})}`;
+  ${tbl(['账期','游戏','平台','联运商','平台应用','现金收入','广告金收入','总消耗','现金成本','广告金成本','现金利润','广告金利润','联运商分成%','联运商可结算（现金）','联运商可结算（广告金）','确认状态'],rows,{pageKey:'settlePub'})}`;
 }
 
 function openDailyDetail(key,period,game,platform,pub){
@@ -3723,12 +3944,12 @@ function openDailyDetail(key,period,game,platform,pub){
 function pgSettleCp(){
   // 新规则：按游戏一行汇总；点击展开看平台明细。云成本按游戏聚合（不按平台拆分）
   const ent=parsedEntity();
-  const allPeriodsAsc=[...new Set(settle.map(r=>r.period))].sort();
+  const allPeriodsAsc=[...new Set(settle.map(r=>periodMonth(r.period)))].sort();
   const startF=window._cpStart||(allPeriodsAsc[allPeriodsAsc.length-1]||'2026-04');
   const endF=window._cpEnd||(allPeriodsAsc[allPeriodsAsc.length-1]||'2026-04');
 
   // 收集 (period × game × cp) 唯一组合
-  let rows=settle.filter(r=>r.period>=startF&&r.period<=endF);
+  let rows=settle.filter(r=>periodMonth(r.period)>=startF&&periodMonth(r.period)<=endF);
   if(FILTER_GAME!=='all')rows=rows.filter(r=>r.game===games.find(g=>g.id===FILTER_GAME)?.name);
   if(ent.type==='pub')rows=rows.filter(r=>r.pub===ent.name);
   if(ent.type==='cp')rows=rows.filter(r=>r.cp===ent.name);
@@ -3746,11 +3967,15 @@ function pgSettleCp(){
     const cloudOk=_cloudOkForAgg(a);
     const dash='<span style="color:var(--weak)">—</span>';
     const ready=a.allReady && cloudOk;
+    const finConfirmed=(window._cpFinConfirmed||new Set()).has(eid);
+    const recalcTime=(window._cpRecalcTime||new Map()).get(eid);
     const statusBadge=!a.allReady
       ? `<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待三方确认 ${a.notReadyCnt}/${a.totalRows}</span>`
       : (!cloudOk
           ? `<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待云成本确认</span>`
-          : `<span class="tag green" style="font-size:11px">✓ 已确认</span>`);
+          : (!finConfirmed
+              ? `<span class="tag" style="background:#e8f4ff;color:#1a4a80;font-size:11px;border:1px solid #b0d4f5">待财务确认${recalcTime?'<span style="font-weight:400"> · 已重算</span>':''}</span>`
+              : `<span class="tag green" style="font-size:11px">✓ 财务已确认</span>`));
     const cpCashCell = ready
       ? `<span style="font-weight:800;color:${a.cpCash<0?'var(--red)':'var(--text)'}">${mn(a.cpCash)}</span>${a.cpCash<0?'<div style="font-size:10.5px;color:var(--red);font-weight:400">▼ 负值·下账期冲抵</div>':''}`
       : dash;
@@ -3774,7 +3999,10 @@ function pgSettleCp(){
       <td>${cpCashCell}</td>
       <td>${cpVCell}</td>
       <td>${statusBadge}</td>
-      <td><button class="link" onclick="openCpSettleDetail('${eid}')">详情</button></td>
+      <td>
+        <button class="link" onclick="openCpSettleDetail('${eid}')">详情</button>
+        ${ready&&!finConfirmed&&canFin()?`<button class="link" style="color:#7a52b3;margin-left:6px" onclick="recalcCpSettle('${eid}')">重新计算</button><button class="link" style="color:var(--primary);font-weight:700;margin-left:6px" onclick="openCpFinConfirmModal('${eid}')">财务确认</button>`:''}
+      </td>
     </tr>`;
   });
 
@@ -3801,6 +4029,7 @@ function pgSettleCp(){
     <span style="display:inline-block;margin:0 6px"><b>③ 结果可为负</b>：负值在下账期与新结果合并冲抵，不当期支付</span><br/>
     <span style="display:inline-block;margin:0 6px;color:var(--muted)">CP 占比以「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('rules')">分成规则配置 · CP 部分</button>」中每条规则的「CP 占比%」为准（按游戏配置）</span>
   </div>
+  <div class="notice" style="border-color:#b0d4f5;background:#e8f4ff;color:#1a4a80;margin-top:0">⚠ <b>财务确认机制：</b>三方确认 + 云成本确认后，进入「待财务确认」状态。若存在联运商规则后补导致部分联运商出账晚于其他联运商，财务可点击「重新计算」汇总最新出账数据，核查所有联运商均已出账后，点击「财务确认」锁定最终 CP 分账金额。财务确认后不再随新增联运商出账自动变动。</div>
   ${tbl(['账期','游戏','CP','明细数','Σ 现金利润','Σ 联运商分掉','云服务成本','现金分账基数','Σ 广告金利润','Σ 联运商分掉','广告金分账基数','CP 占比','CP 现金分账','CP 广告金分账','状态','操作'],tableRows,{pageKey:'settleCp'})}`;
 }
 
@@ -3836,11 +4065,16 @@ function openCpSettleDetail(eid){
     <td style="text-align:right">${mn(pr.vP)}</td>
     <td style="text-align:right">${mn(pr.pubV)}</td>
   </tr>`).join('');
+  const finKey=`${period}__${gameName}__${cpName}`;
+  const finConfirmed=(window._cpFinConfirmed||new Set()).has(finKey);
+  const recalcTime=(window._cpRecalcTime||new Map()).get(finKey);
   const statusTag=!a.allReady
     ? `<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待三方确认 ${a.notReadyCnt}/${a.totalRows}</span>`
     : (!cloudOk
         ? `<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">待云成本确认</span>`
-        : `<span class="tag green" style="font-size:11px">✓ 已确认</span>`);
+        : (!finConfirmed
+            ? `<span class="tag" style="background:#e8f4ff;color:#1a4a80;font-size:11px;border:1px solid #b0d4f5">待财务确认${recalcTime?` · <span style="font-weight:400">已重算 ${recalcTime}</span>`:''}</span>`
+            : `<span class="tag green" style="font-size:11px">✓ 财务已确认</span>`));
   const cashCpStr=ready?`${mn(a.cpCash)}${a.cpCash<0?' <span style="color:var(--red);font-size:11px">▼ 负值·下账期冲抵</span>':''}`:'<span style="color:var(--weak)">—</span>';
   const vCpStr=ready?`${mn(a.cpV)}${a.cpV<0?' <span style="color:var(--red);font-size:11px">▼ 负值·下账期冲抵</span>':''}`:'<span style="color:var(--weak)">—</span>';
   const cloudNote=a.shareServer?'已扣减':'未扣减（规则未启用）';
@@ -3888,7 +4122,90 @@ function openCpSettleDetail(eid){
         </div>
       </div>
     </div>`;
-  openModal(`CP 分账详情 · 《${a.gameName}》· ${a.period}`,body);
+  openModal(`CP 分账详情 · 《${a.gameName}》· ${a.period}`,body,
+    `<button class="btn g" onclick="closeModal()">关闭</button>`+
+    (ready&&!finConfirmed&&canFin()
+      ?` <button class="btn" style="background:#7a52b3;color:#fff" onclick="closeModal();recalcCpSettle('${finKey}')">重新计算</button> <button class="btn p" onclick="closeModal();openCpFinConfirmModal('${finKey}')">财务确认</button>`
+      :''));
+}
+
+/* 财务确认弹窗：展示该游戏×账期所有联运商出账清单，供财务逐一核查 */
+function openCpFinConfirmModal(eid){
+  if(!canFin()){alert('仅财务人员可执行财务确认');return;}
+  const [period,gameName,cpName]=eid.split('__');
+  const a=calcCpSettleByGame(period,gameName,cpName);
+  if(!a){alert('未找到分账记录');return;}
+  const cloudOk=_cloudOkForAgg(a);
+  const recalcTime=(window._cpRecalcTime||new Map()).get(eid);
+
+  // 联运商出账清单：按 pub×platform 行展开
+  const rows=settle.filter(r=>r.period===period&&r.game===gameName&&r.cp===cpName);
+  const settledCnt=rows.filter(r=>isSettleReady(r.period,r.game,r.platform)).length;
+  const listRows=rows.map(r=>{
+    const ok=isSettleReady(r.period,r.game,r.platform);
+    const ps=calcPubSettle(r);
+    return `<tr style="${ok?'':'background:#fffbf5'}">
+      <td>${r.pub}</td>
+      <td>${r.platform}</td>
+      <td>${ok
+        ?'<span class="tag green" style="font-size:11px">✓ 已出账</span>'
+        :'<span class="tag" style="background:#fff3e0;color:#a05000;font-size:11px;border:1px solid #ffe0b2">未出账</span>'}</td>
+      <td style="text-align:right">${ok?mn(ps.pubCash):'—'}</td>
+      <td style="text-align:right">${ok?mn(ps.pubV):'—'}</td>
+    </tr>`;
+  }).join('');
+  const allOut=settledCnt===rows.length;
+
+  const body=`
+    <div class="notice" style="border-color:#b0d4f5;background:#e8f4ff;color:#1a4a80;margin-bottom:12px">
+      <b>核查目的：</b>若存在联运商分账规则后补情况，CP 分账可能基于不完整的联运商集合计算。请确认下方所有联运商均已出账后再锁定 CP 分账金额。
+    </div>
+    <div class="kv" style="margin-bottom:12px">
+      <span class="k">账期</span><span class="v" style="font-weight:700">${period}</span>
+      <span class="k">游戏</span><span class="v">《${gameName}》</span>
+      <span class="k">CP</span><span class="v">${cpName}</span>
+      <span class="k">重新计算</span><span class="v">${recalcTime?`${recalcTime}`:'<span style="color:var(--muted)">尚未手动重算（使用实时数据）</span>'}</span>
+    </div>
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin:12px 0 6px">📋 联运商出账清单（${settledCnt} / ${rows.length} 已出账）</div>
+    <div class="tw"><table class="table">
+      <thead><tr>
+        <th>联运商</th><th>平台</th><th>出账状态</th>
+        <th style="text-align:right">联运商现金分账</th>
+        <th style="text-align:right">联运商广告金分账</th>
+      </tr></thead>
+      <tbody>${listRows||'<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--weak)">无记录</td></tr>'}</tbody>
+    </table></div>
+    ${!allOut?`<div class="notice" style="border-color:#ffcdd2;background:#fff5f5;color:#c0392b;margin-top:10px">⚠ 尚有 <b>${rows.length-settledCnt}</b> 个联运商未完成出账。若确认后续不再补充，可继续确认；否则建议等待所有联运商出账后再操作。</div>`:''}
+    <div style="background:#fafdff;border:1px solid #cfe0f5;border-radius:8px;padding:12px 14px;margin-top:12px;font-size:12.5px">
+      <div style="font-weight:700;color:#1a4a80;margin-bottom:6px">💰 当前 CP 分账计算结果</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><span style="color:var(--muted)">CP 现金分账：</span><b style="font-size:14px;color:${a.cpCash<0?'var(--red)':'var(--text)'}">${mn(a.cpCash)}</b></div>
+        <div><span style="color:var(--muted)">CP 广告金分账：</span><b style="font-size:14px;color:${a.cpV<0?'var(--red)':'var(--text)'}">${mn(a.cpV)}</b></div>
+      </div>
+    </div>`;
+
+  openModal(`财务确认 CP 分账 · 《${gameName}》· ${period}`,body,
+    `<button class="btn g" onclick="closeModal()">取消</button> <button class="btn" style="background:#7a52b3;color:#fff" onclick="closeModal();recalcCpSettle('${eid}')">重新计算</button> <button class="btn p" onclick="doCpFinConfirm('${eid}')">${allOut?'确认并锁定':'仍然确认并锁定'}</button>`);
+}
+
+function doCpFinConfirm(eid){
+  if(!canFin()){alert('仅财务人员可执行财务确认');return;}
+  if(!window._cpFinConfirmed)window._cpFinConfirmed=new Set();
+  window._cpFinConfirmed.add(eid);
+  closeModal();
+  alert('CP 分账已财务确认并锁定。');
+  document.getElementById('contentEl').innerHTML=pgSettleCp();
+}
+
+function recalcCpSettle(eid){
+  if(!canFin()){alert('仅财务人员可触发重新计算');return;}
+  if(!window._cpRecalcTime)window._cpRecalcTime=new Map();
+  const now=new Date();
+  const ts=`${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  window._cpRecalcTime.set(eid,ts);
+  document.getElementById('contentEl').innerHTML=pgSettleCp();
+  const [,,gameName]=eid.split('__');
+  alert(`《${gameName}》CP 分账已重新计算（${ts}）。\n计算基于当前所有已出账联运商数据，请确认联运商清单无遗漏后执行「财务确认」。`);
 }
 
 /* PAGE: 账户打款流水 */
@@ -4472,7 +4789,6 @@ function pgStatements(){
   const ent=parsedEntity();
   let data=list.slice().reverse(); // 最新在前
   if(ent.type==='pub')data=data.filter(s=>s.pub===ent.name);
-  const statusF=window._stmtStatus||'all';
   const pubF=window._stmtPub||'all';
   const periodF=window._stmtPeriod||'all';
   if(pubF!=='all')data=data.filter(s=>s.pub===pubF);
@@ -4486,7 +4802,7 @@ function pgStatements(){
     const keys=s.keys||[];
     const periods=[...new Set(keys.map(k=>k.split('__')[0]))].sort();
     const games=[...new Set(keys.map(k=>k.split('__')[1]))];
-    // 计算金额合计
+    // 取现金可结算金额
     let total=0;
     keys.forEach(k=>{
       const [p,g,pl]=k.split('__');
@@ -4494,20 +4810,17 @@ function pgStatements(){
       if(r){const ps=calcPubSettle(r);total+=ps.pubCash||0;}
     });
     const periodTxt=periods.length===1?periods[0]:`${periods[0]} ~ ${periods[periods.length-1]}（${periods.length} 期）`;
-    // 关联打款单：最新一笔决定能否再次发起
     const payIds=Array.isArray(s.paymentIds)?s.paymentIds:(s.paymentId?[s.paymentId]:[]);
     const linkedPays=payIds.map(pid=>(pays||[]).find(p=>p.id===pid)).filter(Boolean);
     const latest=linkedPays.length?linkedPays[linkedPays.length-1]:null;
-    // 最新一笔为「终态-成功」或"打款中"时禁止再发起；为「已终止/已驳回」时允许再发起；无任何打款单时也允许
     const canStartNewPay=!latest||latest.exec==='已终止'||latest.approval==='已驳回';
     const execColorMap={'打款成功':'var(--green)','打款失败':'var(--red)','已终止':'var(--muted)','待执行':'#a05000','打款中':'var(--primary)'};
-    const apprColorMap={'已通过':'var(--green)','待审批':'#a05000','已驳回':'var(--red)'};
     const payCellInner=linkedPays.length===0
       ? '<span style="color:var(--weak)">—</span>'
       : `<div style="display:flex;flex-direction:column;gap:3px">
           ${linkedPays.map((p,i)=>{
             const isLatest=i===linkedPays.length-1;
-            const shown=p.exec==='打款失败'?'打款中':p.exec; // 联运商视角脱敏
+            const shown=p.exec==='打款失败'?'打款中':p.exec;
             const execColor=execColorMap[shown]||'var(--text)';
             return `<div style="display:flex;align-items:center;gap:6px;font-size:11.5px">
               <button class="link" style="font-family:monospace;padding:0;${isLatest?'font-weight:700':'opacity:.7'}" onclick="go('myPayments');setTimeout(()=>highlightPay('${p.id}'),50)">${p.id}</button>
@@ -4522,7 +4835,7 @@ function pgStatements(){
       <td>${s.pub||'<span style="color:var(--weak)">—</span>'}</td>
       <td>${periodTxt}</td>
       <td>${games.map(g=>`《${g}》`).join('、')}<div style="font-size:10.5px;color:var(--muted);margin-top:2px">${keys.length} 条明细</div></td>
-      <td style="font-weight:700">${mn(total)}</td>
+      <td style="font-weight:700">${mn(total)}<div style="font-size:10.5px;color:var(--muted);font-weight:400">现金可结算</div></td>
       <td style="color:var(--muted);font-size:12px">${s.createdAt||'—'}</td>
       <td>${payCellInner}</td>
       <td>
@@ -4532,7 +4845,7 @@ function pgStatements(){
       </td>
     </tr>`;
   });
-  return `<div class="ph"><div><div class="pt">对账单管理</div><div class="pd">联运商在此勾选多个已确认账期合并生成<b>分账结算对账单</b>，并可在每行直接发起打款；财务/业务可查看历史对账单。</div></div><div class="acts">${isPublisher()?`<button class="btn p" onclick="openGenBillStatement()">＋ 生成对账单</button>`:''}<button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
+  return `<div class="ph"><div><div class="pt">对账单管理</div><div class="pd">联运商在此勾选多个已确认账期合并生成对账单；财务/业务可查看历史对账单。</div></div><div class="acts">${isPublisher()?`<button class="btn p" onclick="openGenBillStatement()">＋ 生成对账单</button>`:''}<button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div></div>
   <div class="filter" style="margin-bottom:16px">
     <span style="font-size:12px;color:var(--muted);font-weight:650">联运商</span>
     <select class="select" onchange="window._stmtPub=this.value;document.getElementById('contentEl').innerHTML=pgStatements()">
@@ -4547,7 +4860,7 @@ function pgStatements(){
     ${(pubF!=='all'||periodF!=='all')?`<button class="btn g sm" onclick="window._stmtPub='all';window._stmtPeriod='all';document.getElementById('contentEl').innerHTML=pgStatements()">清除筛选</button>`:''}
     <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 份对账单</span>
   </div>
-  ${tbl(['对账单编号','联运商','账期范围','涉及游戏','结算金额','生成时间','关联打款单','操作'],rows,{pageKey:'statements'})}`;
+  ${tbl(['对账单编号','联运商','账期范围','涉及游戏','现金可结算','生成时间','关联打款单','操作'],rows,{pageKey:'statements'})}`;
 }
 function openStatementPreview(sn){
   const s=(window._generatedStatements||[]).find(x=>x.sn===sn);
@@ -4887,10 +5200,14 @@ function _renderStmtBreakdown(stmtSn,stmtKeys){
     const cashP=cashRev-cashCost;
     sumCashRev+=cashRev;sumVRev+=vRev;sumTotalRev+=totalRev;sumCost+=cost;sumCashCost+=cashCost;sumCashP+=cashP;sumPubCash+=ps.pubCash;
     const tierTag=ps.tierApplied?'阶梯Ⅱ':(ps.rule&&ps.rule.tierEnabled?'阶梯Ⅰ':'—');
+    const gameId=(games||[]).find(g=>g.name===r.game)?.id;
+    const apps=(platformApps||[]).filter(a=>a.gameId===gameId&&a.platform===r.platform);
+    const appCell=apps.length?apps.map(a=>`<div style="font-size:11px;color:#1a3a6a;line-height:1.6">${a.appName}<span style="color:var(--muted);margin-left:4px;font-family:monospace">${a.appId}</span></div>`).join(''):'<span style="color:var(--weak)">—</span>';
     return `<tr>
-      <td class="sbk-c">${r.period}</td>
+      <td class="sbk-c" style="white-space:nowrap">${periodLabel(r.period)}</td>
       <td class="sbk-l">《${r.game}》</td>
       <td class="sbk-c">${r.platform}</td>
+      <td class="sbk-l">${appCell}</td>
       <td class="sbk-n">${mn(cashRev)}</td>
       <td class="sbk-n">${mn(vRev)}</td>
       <td class="sbk-n" style="font-weight:600">${mn(totalRev)}</td>
@@ -4920,13 +5237,13 @@ function _renderStmtBreakdown(stmtSn,stmtKeys){
   <div class="sbk" style="margin-bottom:6px"><div class="sbk-tw"><table>
     <thead>
       <tr class="gh">
-        <th colspan="3">基础信息</th>
+        <th colspan="4">基础信息</th>
         <th colspan="3">收入</th>
         <th colspan="3">成本与现金利润</th>
         <th colspan="2">分账</th>
       </tr>
       <tr>
-        <th>账期</th><th>游戏</th><th>平台</th>
+        <th>账期</th><th>游戏</th><th>平台</th><th>应用信息</th>
         <th>现金收入</th><th>广告金收入</th><th>总收入</th>
         <th>总消耗</th><th>现金成本</th><th>现金利润</th>
         <th>分成比例</th><th>可结算（现金）</th>
@@ -4934,7 +5251,7 @@ function _renderStmtBreakdown(stmtSn,stmtKeys){
     </thead>
     <tbody>${lines}</tbody>
     <tfoot><tr>
-      <td colspan="3" class="sbk-c">合计</td>
+      <td colspan="4" class="sbk-c">合计</td>
       <td class="sbk-n">${mn(sumCashRev)}</td>
       <td class="sbk-n">${mn(sumVRev)}</td>
       <td class="sbk-n">${mn(sumTotalRev)}</td>
@@ -5072,6 +5389,491 @@ function submitRepay(origId){
 
 /* PAGE: 数据同步状态（已下线 — 前期手动处理） */
 
+/* PAGE: 出账账户（IDS 主体的银行账户） */
+function getIdsAccount(id){return idsAccounts.find(a=>a.id===id);}
+function maskAccNo(s){if(!s)return '—';const v=String(s);if(v.length<=8)return '****'+v.slice(-4);return v.slice(0,4)+' **** **** '+v.slice(-4);}
+function pgIdsAccounts(){
+  const canEdit=['系统管理员','财务人员','财务负责人/审批人'].includes(ROLE);
+  const stF=window._idsStF||'all';
+  const kw=(window._idsKw||'').trim().toLowerCase();
+  let data=idsAccounts.slice();
+  if(stF!=='all')data=data.filter(a=>a.status===stF);
+  if(kw)data=data.filter(a=>(a.name||'').toLowerCase().includes(kw)||(a.accountNo||'').includes(kw)||(a.bank||'').toLowerCase().includes(kw));
+  const rows=data.map(a=>{
+    const stTag=a.status==='启用'
+      ?'<span class="tag green" style="font-size:11px">启用</span>'
+      :'<span class="tag" style="font-size:11px;background:#f4f4f4;color:#888;border:1px solid #ddd">已停用</span>';
+    const defTag=a.isDefault?'<span class="tag" style="font-size:11px;background:#fff8f0;color:var(--orange);border:1px solid #ffe0b2">默认</span>':'<span style="color:var(--weak);font-size:12px">—</span>';
+    const ops=[`<button class="link" onclick="openIdsAccountDetail('${a.id}')">详情</button>`];
+    if(canEdit){
+      ops.push(`<button class="link" onclick="openIdsAccountForm('${a.id}')">编辑</button>`);
+      if(!a.isDefault&&a.status==='启用')ops.push(`<button class="link" onclick="setIdsDefault('${a.id}')">设为默认</button>`);
+      if(a.status==='启用')ops.push(`<button class="link" style="color:var(--red)" onclick="toggleIdsStatus('${a.id}')">停用</button>`);
+      else ops.push(`<button class="link" onclick="toggleIdsStatus('${a.id}')">启用</button>`);
+    }
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${a.id}</td>
+      <td><b>${a.name}</b><div style="color:var(--muted);font-size:11px;margin-top:2px">${a.company||'—'}</div></td>
+      <td>${a.bank}<div style="color:var(--muted);font-size:11px;margin-top:2px">${a.branch||'—'}</div></td>
+      <td>${a.accountName||'—'}</td>
+      <td style="font-family:monospace;font-size:12px;color:#31557d">${maskAccNo(a.accountNo)}</td>
+      <td style="font-family:monospace;font-size:12px;color:var(--muted)">${a.bankNo||'—'}</td>
+      <td>${defTag}</td>
+      <td>${stTag}</td>
+      <td style="color:var(--muted);font-size:12px">${a.createdAt||'—'}</td>
+      <td>${ops.join(' ')}</td>
+    </tr>`;
+  });
+  if(!rows.length)rows.push(`<tr><td colspan="10" style="text-align:center;color:var(--weak);padding:24px">暂无出账账户，请点击右上角「新建」</td></tr>`);
+  return `<div class="ph">
+    <div><div class="pt">出账账户</div><div class="pd">维护 IDS 公司对外结算的<b>出账银行账户</b>（钱从这些账户打到联运商）。账号默认脱敏展示；当前付款流程使用<b>默认账户</b>，多账户时可手动切换默认。</div></div>
+    <div class="acts">${canEdit?'<button class="btn p" onclick="openIdsAccountForm()">＋ 新建出账账户</button>':''}<button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
+  </div>
+  <div class="filter" style="margin-bottom:16px">
+    <span style="font-size:12px;color:var(--muted);font-weight:650">状态</span>
+    <select class="select" onchange="window._idsStF=this.value;document.getElementById('contentEl').innerHTML=pgIdsAccounts()">
+      <option value="all" ${stF==='all'?'selected':''}>全部状态</option>
+      <option value="启用" ${stF==='启用'?'selected':''}>启用</option>
+      <option value="已停用" ${stF==='已停用'?'selected':''}>已停用</option>
+    </select>
+    <input class="input" placeholder="搜索 账户名称 / 账号 / 银行" value="${window._idsKw||''}" oninput="window._idsKw=this.value" onkeydown="if(event.key==='Enter')document.getElementById('contentEl').innerHTML=pgIdsAccounts()" style="min-width:240px"/>
+    <button class="btn g sm" onclick="document.getElementById('contentEl').innerHTML=pgIdsAccounts()">查询</button>
+    <button class="btn g sm" onclick="window._idsStF='all';window._idsKw='';document.getElementById('contentEl').innerHTML=pgIdsAccounts()">重置</button>
+    <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 条</span>
+  </div>
+  ${tbl(['账户ID','账户名称','开户银行','户名','银行账号','联行号','默认','状态','创建时间','操作'],rows,{pageKey:'idsAccounts'})}`;
+}
+function openIdsAccountDetail(id){
+  const a=getIdsAccount(id);
+  if(!a){alert('账户不存在');return;}
+  openModal(`出账账户详情：${a.id}`,
+    `<div class="kv">
+      <span class="k">账户ID</span><span class="v" style="font-family:monospace">${a.id}</span>
+      <span class="k">账户名称</span><span class="v"><b>${a.name}</b></span>
+      <span class="k">所属公司</span><span class="v">${a.company||'IDS'}</span>
+      <span class="k">户名</span><span class="v">${a.accountName||'—'}</span>
+      <span class="k">开户银行</span><span class="v">${a.bank}</span>
+      <span class="k">开户支行</span><span class="v">${a.branch||'—'}</span>
+      <span class="k">银行账号</span><span class="v" style="font-family:monospace">${maskAccNo(a.accountNo)} <button class="link" style="margin-left:6px;font-size:11px" onclick="viewFullIdsAcc('${a.id}')">查看完整</button></span>
+      <span class="k">联行号</span><span class="v" style="font-family:monospace">${a.bankNo||'—'}</span>
+      <span class="k">默认</span><span class="v">${a.isDefault?'<span class="tag" style="font-size:11px;background:#fff8f0;color:var(--orange);border:1px solid #ffe0b2">默认账户</span>':'否'}</span>
+      <span class="k">状态</span><span class="v">${a.status}</span>
+      <span class="k">备注</span><span class="v">${a.remark||'—'}</span>
+      <span class="k">创建时间</span><span class="v">${a.createdAt||'—'} · ${a.creator||'—'}</span>
+      <span class="k">最近更新</span><span class="v">${a.updatedAt||a.createdAt||'—'}</span>
+    </div>`);
+}
+function viewFullIdsAcc(id){
+  const a=getIdsAccount(id);
+  if(!a)return;
+  confirmDialog('查看完整账号',
+    `即将展示账户 <b>${a.name}</b> 的<b style="color:var(--red)">完整银行账号</b>。<br/>该操作会被审计记录，请确认后查看。`,
+    ()=>{
+      openModal('完整账号 · '+a.id,
+        `<div class="notice" style="border-color:#ffd9d9;background:#fff5f5;color:#a02020">⚠ 请妥善保管，避免截屏外传。</div>
+         <div style="background:#1a1a1a;color:#7eff9e;padding:14px 16px;border-radius:6px;font-family:monospace;font-size:14px;letter-spacing:1px;word-break:break-all;margin-top:12px">${a.accountNo}</div>
+         <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn g sm" onclick="copyText('${a.accountNo}')">复制</button></div>`);
+    });
+}
+function openIdsAccountForm(id){
+  const a=id?getIdsAccount(id):null;
+  const isEdit=!!a;
+  const body=`<div class="form-grid">
+    <div class="field" style="grid-column:1/-1"><label>账户名称（业务别名）<span class="req">*</span></label>
+      <input class="input" id="iaf_name" style="width:100%" value="${a?a.name:''}" placeholder="如 IDS主出账账户 / 备用出账账户"/>
+      <div class="hint">便于多账户场景下识别用途</div>
+    </div>
+    <div class="field"><label>所属公司</label>
+      <input class="input" id="iaf_company" style="width:100%" value="${a?a.company||'IDS':'IDS'}" placeholder="默认 IDS"/>
+    </div>
+    <div class="field"><label>户名 <span class="req">*</span></label>
+      <input class="input" id="iaf_accName" style="width:100%" value="${a?a.accountName||'':''}" placeholder="与营业执照公司名一致"/>
+    </div>
+    <div class="field"><label>开户银行 <span class="req">*</span></label>
+      <input class="input" id="iaf_bank" style="width:100%" value="${a?a.bank:''}" placeholder="如 中国银行"/>
+    </div>
+    <div class="field"><label>开户支行 <span class="req">*</span></label>
+      <input class="input" id="iaf_branch" style="width:100%" value="${a?a.branch||'':''}" placeholder="如 北京中关村支行"/>
+    </div>
+    <div class="field"><label>银行账号 <span class="req">*</span></label>
+      <input class="input" id="iaf_accNo" style="width:100%;font-family:monospace" value="${a?a.accountNo||'':''}" placeholder="纯数字"/>
+      <div class="hint">加密存储；展示时默认脱敏</div>
+    </div>
+    <div class="field"><label>联行号 <span class="req">*</span></label>
+      <input class="input" id="iaf_bankNo" style="width:100%;font-family:monospace" value="${a?a.bankNo||'':''}" placeholder="12 位数字"/>
+    </div>
+    <div class="field" style="grid-column:1/-1"><label>备注</label>
+      <textarea class="input" id="iaf_remark" style="width:100%;height:60px;resize:vertical">${a?a.remark||'':''}</textarea>
+    </div>
+    <div class="field" style="grid-column:1/-1">
+      <label><input type="checkbox" id="iaf_default" ${a&&a.isDefault?'checked':''} ${a&&a.isDefault?'disabled':''}/> 设为默认出账账户</label>
+      <div class="hint">${a&&a.isDefault?'当前已是默认账户；如需更换，请到其他账户上点「设为默认」':'勾选后将自动取消其他账户的默认状态；多账户时付款单默认从此账户出账'}</div>
+    </div>
+  </div>`;
+  openModal(isEdit?`编辑出账账户 · ${a.id}`:'新建出账账户',body,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveIdsAccount('${id||''}')">保存</button>`);
+}
+function saveIdsAccount(id){
+  const name=(document.getElementById('iaf_name').value||'').trim();
+  const company=(document.getElementById('iaf_company').value||'').trim()||'IDS';
+  const accountName=(document.getElementById('iaf_accName').value||'').trim();
+  const bank=(document.getElementById('iaf_bank').value||'').trim();
+  const branch=(document.getElementById('iaf_branch').value||'').trim();
+  const accountNo=(document.getElementById('iaf_accNo').value||'').trim();
+  const bankNo=(document.getElementById('iaf_bankNo').value||'').trim();
+  const remark=(document.getElementById('iaf_remark').value||'').trim();
+  const isDefault=document.getElementById('iaf_default').checked;
+  if(!name){alert('请填写账户名称');return;}
+  if(!accountName){alert('请填写户名');return;}
+  if(!bank){alert('请填写开户银行');return;}
+  if(!branch){alert('请填写开户支行');return;}
+  if(!accountNo||!/^\d+$/.test(accountNo)){alert('银行账号必须为纯数字');return;}
+  if(!bankNo||!/^\d+$/.test(bankNo)){alert('联行号必须为纯数字');return;}
+  const dup=idsAccounts.find(x=>x.accountNo===accountNo&&x.id!==id);
+  if(dup){alert(`银行账号已被账户 ${dup.id}（${dup.name}）占用`);return;}
+  const now=new Date().toISOString().slice(0,16).replace('T',' ');
+  if(id){
+    const a=getIdsAccount(id);
+    a.name=name;a.company=company;a.accountName=accountName;a.bank=bank;a.branch=branch;a.accountNo=accountNo;a.bankNo=bankNo;a.remark=remark;a.updatedAt=now;
+    if(isDefault&&!a.isDefault){idsAccounts.forEach(x=>x.isDefault=false);a.isDefault=true;}
+  }else{
+    const newId='IDS-'+String(idsAccounts.length+1).padStart(3,'0');
+    const willBeDefault=isDefault||idsAccounts.length===0;
+    if(willBeDefault)idsAccounts.forEach(x=>x.isDefault=false);
+    idsAccounts.push({id:newId,name,company,accountName,bank,branch,accountNo,bankNo,status:'启用',isDefault:willBeDefault,remark,createdAt:now,creator:(SESSION&&SESSION.display)||ROLE,updatedAt:now});
+  }
+  closeModal();
+  document.getElementById('contentEl').innerHTML=pgIdsAccounts();
+}
+function setIdsDefault(id){
+  const a=getIdsAccount(id);
+  if(!a)return;
+  if(a.status!=='启用'){alert('已停用的账户不能设为默认');return;}
+  confirmDialog('设为默认出账账户',
+    `确认将 <b>${a.name}</b> 设为默认出账账户？<br/>设置后多账户场景下的付款单将默认从此账户出账，原默认账户的"默认"标记会被取消。`,
+    ()=>{
+      idsAccounts.forEach(x=>x.isDefault=false);
+      a.isDefault=true;
+      a.updatedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+      document.getElementById('contentEl').innerHTML=pgIdsAccounts();
+    });
+}
+function toggleIdsStatus(id){
+  const a=getIdsAccount(id);
+  if(!a)return;
+  if(a.status==='启用'){
+    const enabledCount=idsAccounts.filter(x=>x.status==='启用').length;
+    if(enabledCount<=1){alert('系统至少保留 1 个启用状态的出账账户，无法停用最后一个。');return;}
+    if(a.isDefault){alert('该账户为默认账户，请先将其他启用账户设为默认后再停用。');return;}
+    confirmDialog('停用出账账户',
+      `确认停用 <b>${a.name}</b>？<br/>停用后该账户将不再出现在付款选择中（已发起的付款单不受影响）。`,
+      ()=>{
+        a.status='已停用';
+        a.updatedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+        document.getElementById('contentEl').innerHTML=pgIdsAccounts();
+      });
+  }else{
+    a.status='启用';
+    a.updatedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+    document.getElementById('contentEl').innerHTML=pgIdsAccounts();
+  }
+}
+
+/* PAGE: 数据同步任务 */
+function getSyncTask(id){return syncTasks.find(t=>t.id===id);}
+function getLatestRun(taskId){
+  const list=syncRuns.filter(r=>r.taskId===taskId);
+  if(!list.length)return null;
+  return list.slice().sort((a,b)=>(b.startTime||'').localeCompare(a.startTime||''))[0];
+}
+function syncStatusTag(s){
+  const map={
+    '成功':'<span class="tag green" style="font-size:11px">✅ 成功</span>',
+    '失败':'<span class="tag red" style="font-size:11px">❌ 失败</span>',
+    '部分成功':'<span class="tag" style="font-size:11px;background:#fff8f0;color:var(--orange);border:1px solid #ffe0b2">⚠ 部分成功</span>',
+    '运行中':'<span class="tag" style="font-size:11px;background:#eef4fb;color:var(--primary);border:1px solid #cfe0f5">⏳ 运行中</span>'
+  };
+  return map[s]||`<span class="tag">${s}</span>`;
+}
+function pgSyncTasks(){
+  const canOp=['系统管理员','财务人员'].includes(ROLE);
+  const canPause=ROLE==='系统管理员';
+  const typeF=window._stTypeF||'all';
+  const platF=window._stPlatF||'all';
+  const stF=window._stStF||'all';
+  const kw=(window._stKw||'').trim().toLowerCase();
+  let data=syncTasks.slice();
+  if(typeF!=='all')data=data.filter(t=>t.type===typeF);
+  if(platF!=='all')data=data.filter(t=>t.platform===platF);
+  if(stF!=='all'){
+    if(stF==='已暂停')data=data.filter(t=>t.status==='暂停');
+    else data=data.filter(t=>{const r=getLatestRun(t.id);return r&&r.status===stF;});
+  }
+  if(kw)data=data.filter(t=>(t.name||'').toLowerCase().includes(kw)||(t.pub||'').toLowerCase().includes(kw));
+  const rows=data.map(t=>{
+    const r=getLatestRun(t.id);
+    const stTag=t.status==='暂停'
+      ?'<span class="tag" style="font-size:11px;background:#f4f4f4;color:#888;border:1px solid #ddd">已暂停</span>'
+      :(r?syncStatusTag(r.status):'<span style="color:var(--weak);font-size:12px">未运行</span>');
+    const ops=[`<button class="link" onclick="openSyncTaskDetail('${t.id}')">详情</button>`,
+               `<button class="link" onclick="openSyncTaskHistory('${t.id}')">执行历史</button>`];
+    if(canOp&&t.status==='启用'){
+      ops.push(`<button class="link" onclick="runSyncTaskNow('${t.id}')">立即运行</button>`);
+      if(r&&r.status==='失败')ops.push(`<button class="link" style="color:var(--orange)" onclick="rerunSyncTask('${r.id}')">重跑</button>`);
+    }
+    if(canPause){
+      if(t.status==='启用')ops.push(`<button class="link" style="color:var(--red)" onclick="toggleSyncStatus('${t.id}')">暂停</button>`);
+      else ops.push(`<button class="link" onclick="toggleSyncStatus('${t.id}')">启用</button>`);
+    }
+    const platTag=t.platform==='微信小游戏'?'<span class="tag green" style="font-size:11px">微小</span>'
+                 :t.platform==='抖音小游戏'?'<span class="tag blue" style="font-size:11px">抖小</span>'
+                 :t.platform==='浑天仪'?'<span class="tag" style="font-size:11px;background:#f0ebff;color:#6a3ec0;border:1px solid #d9caff">浑天仪</span>':t.platform;
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${t.id}</td>
+      <td><b>${t.name}</b></td>
+      <td>${t.type}</td>
+      <td>${platTag}</td>
+      <td>${t.pub||'<span style="color:var(--weak)">—</span>'}</td>
+      <td><span style="font-size:12px">${t.freq}</span><div style="color:var(--muted);font-size:11px;margin-top:2px">${t.cron}</div></td>
+      <td style="font-family:monospace;font-size:12px">${r?r.period:'<span style="color:var(--weak);font-family:inherit">—</span>'}</td>
+      <td style="font-family:monospace;font-size:12px">${r?r.startTime:'<span style="color:var(--weak);font-family:inherit">—</span>'}</td>
+      <td>${stTag}</td>
+      <td style="font-family:monospace;font-size:12px">${r&&r.status==='成功'?r.rows.toLocaleString():'—'}</td>
+      <td>${ops.join(' ')}</td>
+    </tr>`;
+  });
+  if(!rows.length)rows.push(`<tr><td colspan="11" style="text-align:center;color:var(--weak);padding:24px">无匹配任务</td></tr>`);
+  return `<div class="ph">
+    <div><div class="pt">数据同步任务</div><div class="pd">系统按调度计划自动从各数据源拉取数据；下方展示每个任务最近一次执行结果。<b>调度时间由运维统一配置，UI 仅展示不可修改</b>。任务失败时可手动重跑。</div></div>
+    <div class="acts"><button class="btn g" onclick="alert('原型展示：导出 Excel')">↓ 导出</button></div>
+  </div>
+  <div class="filter" style="margin-bottom:16px;flex-wrap:wrap">
+    <span style="font-size:12px;color:var(--muted);font-weight:650">数据类型</span>
+    <select class="select" onchange="window._stTypeF=this.value;document.getElementById('contentEl').innerHTML=pgSyncTasks()">
+      <option value="all" ${typeF==='all'?'selected':''}>全部类型</option>
+      <option value="现金收入" ${typeF==='现金收入'?'selected':''}>现金收入</option>
+      <option value="广告金收入" ${typeF==='广告金收入'?'selected':''}>广告金收入</option>
+      <option value="投放成本" ${typeF==='投放成本'?'selected':''}>投放成本</option>
+      <option value="云服务成本" ${typeF==='云服务成本'?'selected':''}>云服务成本</option>
+    </select>
+    <span style="font-size:12px;color:var(--muted);font-weight:650">平台</span>
+    <select class="select" onchange="window._stPlatF=this.value;document.getElementById('contentEl').innerHTML=pgSyncTasks()">
+      <option value="all" ${platF==='all'?'selected':''}>全部平台</option>
+      <option value="微信小游戏" ${platF==='微信小游戏'?'selected':''}>微信小游戏</option>
+      <option value="抖音小游戏" ${platF==='抖音小游戏'?'selected':''}>抖音小游戏</option>
+      <option value="浑天仪" ${platF==='浑天仪'?'selected':''}>浑天仪</option>
+    </select>
+    <span style="font-size:12px;color:var(--muted);font-weight:650">状态</span>
+    <select class="select" onchange="window._stStF=this.value;document.getElementById('contentEl').innerHTML=pgSyncTasks()">
+      <option value="all" ${stF==='all'?'selected':''}>全部状态</option>
+      <option value="成功" ${stF==='成功'?'selected':''}>最近成功</option>
+      <option value="失败" ${stF==='失败'?'selected':''}>最近失败</option>
+      <option value="运行中" ${stF==='运行中'?'selected':''}>运行中</option>
+      <option value="已暂停" ${stF==='已暂停'?'selected':''}>已暂停</option>
+    </select>
+    <input class="input" placeholder="搜索 任务名 / 联运商" value="${window._stKw||''}" oninput="window._stKw=this.value" onkeydown="if(event.key==='Enter')document.getElementById('contentEl').innerHTML=pgSyncTasks()" style="min-width:200px"/>
+    <button class="btn g sm" onclick="document.getElementById('contentEl').innerHTML=pgSyncTasks()">查询</button>
+    <button class="btn g sm" onclick="window._stTypeF='all';window._stPlatF='all';window._stStF='all';window._stKw='';document.getElementById('contentEl').innerHTML=pgSyncTasks()">重置</button>
+    <span style="color:var(--muted);font-size:12px;margin-left:auto">共 ${data.length} 条</span>
+  </div>
+  ${tbl(['任务ID','任务名称','数据类型','平台','联运商','频率/调度','数据所属范围','最近同步时间','最近状态','拉取条数','操作'],rows,{pageKey:'syncTasks'})}`;
+}
+function openSyncTaskDetail(id){
+  const t=getSyncTask(id);
+  if(!t)return;
+  const allRuns=syncRuns.filter(r=>r.taskId===id);
+  const successCnt=allRuns.filter(r=>r.status==='成功').length;
+  const failCnt=allRuns.filter(r=>r.status==='失败').length;
+  const r=getLatestRun(id);
+  const downstreamMap={cashRev:'现金收入确认',vRev:'广告金收入确认',costDashboard:'投放成本确认',cloudCost:'云服务成本确认'};
+  const downName=downstreamMap[t.downstream]||'—';
+  openModal(`任务详情：${t.id}`,
+    `<div class="kv">
+      <span class="k">任务ID</span><span class="v" style="font-family:monospace">${t.id}</span>
+      <span class="k">任务名称</span><span class="v"><b>${t.name}</b></span>
+      <span class="k">数据源</span><span class="v">${t.source}</span>
+      <span class="k">数据类型</span><span class="v">${t.type}</span>
+      <span class="k">同步维度</span><span class="v">${t.dimension}</span>
+      <span class="k">平台</span><span class="v">${t.platform}</span>
+      <span class="k">联运商</span><span class="v">${t.pub||'—（覆盖全部联运商）'}</span>
+    </div>
+    <div class="sec-title">调度信息</div>
+    <div class="kv">
+      <span class="k">频率</span><span class="v">${t.freq}</span>
+      <span class="k">调度时间</span><span class="v">${t.cron}</span>
+      <span class="k">下次预计运行</span><span class="v" style="color:var(--primary)">${t.nextRun}</span>
+    </div>
+    <div class="notice" style="margin:8px 0 12px">ⓘ 调度时间由运维统一配置，UI 不支持修改；如需调整请联系系统管理员。</div>
+    <div class="sec-title">运行统计</div>
+    <div class="kv">
+      <span class="k">任务状态</span><span class="v">${t.status==='启用'?'<span class="tag green" style="font-size:11px">● 启用</span>':'<span class="tag" style="font-size:11px;background:#f4f4f4;color:#888;border:1px solid #ddd">● 已暂停</span>'}</span>
+      <span class="k">最近执行</span><span class="v">${r?(r.startTime+' · '+r.status+'（'+(r.rows||0)+' 条）'):'—'}</span>
+      <span class="k">累计执行</span><span class="v">${allRuns.length} 次（成功 ${successCnt} / 失败 ${failCnt}）</span>
+    </div>
+    <div class="sec-title">下游模块</div>
+    <div class="kv">
+      <span class="k">数据流向</span><span class="v">→ ${downName} <button class="link" style="margin-left:8px;font-size:12px" onclick="closeModal();go('${t.downstream}')">跳转</button></span>
+    </div>`);
+}
+function openSyncTaskHistory(id){
+  const t=getSyncTask(id);
+  if(!t)return;
+  const list=syncRuns.filter(r=>r.taskId===id).sort((a,b)=>(b.startTime||'').localeCompare(a.startTime||''));
+  const canOp=['系统管理员','财务人员'].includes(ROLE);
+  const rows=list.map(r=>{
+    const opBtn=(canOp&&r.status==='失败')?`<button class="link" style="color:var(--orange)" onclick="rerunSyncTask('${r.id}')">重跑</button>`:'<span style="color:var(--weak)">—</span>';
+    const errCell=r.errMsg?`<div style="color:var(--red);font-size:11px;margin-top:2px;max-width:280px">${r.errMsg}</div>`:'';
+    return `<tr>
+      <td style="font-family:monospace;font-size:11px">${r.id}</td>
+      <td>${r.period}</td>
+      <td style="font-size:12px">${r.startTime}</td>
+      <td style="font-family:monospace;font-size:12px">${r.duration}s</td>
+      <td>${syncStatusTag(r.status)}${errCell}</td>
+      <td style="font-family:monospace;font-size:12px">${r.status==='成功'?r.rows.toLocaleString():'—'}</td>
+      <td><span style="font-size:11px;color:var(--muted)">${r.trigger}</span><div style="font-size:11px;color:var(--muted)">${r.operator}</div></td>
+      <td>${opBtn}</td>
+    </tr>`;
+  });
+  if(!rows.length)rows.push(`<tr><td colspan="8" style="text-align:center;color:var(--weak);padding:24px">该任务暂无执行记录</td></tr>`);
+  openModal(`执行历史：${t.name}`,
+    `<div class="notice" style="margin-bottom:10px">展示该任务最近 ${list.length} 次执行记录（默认按时间倒序）。失败的执行可点「重跑」手动重新拉取。</div>
+     <div class="tw"><table class="table" style="margin:0">
+       <thead><tr><th>执行ID</th><th>数据所属范围</th><th>开始时间</th><th>耗时</th><th>状态</th><th>条数</th><th>触发方式</th><th>操作</th></tr></thead>
+       <tbody>${rows.join('')}</tbody>
+     </table></div>`,
+    `<button class="btn g" onclick="closeModal()">关闭</button>`);
+}
+function runSyncTaskNow(id){
+  const t=getSyncTask(id);
+  if(!t)return;
+  if(t.status!=='启用'){alert('已暂停的任务无法手动运行，请先启用');return;}
+  confirmDialog('立即运行任务',
+    `确认手动触发任务 <b>${t.name}</b>？<br/><br/>系统将立即从「${t.source}」拉取最新数据，可能影响下游「${({cashRev:'现金收入确认',vRev:'广告金收入确认',costDashboard:'投放成本确认',cloudCost:'云服务成本确认'})[t.downstream]||'未知'}」页面的数据。`,
+    ()=>{
+      const now=new Date();
+      const startStr=now.toISOString().slice(0,19).replace('T',' ');
+      const period=t.freq==='每月'?startStr.slice(0,7):(new Date(now.getTime()-86400000).toISOString().slice(0,10));
+      const rows=Math.floor(800+Math.random()*800);
+      const duration=Math.floor(8+Math.random()*15);
+      const endStr=new Date(now.getTime()+duration*1000).toISOString().slice(0,19).replace('T',' ');
+      const newId='RUN-M'+Date.now().toString().slice(-8);
+      syncRuns.unshift({id:newId,taskId:id,period,startTime:startStr,endTime:endStr,duration,status:'成功',rows,trigger:'手动触发',operator:(SESSION&&SESSION.display)||ROLE,errMsg:''});
+      alert(`任务 ${t.name} 已运行完成。\n\n执行ID：${newId}\n数据期间：${period}\n拉取条数：${rows.toLocaleString()}\n耗时：${duration}s`);
+      document.getElementById('contentEl').innerHTML=pgSyncTasks();
+    });
+}
+function rerunSyncTask(runId){
+  const r=syncRuns.find(x=>x.id===runId);
+  if(!r){alert('原执行记录不存在');return;}
+  const t=getSyncTask(r.taskId);
+  if(!t)return;
+  confirmDialog('重跑失败任务',
+    `确认重新执行 <b>${t.name}</b> 的 <b>${r.period}</b> 期数据？<br/><br/>原失败原因：${r.errMsg||'—'}`,
+    ()=>{
+      const now=new Date();
+      const startStr=now.toISOString().slice(0,19).replace('T',' ');
+      const duration=Math.floor(8+Math.random()*12);
+      const endStr=new Date(now.getTime()+duration*1000).toISOString().slice(0,19).replace('T',' ');
+      const rows=Math.floor(80+Math.random()*200);
+      const newId='RUN-R'+Date.now().toString().slice(-8);
+      syncRuns.unshift({id:newId,taskId:r.taskId,period:r.period,startTime:startStr,endTime:endStr,duration,status:'成功',rows,trigger:'失败重跑',operator:(SESSION&&SESSION.display)||ROLE,errMsg:''});
+      closeModal();
+      alert(`重跑成功。\n\n新执行ID：${newId}\n数据期间：${r.period}\n拉取条数：${rows.toLocaleString()}`);
+      document.getElementById('contentEl').innerHTML=pgSyncTasks();
+    });
+}
+function toggleSyncStatus(id){
+  const t=getSyncTask(id);
+  if(!t)return;
+  if(t.status==='启用'){
+    confirmDialog('暂停同步任务',
+      `确认暂停 <b>${t.name}</b>？<br/><br/>暂停后该任务将<b style="color:var(--red)">不再按调度自动运行</b>，下游模块的数据将不再更新。如需恢复，请重新启用。`,
+      ()=>{t.status='暂停';document.getElementById('contentEl').innerHTML=pgSyncTasks();});
+  }else{
+    t.status='启用';
+    document.getElementById('contentEl').innerHTML=pgSyncTasks();
+  }
+}
+
+/* PAGE: 审批人配置（BPM 流程节点角色 → 飞书账号映射） */
+function getBpmApprover(id){return bpmApprovers.find(a=>a.id===id);}
+function pgBpmApprovers(){
+  const canEdit=ROLE==='系统管理员';
+  const groups=[
+    {key:'rule',title:'分账规则审批',desc:'分账规则提交后由项目经理审批；审批通过后规则才能生效。'},
+    {key:'payment',title:'打款流程审批',desc:'打款申请提交后由项目经理审批；审批流程由 BPM 发起人代表系统自动发起。'}
+  ];
+  const groupHtml=groups.map(g=>{
+    const items=bpmApprovers.filter(a=>a.scenarioKey===g.key);
+    const rows=items.map((a,idx)=>{
+      const editBtn=canEdit?`<button class="btn g sm" onclick="openBpmApproverEditForm('${a.id}')">编辑</button>`:'';
+      const sep=idx<items.length-1?'<div style="height:1px;background:var(--line);margin:14px 0"></div>':'';
+      return `<div style="display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:650;color:#1a4a80">${a.role}</div>
+          <div style="font-family:monospace;font-size:11px;color:var(--muted);margin-top:2px">${a.id}</div>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:600">${a.name}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">📱 ${a.feishuAccount}</div>
+          <div style="font-size:11px;color:var(--weak);margin-top:4px">最近更新：${a.updatedAt} by ${a.updatedBy}</div>
+        </div>
+        <div>${editBtn}</div>
+      </div>${sep}`;
+    }).join('');
+    return `<div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="font-size:15px;font-weight:650;color:var(--primary)">${g.title}</span>
+        <span class="tag" style="font-size:11px;background:#eef4fb;color:var(--primary);border:1px solid #cfe0f5">${items.length} 项配置</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">${g.desc}</div>
+      <div style="height:1px;background:var(--line);margin-bottom:14px"></div>
+      ${rows}
+    </div>`;
+  }).join('');
+  return `<div class="ph">
+    <div><div class="pt">审批人配置</div><div class="pd">系统预置 BPM 流程中各节点角色对应的飞书账号。<b>"项目经理"是 BPM 流程节点角色</b>（与系统业务角色无关），两个流程可独立配置不同的人。<b>"BPM 发起人"</b>仅用于打款流程的自动发起场景。审批流转顺序由 BPM 系统定义，本页面仅维护"谁来审批"。</div></div>
+    <div class="acts">${canEdit?'':'<span style="color:var(--muted);font-size:12px">⚠ 仅系统管理员可编辑</span>'}</div>
+  </div>
+  <div class="notice" style="margin-bottom:16px;border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80">📋 配置项<b>系统预置不可新增/删除</b>，只能替换具体的人；变更后立即生效，下一笔触发的审批流程将使用新的飞书账号。</div>
+  ${groupHtml}`;
+}
+function openBpmApproverEditForm(id){
+  const a=getBpmApprover(id);
+  if(!a){alert('配置项不存在');return;}
+  const body=`<div class="notice" style="margin-bottom:14px">
+    <div style="font-size:13px"><b>${a.scenario}</b> · ${a.role}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">当前：${a.name}（${a.feishuAccount}）</div>
+  </div>
+  <div class="form-grid">
+    <div class="field"><label>新人姓名 <span class="req">*</span></label>
+      <input class="input" id="bpa_name" style="width:100%" value="${a.name}" placeholder="如 张三"/>
+    </div>
+    <div class="field"><label>飞书账号 <span class="req">*</span></label>
+      <input class="input" id="bpa_account" style="width:100%;font-family:monospace" value="${a.feishuAccount}" placeholder="如 zhangsan@dafaxing.com"/>
+      <div class="hint">需为已开通飞书的企业邮箱</div>
+    </div>
+  </div>`;
+  openModal(`编辑审批人 · ${a.id}`,body,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="saveBpmApprover('${id}')">保存</button>`);
+}
+function saveBpmApprover(id){
+  const a=getBpmApprover(id);
+  if(!a)return;
+  const name=(document.getElementById('bpa_name').value||'').trim();
+  const account=(document.getElementById('bpa_account').value||'').trim();
+  if(!name){alert('请填写姓名');return;}
+  if(!account){alert('请填写飞书账号');return;}
+  if(!/^[\w.-]+@[\w-]+(\.[\w-]+)+$/.test(account)){alert('飞书账号格式不正确，应为邮箱格式');return;}
+  if(name===a.name&&account===a.feishuAccount){alert('未做任何修改');return;}
+  a.name=name;
+  a.feishuAccount=account;
+  a.updatedAt=new Date().toISOString().slice(0,16).replace('T',' ');
+  a.updatedBy=(SESSION&&SESSION.display)||ROLE;
+  closeModal();
+  document.getElementById('contentEl').innerHTML=pgBpmApprovers();
+}
+
 /* PAGE: 权限配置 */
 const PERM_MODULES=[
   {group:'基础档案',items:[{key:'games',label:'游戏管理'},{key:'platformApps',label:'平台应用'},{key:'publishers',label:'联运商'},{key:'cps',label:'CP'}]},
@@ -5079,7 +5881,8 @@ const PERM_MODULES=[
   {group:'分成规则',items:[{key:'pubRules',label:'联运商分成规则'},{key:'cpRules',label:'CP分成规则'}]},
   {group:'账期管理',items:[{key:'cashRev',label:'现金收入确认'},{key:'vRev',label:'广告金收入确认'},{key:'costDashboard',label:'投放成本确认'},{key:'cloudCost',label:'云服务成本确认'},{key:'dailyRecon',label:'每日收支预估'}]},
   {group:'分账明细',items:[{key:'settlePub',label:'联运商分账明细'},{key:'settleCp',label:'CP分账明细'}]},
-  {group:'资金结算',items:[{key:'statements',label:'对账单管理'},{key:'payments',label:'付款单管理'},{key:'myPayments',label:'付款申请'},{key:'balance',label:'账户流水'},{key:'invoices',label:'票据管理'}]}
+  {group:'资金结算',items:[{key:'statements',label:'对账单管理'},{key:'payments',label:'付款单管理'},{key:'myPayments',label:'付款申请'},{key:'balance',label:'账户流水'},{key:'invoices',label:'票据管理'}]},
+  {group:'系统设置',items:[{key:'idsAccounts',label:'出账账户'},{key:'syncTasks',label:'数据同步任务'},{key:'bpmApprovers',label:'审批人配置'}]}
 ];
 const OPS=['查看','新增/编辑','删除'];
 const OP_KEYS=['view','edit','delete'];
@@ -5182,6 +5985,9 @@ function pgUserMgmt(){
         if(it.kind==='app'){
           const m=pubMappings.find(x=>x.id===it.mappingId);
           if(m){const appId=m.platform==='微信小游戏'?m.wxAppId:m.dyAppId;items.push({label:`${m.appName||appId}`,full:`《${m.game}》·${m.platform}·${appId}`});}
+        }else if(it.kind==='ig'){
+          const g=games.find(x=>x.id===it.gameId);
+          if(g)items.push({label:`《${g.name}》`,full:`《${g.name}》`});
         }else if(it.kind==='cg'){
           const g=games.find(x=>x.id===it.gameId);
           if(g)items.push({label:`《${g.name}》`,full:`《${g.name}》（CP游戏）`});
@@ -5327,11 +6133,19 @@ function openGrantData(uid){
   });
   const isPub=u.role==='联运商';
   const isCp=u.role==='CP';
+  // 内部角色：解析 ig: 或将旧 gp: 归并为游戏粒度
+  const igGameIds=new Set();
+  (u.dataPerms||[]).forEach(p=>{
+    const it=parseDataPerm(p);if(!it)return;
+    if(it.kind==='ig')igGameIds.add(it.gameId);
+    else if(it.kind==='gp')igGameIds.add(it.gameId); // 旧数据兼容：gp 归并到游戏级
+  });
   window._dpState={
     uid,kw:'',gameF:'all',platF:'all',page:1,pageSize:10,
     selectedApps:appIds,         // 联运商：平台应用 mapping.id
     selectedGames:cgGameIds,     // CP：游戏 id
-    selectedGp:gpKeys,           // 兼容：内部角色保留 gp 颗粒度
+    selectedIg:igGameIds,        // 内部角色：游戏 id
+    selectedGp:gpKeys,           // 兼容旧数据（不再写入）
     selectedPubs:new Set([...pubIds]),
     selectedCps:new Set([...cpIds]),
     isPub,isCp,
@@ -5387,6 +6201,7 @@ function _dpCollectChecks(){
     let target=null;
     if(kind==='app')target=st.selectedApps;
     else if(kind==='cg')target=st.selectedGames;
+    else if(kind==='ig')target=st.selectedIg;
     else if(kind==='gp')target=st.selectedGp;
     if(!target)return;
     if(cb.checked)target.add(v);else target.delete(v);
@@ -5541,46 +6356,35 @@ function _renderDpRowsForCp(){
   return {empty:false,html};
 }
 
-// 内部角色：游戏×平台粒度（沿用旧逻辑，使用 gp: 前缀）
+// 内部角色：游戏粒度（一行一个游戏，使用 ig: 前缀）
 function _renderDpRowsForInternal(){
   const st=window._dpState;
-  // 全集：去重 game × platform
-  const rows=[];const seen=new Set();
-  pubMappings.forEach(m=>{
-    const k=`${m.gameId}__${m.platform}`;if(seen.has(k))return;seen.add(k);
-    const pubs=[...new Set(pubMappings.filter(x=>x.gameId===m.gameId&&x.platform===m.platform).map(x=>x.pub))].join(' · ');
-    rows.push({gameId:m.gameId,gameName:m.game,platform:m.platform,pubs,v:k});
-  });
   const kw=(st.kw||'').trim().toLowerCase();
-  const filtered=rows.filter(r=>{
-    if(kw&&!r.gameName.toLowerCase().includes(kw)&&!r.gameId.toLowerCase().includes(kw))return false;
-    if(st.gameF!=='all'&&r.gameId!==st.gameF)return false;
-    if(st.platF!=='all'&&r.platform!==st.platF)return false;
+  const rows=games.filter(g=>{
+    if(kw&&!g.name.toLowerCase().includes(kw)&&!g.id.toLowerCase().includes(kw))return false;
+    if(st.gameF!=='all'&&g.id!==st.gameF)return false;
     return true;
   });
-  const total=filtered.length;
+  const total=rows.length;
   const totalPages=Math.max(1,Math.ceil(total/st.pageSize));
   if(st.page>totalPages)st.page=totalPages;
   const start=(st.page-1)*st.pageSize;
-  const pageRows=filtered.slice(start,start+st.pageSize);
-  const allOnPageChecked=pageRows.length>0&&pageRows.every(r=>st.selectedGp.has(r.v));
-  const tableBody=pageRows.length?pageRows.map(r=>{
-    const checked=st.selectedGp.has(r.v);
+  const pageRows=rows.slice(start,start+st.pageSize);
+  const allOnPageChecked=pageRows.length>0&&pageRows.every(g=>st.selectedIg.has(g.id));
+  const tableBody=pageRows.length?pageRows.map(g=>{
+    const checked=st.selectedIg.has(g.id);
+    const platBadges=(g.platforms||[]).map(p=>p==='微信小游戏'?'<span class="tag green" style="font-size:11px">微小</span>':'<span class="tag blue" style="font-size:11px">抖小</span>').join(' ');
     return `<tr>
-      <td style="width:40px;text-align:center"><input type="checkbox" class="dpCheck" data-kind="gp" value="${r.v}" ${checked?'checked':''} style="accent-color:var(--primary)"></td>
-      <td style="font-family:monospace;font-size:11.5px;color:var(--muted)">${r.gameId}</td>
-      <td><b>《${r.gameName}》</b></td>
-      <td>${r.platform}</td>
-      <td style="color:var(--muted);font-size:12px">${r.pubs||'—'}</td>
+      <td style="width:40px;text-align:center"><input type="checkbox" class="dpCheck" data-kind="ig" value="${g.id}" ${checked?'checked':''} style="accent-color:var(--primary)"></td>
+      <td style="font-family:monospace;font-size:11.5px;color:var(--muted)">${g.id}</td>
+      <td><b>《${g.name}》</b></td>
+      <td>${platBadges||'—'}</td>
     </tr>`;
-  }).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--weak);padding:20px">无匹配的游戏-平台组合</td></tr>';
-  const gameList=[...new Set(rows.map(r=>r.gameId))];
-  const gameOpts=gameList.map(gid=>{const g=games.find(x=>x.id===gid);return `<option value="${gid}" ${st.gameF===gid?'selected':''}>${g?g.name:gid}</option>`;}).join('');
-  const platList=[...new Set(rows.map(r=>r.platform))];
-  const platOpts=platList.map(p=>`<option value="${p}" ${st.platF===p?'selected':''}>${p}</option>`).join('');
+  }).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--weak);padding:20px">无匹配游戏</td></tr>';
+  const gameOpts=games.map(g=>`<option value="${g.id}" ${st.gameF===g.id?'selected':''}>${g.name}</option>`).join('');
   const pageBtn=(n,label,disabled)=>`<button class="btn g sm" ${disabled?'disabled':''} onclick="window._dpState.page=${n};_dpRerender()">${label}</button>`;
   const pager=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;color:var(--muted)">
-    <div>共 <b>${total}</b> 条（已选 <b style="color:var(--primary)">${st.selectedGp.size}</b> 条）</div>
+    <div>共 <b>${total}</b> 个游戏（已选 <b style="color:var(--primary)">${st.selectedIg.size}</b> 个）</div>
     <div style="display:flex;align-items:center;gap:6px">
       ${pageBtn(1,'« 首页',st.page===1)}
       ${pageBtn(Math.max(1,st.page-1),'‹ 上一页',st.page===1)}
@@ -5589,18 +6393,17 @@ function _renderDpRowsForInternal(){
       ${pageBtn(totalPages,'末页 »',st.page===totalPages)}
     </div>
   </div>`;
-  const html=`<div class="sec-title" style="margin-top:0">游戏 × 平台权限</div>
+  const html=`<div class="sec-title" style="margin-top:0">游戏权限</div>
     <div class="filter" style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <input class="input" id="dpKwInput" style="width:180px" placeholder="搜索游戏名称 / ID…" value="${st.kw||''}" oninput="window._dpState.kw=this.value;window._dpState.page=1;_dpRerender();const i=document.getElementById('dpKwInput');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}"/>
       <select class="select" onchange="window._dpState.gameF=this.value;window._dpState.page=1;_dpRerender()"><option value="all" ${st.gameF==='all'?'selected':''}>全部游戏</option>${gameOpts}</select>
-      <select class="select" onchange="window._dpState.platF=this.value;window._dpState.page=1;_dpRerender()"><option value="all" ${st.platF==='all'?'selected':''}>全部平台</option>${platOpts}</select>
-      <button class="btn g sm" onclick="_dpCollectChecks();[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=true;window._dpState.selectedGp.add(cb.value)});_dpRerender()" title="全选当前页">✓ 本页全选</button>
-      <button class="btn g sm" onclick="_dpCollectChecks();[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=false;window._dpState.selectedGp.delete(cb.value)});_dpRerender()" title="清空当前页">✕ 本页清空</button>
-      <button class="btn g sm" onclick="if(confirm('确认清空全部勾选？')){window._dpState.selectedGp=new Set();_dpRerender()}">清空全部</button>
+      <button class="btn g sm" onclick="_dpCollectChecks();[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=true;window._dpState.selectedIg.add(cb.value)});_dpRerender()" title="全选当前页">✓ 本页全选</button>
+      <button class="btn g sm" onclick="_dpCollectChecks();[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=false;window._dpState.selectedIg.delete(cb.value)});_dpRerender()" title="清空当前页">✕ 本页清空</button>
+      <button class="btn g sm" onclick="if(confirm('确认清空全部勾选？')){window._dpState.selectedIg=new Set();_dpRerender()}">清空全部</button>
     </div>
     <div class="tw" style="max-height:320px;overflow:auto"><table class="table" style="margin:0"><thead><tr>
-      <th style="width:40px;text-align:center"><input type="checkbox" ${allOnPageChecked?'checked':''} onchange="_dpCollectChecks();const on=this.checked;[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=on;if(on)window._dpState.selectedGp.add(cb.value);else window._dpState.selectedGp.delete(cb.value)});_dpRerender()"></th>
-      <th>游戏ID</th><th>游戏名称</th><th>平台</th><th>联运商</th>
+      <th style="width:40px;text-align:center"><input type="checkbox" ${allOnPageChecked?'checked':''} onchange="_dpCollectChecks();const on=this.checked;[...document.querySelectorAll('.dpCheck')].forEach(cb=>{cb.checked=on;if(on)window._dpState.selectedIg.add(cb.value);else window._dpState.selectedIg.delete(cb.value)});_dpRerender()"></th>
+      <th>游戏ID</th><th>游戏名称</th><th>上架平台</th>
     </tr></thead><tbody>${tableBody}</tbody></table></div>
     ${pager}`;
   return {empty:false,html};
@@ -5629,7 +6432,7 @@ function confirmGrantData(uid){
   }else if(st.isCp){
     (st.selectedGames||new Set()).forEach(id=>out.push('cg:'+id));
   }else{
-    (st.selectedGp||new Set()).forEach(v=>out.push('gp:'+v));
+    (st.selectedIg||new Set()).forEach(id=>out.push('ig:'+id));
   }
   u.dataPerms=out;
   closeModal();renderPage();
@@ -5668,11 +6471,208 @@ function confirmGrantData(uid){
   document.addEventListener('click',function(){
     document.getElementById('userCenter').classList.remove('open');
   });
-  detectSsoIdentity();
+  // SSO 识别在用户点击「一键登录」后触发，不在页面加载时自动执行
   // 原型默认展示登录页；点击登录后进入系统
   // 如需直接进入（调试），注释掉下一行，取消注释后一行
   // loginAs(USER_DB.find(u=>u.role==='系统管理员'));
 })();
+
+/* ══════════════════════════════════════════════
+   PAGE: 联运方消耗数据访问配置
+   ══════════════════════════════════════════════ */
+const _pubCostConfigs=(()=>{
+  const mk=(id,pubId,gameIds,channelIds,dayLimit,remark,status,daysAgo)=>{
+    const seg=n=>Math.random().toString(36).substring(2,2+n).toUpperCase();
+    return {id,pubId,gameIds,channelIds,dayLimit,remark,status,
+      apiKey:`pk_${pubId}_${seg(8)}${seg(4)}${seg(4)}${seg(12)}`,
+      createdAt:new Date(Date.now()-daysAgo*86400000).toISOString().slice(0,16).replace('T',' ')};
+  };
+  return [
+    mk(1,'P-2001',['G-1001','G-1002'],['toutiao','kuaishou'],30,'标准合作',1,5),
+    mk(2,'P-2002',[],[],0,'',1,3),
+    mk(3,'P-2003',['G-1001','G-1003','G-1004'],['weixin','weibo'],90,'限制渠道',0,12),
+    mk(4,'P-2004',['G-1002'],['douyin'],60,'',1,1),
+  ];
+})();
+let _pccNextId=5;
+const COST_CHANNELS=[
+  {id:'toutiao',name:'今日头条'},{id:'kuaishou',name:'快手'},{id:'weixin',name:'微信'},
+  {id:'bilibili',name:'bilibili'},{id:'douyin',name:'抖音'},{id:'weibo',name:'微博'}
+];
+
+function _pccMaskKey(k){return k?k.substring(0,10)+'••••••••••••••••'+k.slice(-4):'';}
+function _pccPubName(id){const p=publishers.find(p=>p.id===id);return p?p.name:id;}
+function _pccGameNames(ids){if(!ids||ids.length===0)return '<span class="tag gray">不限</span>';return `<span class="tag blue">${ids.length} 项</span>`;}
+function _pccChanNames(ids){if(!ids||ids.length===0)return '<span class="tag gray">不限</span>';return `<span class="tag blue">${ids.length} 项</span>`;}
+
+function pgPubCostConfig(){
+  const canEdit=ROLE==='系统管理员'||ROLE==='业务负责人';
+  const fPub=window._pccFPub||'';
+  const fStatus=window._pccFStatus||'';
+  const list=_pubCostConfigs.filter(r=>{
+    if(fPub&&r.pubId!==fPub)return false;
+    if(fStatus!==''&&String(r.status)!==fStatus)return false;
+    return true;
+  });
+
+  const pubOpts=publishers.map(p=>`<option value="${p.id}" ${fPub===p.id?'selected':''}>${p.name}</option>`).join('');
+  const rows=list.map(r=>`<tr>
+    <td style="color:var(--weak);font-family:monospace;font-size:12px">${r.id}</td>
+    <td style="font-weight:650">${_pccPubName(r.pubId)}</td>
+    <td>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-family:monospace;font-size:12px;color:var(--muted)">${_pccMaskKey(r.apiKey)}</span>
+        <button class="btn g sm" style="padding:2px 8px;font-size:11px" onclick="_pccCopyKey('${r.id}')">复制</button>
+      </div>
+    </td>
+    <td>
+      <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer" title="${r.status===1?'点击停用':'点击启用'}">
+        <span style="position:relative;display:inline-block;width:38px;height:21px;flex-shrink:0">
+          <input type="checkbox" ${r.status===1?'checked':''} onchange="_pccToggle(${r.id})" style="opacity:0;width:0;height:0;position:absolute">
+          <span style="position:absolute;inset:0;background:${r.status===1?'var(--primary)':'#d9d9d9'};border-radius:11px;transition:.25s"></span>
+          <span style="position:absolute;width:15px;height:15px;top:3px;left:${r.status===1?'20':'3'}px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.15)"></span>
+        </span>
+        <span style="font-size:12px;color:${r.status===1?'var(--green)':'var(--weak)'}">${r.status===1?'启用':'停用'}</span>
+      </label>
+    </td>
+    <td style="color:var(--weak);font-size:12px">${r.createdAt}</td>
+    <td>
+      ${canEdit?`<button class="link" onclick="_pccOpenEdit(${r.id})">编辑</button><button class="link" style="color:var(--red)" onclick="_pccDel(${r.id})">删除</button>`:'<span style="color:var(--weak);font-size:12px">—</span>'}
+    </td>
+  </tr>`).join('');
+
+  return `<div class="ph">
+    <div>
+      <div class="pt">消耗数据访问配置</div>
+      <div class="pd">为联运商签发 API Key，限定其可拉取的游戏、广告渠道及查询天数范围；联运商凭 Key 通过 <code style="background:#f0f6ff;padding:1px 6px;border-radius:4px;font-size:12px">GET /pub/api/v1/cost/query</code> 拉取投放成本数据。</div>
+    </div>
+    <div class="acts">${canEdit?'<button class="btn p" onclick="_pccOpenCreate()">＋ 新增配置</button>':''}</div>
+  </div>
+  <div class="notice" style="border-color:#d0e8ff;background:#f0f7ff;color:#1a4a80;margin-bottom:16px">
+    🔑 API Key 仅在创建时显示一次，请在弹窗中及时复制。联运商停用后 Key 立即失效，重新启用后恢复。可查游戏/渠道留空表示不做限制（联运商可查全部）。
+  </div>
+  <div class="card">
+    <div class="card-hd">
+      <div>
+        <div class="card-title">访问配置列表 <span style="font-size:12px;color:var(--muted);font-weight:400">共 ${list.length} 条</span></div>
+      </div>
+    </div>
+    <div style="padding:14px 17px 0">
+      <div class="filter" style="margin-bottom:12px">
+        <span style="color:var(--muted);font-size:13px">联运商</span>
+        <select class="select" onchange="window._pccFPub=this.value;renderPage()">
+          <option value="">全部</option>
+          ${pubOpts}
+        </select>
+        <span style="color:var(--muted);font-size:13px">状态</span>
+        <select class="select" style="min-width:100px" onchange="window._pccFStatus=this.value;renderPage()">
+          <option value="" ${fStatus===''?'selected':''}>全部</option>
+          <option value="1" ${fStatus==='1'?'selected':''}>启用</option>
+          <option value="0" ${fStatus==='0'?'selected':''}>停用</option>
+        </select>
+        <button class="btn g" onclick="window._pccFPub='';window._pccFStatus='';renderPage()">重置</button>
+      </div>
+    </div>
+    <div class="tw" style="padding:0 0 4px">
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width:50px">ID</th>
+            <th style="min-width:110px">联运商</th>
+            <th style="min-width:240px">API Key</th>
+            <th style="width:90px">状态</th>
+            <th style="width:135px">创建时间</th>
+            <th style="width:100px">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.length===0?`<tr><td colspan="9" style="text-align:center;padding:48px 0;color:var(--weak)">暂无数据</td></tr>`:rows}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function _pccCopyKey(id){
+  const r=_pubCostConfigs.find(c=>c.id===id);
+  if(!r)return;
+  navigator.clipboard&&navigator.clipboard.writeText(r.apiKey).catch(()=>{});
+  const toast=document.createElement('div');
+  toast.textContent='API Key 已复制';
+  Object.assign(toast.style,{position:'fixed',top:'20px',right:'24px',background:'#1d5fbf',color:'#fff',padding:'8px 16px',borderRadius:'7px',fontSize:'13px',zIndex:'9999',boxShadow:'0 4px 16px rgba(0,0,0,.18)',animation:'fadeUp .2s ease'});
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),1800);
+}
+
+function _pccToggle(id){
+  const r=_pubCostConfigs.find(c=>c.id===id);
+  if(r){r.status=r.status===1?0:1;renderPage();}
+}
+
+function _pccDel(id){
+  if(!confirm('确认删除该配置？删除后联运商 API Key 将立即失效。'))return;
+  const idx=_pubCostConfigs.findIndex(c=>c.id===id);
+  if(idx>-1)_pubCostConfigs.splice(idx,1);
+  renderPage();
+}
+
+function _pccOpenCreate(){
+  window._pccEditId=null;
+  _pccRenderModal(null);
+}
+
+function _pccOpenEdit(id){
+  const r=_pubCostConfigs.find(c=>c.id===id);
+  if(!r)return;
+  window._pccEditId=id;
+  _pccRenderModal(r);
+}
+
+function _pccRenderModal(r){
+  const isEdit=!!r;
+  const gameOpts=games.map(g=>`<option value="${g.id}" ${isEdit&&r.gameIds.includes(g.id)?'selected':''}>${g.name}</option>`).join('');
+  const chanOpts=COST_CHANNELS.map(c=>`<option value="${c.id}" ${isEdit&&r.channelIds.includes(c.id)?'selected':''}>${c.name}</option>`).join('');
+  const pubOpts=publishers.map(p=>`<option value="${p.id}" ${isEdit&&r.pubId===p.id?'selected':''}>${p.name}</option>`).join('');
+
+  const body=`
+  <div class="notice" style="margin-bottom:14px">
+    ${isEdit?'可查游戏/渠道留空表示不限制；API Key 已生成，可在下方复制。':'新增后系统将自动生成 API Key，请在保存后及时复制给联运商。'}
+  </div>
+  <div class="fgrid" style="gap:12px 16px">
+    <div class="field" style="grid-column:1/-1">
+      <label>联运商 <span class="req">*</span></label>
+      <select class="input" id="pcc_pubId" style="width:100%" ${isEdit?'disabled':''}>
+        <option value="">请选择联运商</option>${pubOpts}
+      </select>
+      ${isEdit?'<div class="hint">联运商不可修改</div>':''}
+    </div>
+    ${isEdit?`<div class="field" style="grid-column:1/-1">
+      <label>API Key <span style="font-size:11px;color:var(--muted);font-weight:400">（只读，签发后不可更改）</span></label>
+      <div style="display:flex;gap:8px">
+        <input class="input" readonly value="${r.apiKey}" style="flex:1;font-family:monospace;font-size:12px;background:#f8fbff;color:var(--muted)"/>
+        <button class="btn g sm" onclick="_pccCopyKey(${r.id})">复制</button>
+      </div>
+      <div class="hint">将此 Key 提供给联运商用于接口鉴权</div>
+    </div>`:''}
+  </div>`;
+
+  openModal(isEdit?'编辑消耗访问配置':'新增消耗访问配置',body,
+    `<button class="btn g" onclick="closeModal()">取消</button><button class="btn p" onclick="_pccSave()">确定</button>`);
+}
+
+function _pccSave(){
+  const pubId=(document.getElementById('pcc_pubId').value||'').trim();
+  if(!pubId){alert('请选择联运商');return;}
+  if(window._pccEditId){
+    // 编辑时无可修改字段，直接关闭
+  }else{
+    const seg=n=>Math.random().toString(36).substring(2,2+n).toUpperCase();
+    _pubCostConfigs.push({id:_pccNextId++,pubId,gameIds:[],channelIds:[],dayLimit:0,remark:'',status:1,
+      apiKey:`pk_${pubId}_${seg(8)}${seg(4)}${seg(4)}${seg(12)}`,
+      createdAt:new Date().toISOString().slice(0,16).replace('T',' ')});
+  }
+  closeModal();renderPage();
+}
 </script>
 </body>
 </html>
