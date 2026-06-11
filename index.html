@@ -2096,7 +2096,7 @@ function pgPubRules(){
     const namesLine=visible.map(a=>a.appName).join(' · ');
     const moreSpan=remain>0?` <span style="color:var(--primary);cursor:help" title="${fullList}">…+${remain} 个</span>`:'';
     const appCell=`<span style="${badgeStyle};border-radius:8px;padding:1px 7px;font-size:11px;font-weight:700">${badgeText}</span><div style="font-size:10.5px;color:var(--muted);margin-top:3px;max-width:220px;line-height:1.5" title="${fullList}">${namesLine||'<span style="color:var(--weak)">—</span>'}${moreSpan}</div>`;
-    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${appCell}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openPubRuleDetail('${r.id}')">查看</button>${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
+    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${appCell}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openPubRuleDetail('${r.id}')">查看</button>${canEditRule()&&r.status==='草稿'?`<button class="link" style="color:var(--orange)" onclick="editPubRule('${r.id}')">编辑</button>`:''}${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
   });
   return `<div class="ph"><div><div class="pt">联运商分成规则</div><div class="pd">每条规则绑定「游戏＋平台＋联运商」，可指定生效的平台应用 AppID（默认覆盖该联运商下全部 AppID）；同一条规则内所有 AppID 共用同一份比例与阶梯。CP 端分成规则请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cpRules')">CP分成规则</button>」中配置。</div></div><div class="acts">${canEditRule()?'<button class="btn p" onclick="openPubRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="filter"><select class="select"><option>全部平台</option><option>微信小游戏</option><option>抖音小游戏</option></select><select class="select"><option>全部状态</option><option>草稿</option><option>审批中</option><option>生效中</option><option>已到期</option><option>已驳回</option></select></div>
@@ -2309,14 +2309,25 @@ function openPubRuleDetail(id){
 }
 // 兼容旧入口
 function openRuleDetail(id){return openPubRuleDetail(id);}
-function openPubRuleForm(){
-  openModal('新建联运商分成规则',`<div class="notice">创建前请确认已存在对应的「联运商-游戏-平台」映射关系，否则请先在游戏管理中配置。</div>
+function openPubRuleForm(prefill){
+  const p=prefill||{};
+  const isEdit=!!p.editId;
+  const title=isEdit?`编辑联运商分成规则 · ${p.editId}`:'新建联运商分成规则';
+  const saveBtn=isEdit
+    ?`<button class="btn g" onclick="savePubRuleDraft('${p.editId}')">存草稿</button>`
+    :`<button class="btn g" onclick="alert('保存为草稿')">存草稿</button>`;
+  const submitBtn=isEdit
+    ?`<button class="btn p" onclick="savePubRuleDraft('${p.editId}');submitRule('${p.editId}')">提交审批</button>`
+    :`<button class="btn p" onclick="alert('提交审批 → BPM流程发起，规则状态变为「审批中」');closeModal()">提交审批</button>`;
+  const tierChecked=p.tierEnabled?'checked':'';
+  const tierBoxDisplay=p.tierEnabled?'grid':'none';
+  openModal(title,`<div class="notice">创建前请确认已存在对应的「联运商-游戏-平台」映射关系，否则请先在游戏管理中配置。</div>
   <div class="fgrid">
-    <div class="field"><label>游戏 <span class="req">*</span></label><select id="rf_game" class="select" style="width:100%" onchange="rfSync()"><option value="">-- 选择游戏 --</option>${games.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}</select></div>
-    <div class="field"><label>平台类型 <span class="req">*</span></label><select id="rf_plat" class="select" style="width:100%" onchange="rfSync()"><option value="">-- 选择平台 --</option><option value="微信小游戏">微信小游戏</option><option value="抖音小游戏">抖音小游戏</option></select></div>
+    <div class="field"><label>游戏 <span class="req">*</span></label><select id="rf_game" class="select" style="width:100%" onchange="rfSync()" ${isEdit?'disabled':''}><option value="">-- 选择游戏 --</option>${games.map(g=>`<option value="${g.id}" ${p.gameName===g.name?'selected':''}>${g.name}</option>`).join('')}</select>${isEdit?'<div class="hint" style="color:var(--muted)">编辑模式下游戏不可更改</div>':''}</div>
+    <div class="field"><label>平台类型 <span class="req">*</span></label><select id="rf_plat" class="select" style="width:100%" onchange="rfSync()" ${isEdit?'disabled':''}><option value="">-- 选择平台 --</option><option value="微信小游戏" ${p.platform==='微信小游戏'?'selected':''}>微信小游戏</option><option value="抖音小游戏" ${p.platform==='抖音小游戏'?'selected':''}>抖音小游戏</option></select>${isEdit?'<div class="hint" style="color:var(--muted)">编辑模式下平台不可更改</div>':''}</div>
     <div class="field"><label>联运商 <span class="req">*</span></label>
       <select id="rf_pub" class="select" style="width:100%" disabled onchange="rfSyncApps()"><option value="">请先选择游戏和平台</option></select>
-      <div id="rf_pub_hint" class="hint"></div>
+      <div id="rf_pub_hint" class="hint">${isEdit?'<span style="color:var(--muted)">编辑模式下联运商不可更改</span>':''}</div>
     </div>
     <div class="field" style="grid-column:1/-1;background:#fafdff;border:1px solid #cfe0f5;border-radius:6px;padding:10px 12px">
       <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -2331,24 +2342,32 @@ function openPubRuleForm(){
         <div style="color:var(--muted);font-size:12px">请先选择游戏、平台和联运商</div>
       </div>
     </div>
-    <div class="field"><label>生效开始日期 <span class="req">*</span></label><input class="input" type="date" style="width:100%" value="2026-05-01"/></div>
-    <div class="field"><label>生效结束日期 <span class="req">*</span></label><input class="input" type="date" style="width:100%" value="2026-12-31"/></div>
+    <div class="field"><label>生效开始日期 <span class="req">*</span></label><input id="rf_start" class="input" type="date" style="width:100%" value="${p.start||'2026-05-01'}"/></div>
+    <div class="field"><label>生效结束日期 <span class="req">*</span></label><input id="rf_end" class="input" type="date" style="width:100%" value="${p.end||'2026-12-31'}"/></div>
     <div class="field"><label>结算类型</label><select class="select" style="width:100%" disabled><option>IAA利润分成</option></select></div>
     <div class="field"><label>结算周期</label><select class="select" style="width:100%" disabled><option>按自然月</option></select></div>
-    <div class="field"><label>联运商基础分成比例 <span class="req">*</span></label><input class="input" type="number" style="width:100%" placeholder="如 60（%）" min="0" max="100"/></div>
+    <div class="field"><label>联运商基础分成比例 <span class="req">*</span></label><input id="rf_rate" class="input" type="number" style="width:100%" placeholder="如 60（%）" min="0" max="100" value="${p.pubRate||''}"/></div>
     <div class="field" style="grid-column:1/-1;background:#fafdff;border:1px solid #cfe0f5;border-radius:6px;padding:10px 12px">
       <label style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <input type="checkbox" id="rf_tier_enabled" onchange="document.getElementById('rf_tier_box').style.display=this.checked?'grid':'none'" />
+        <input type="checkbox" id="rf_tier_enabled" ${tierChecked} onchange="document.getElementById('rf_tier_box').style.display=this.checked?'grid':'none'" />
         <b style="color:var(--primary)">启用阶梯分润</b>
         <span style="color:var(--muted);font-size:12px">自平台应用上线当月起算，12个自然月内累计收入流水达到阈值，则后续账期切换为高档分成比例</span>
       </label>
-      <div id="rf_tier_box" style="display:none;grid-template-columns:1fr 1fr;gap:10px 14px">
-        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">累计流水阈值（万元）</div><input class="input" type="number" style="width:100%" placeholder="如 3000" min="0"/></div>
-        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">超阈值后联运商比例（%）</div><input class="input" type="number" style="width:100%" placeholder="如 70" min="0" max="100"/></div>
+      <div id="rf_tier_box" style="display:${tierBoxDisplay};grid-template-columns:1fr 1fr;gap:10px 14px">
+        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">累计流水阈值（万元）</div><input id="rf_tier_threshold" class="input" type="number" style="width:100%" placeholder="如 3000" min="0" value="${p.tierThreshold?p.tierThreshold/10000:''}"/></div>
+        <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">超阈值后联运商比例（%）</div><input id="rf_tier_high" class="input" type="number" style="width:100%" placeholder="如 70" min="0" max="100" value="${p.tierHighRate||''}"/></div>
       </div>
     </div>
     <div class="field" style="grid-column:1/-1"><label>备注</label><textarea class="input" style="width:100%;height:60px;resize:vertical"></textarea></div>
-  </div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn g" onclick="alert('保存为草稿')">存草稿</button><button class="btn p" onclick="alert('提交审批 → BPM流程发起，规则状态变为「审批中」');closeModal()">提交审批</button>`)
+  </div>`,`<button class="btn g" onclick="closeModal()">取消</button>${saveBtn}${submitBtn}`);
+  setTimeout(()=>{
+    rfSync();
+    if(p.pubName&&isEdit){
+      const sel=document.getElementById('rf_pub');
+      if(sel){[...sel.options].forEach(o=>{if(o.text===p.pubName)o.selected=true;});sel.disabled=true;}
+    }
+    rfSyncApps();
+  },0);
 }
 // 兼容旧入口
 function openRuleForm(){return openPubRuleForm();}
@@ -2417,6 +2436,30 @@ function rfUpdateAppCount(){
 }
 function submitRule(id){alert(`原型展示：规则 ${id} 已提交 BPM 审批，状态更新为「审批中」。`)}
 function copyRule(id){const r=pubRules.find(x=>x.id===id);alert(`原型展示：复制规则 ${id}，各字段可重新编辑后提交。`)}
+function editPubRule(id){
+  const r=pubRules.find(x=>x.id===id);
+  if(!r){alert('规则不存在');return;}
+  if(r.status!=='草稿'){alert('只有草稿状态的规则可以编辑');return;}
+  openPubRuleForm({editId:id,gameName:r.game,platform:r.platform,pubName:r.pub,start:r.start,end:r.end,pubRate:r.pubRate,tierEnabled:r.tierEnabled,tierThreshold:r.tierThreshold,tierHighRate:r.tierHighRate});
+}
+function savePubRuleDraft(id){
+  const r=pubRules.find(x=>x.id===id);
+  if(!r){alert('规则不存在');return;}
+  const rate=parseInt(document.getElementById('rf_rate')?.value||'0');
+  const tierEnabled=document.getElementById('rf_tier_enabled')?.checked||false;
+  const tierThresholdW=parseFloat(document.getElementById('rf_tier_threshold')?.value||'0');
+  const tierHigh=parseInt(document.getElementById('rf_tier_high')?.value||'0');
+  const start=document.getElementById('rf_start')?.value||r.start;
+  const end=document.getElementById('rf_end')?.value||r.end;
+  r.pubRate=rate;
+  r.tierEnabled=tierEnabled;
+  r.tierThreshold=tierThresholdW*10000;
+  r.tierHighRate=tierHigh;
+  r.start=start;
+  r.end=end;
+  closeModal();
+  renderPage();
+}
 
 /* ── 收入双确认 helper ── */
 function syncRevConfirmed(){
