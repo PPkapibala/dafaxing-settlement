@@ -2238,30 +2238,33 @@ function openPubRuleDetail(id){
     <style>
       .formula-card{display:flex;align-items:stretch;gap:0;border-radius:7px;overflow:hidden}
       .formula-card .fc-head{color:#fff;font-size:12px;font-weight:700;padding:12px 14px;min-width:130px;text-align:center;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-      .formula-card .fc-body{padding:10px 16px;font-size:13px;font-family:monospace;flex:1;display:grid;grid-template-columns:96px 1fr;gap:8px 12px;align-items:center}
+      .formula-card .fc-body{padding:10px 16px;font-size:13px;font-family:monospace;flex:1;display:grid;grid-template-columns:108px 1fr;gap:8px 12px;align-items:center}
       .formula-card .fc-tail{padding:12px;font-size:11.5px;white-space:nowrap;display:flex;align-items:center;justify-content:center;min-width:96px}
-      .fc-tag{display:inline-block;border-radius:8px;padding:1px 7px;font-size:10.5px;font-weight:700;text-align:center}
+      .fc-tag{display:inline-block;border-radius:8px;padding:1px 7px;font-size:10.5px;font-weight:700;text-align:center;white-space:nowrap}
       .fc-tag-1{background:#eef4fb;color:var(--primary)}
       .fc-tag-2{background:#fff3e0;color:var(--orange)}
       .fc-tag-loss{background:#ffe9e9;color:var(--red)}
+      .fc-tier-hint{grid-column:1/-1;font-size:11px;color:#5a7aaa;background:#f0f5ff;border-radius:5px;padding:3px 8px;margin-bottom:2px;font-family:sans-serif;font-weight:500}
     </style>
     <div class="formula-card" style="border:1px solid #c8daf4">
       <div class="fc-head" style="background:var(--primary)">联运商<br>可结算（现金）</div>
       <div class="fc-body" style="background:#f0f6ff;color:#1a3a6b">
-        ${r.tierEnabled?`<span class="fc-tag fc-tag-1">阶梯Ⅰ ≤${(r.tierThreshold/10000).toFixed(0)}w</span><span>现金利润 × <b style="color:var(--primary)">${r.pubRate}%</b></span>
-        <span class="fc-tag fc-tag-2">阶梯Ⅱ &gt;${(r.tierThreshold/10000).toFixed(0)}w</span><span>现金利润 × <b style="color:var(--orange)">${r.tierHighRate}%</b></span>`
-        :`<span class="fc-tag fc-tag-1">利润 ≥ 0</span><span>现金利润 × <b style="color:var(--primary)">${r.pubRate}%</b></span>`}
-        <span class="fc-tag fc-tag-loss">利润 &lt; 0</span><span><b style="color:var(--red)">现金收入全额划转</b>，不分成</span>
+        ${r.tierEnabled?`<span class="fc-tier-hint">📈 阶梯依据：上线后 12 个月内累计总流水</span>
+        <span class="fc-tag fc-tag-1">累计 ≤${(r.tierThreshold/10000).toFixed(0)}w</span><span>现金利润 × <b style="color:var(--primary)">${r.pubRate}%</b></span>
+        <span class="fc-tag fc-tag-2">累计 &gt;${(r.tierThreshold/10000).toFixed(0)}w</span><span>现金利润 × <b style="color:var(--orange)">${r.tierHighRate}%</b></span>`
+        :`<span class="fc-tag fc-tag-1">当月利润 ≥ 0</span><span>现金利润 × <b style="color:var(--primary)">${r.pubRate}%</b></span>`}
+        <span class="fc-tag fc-tag-loss">当月利润 &lt; 0</span><span><b style="color:var(--red)">现金收入全额划转</b>，不分成</span>
       </div>
       <div class="fc-tail" style="background:#e6f0ff;color:var(--primary)">可提款</div>
     </div>
     <div class="formula-card" style="border:1px solid #c8daf4">
       <div class="fc-head" style="background:#3a6dbf">联运商<br>可结算（广告金）</div>
       <div class="fc-body" style="background:#f0f6ff;color:#1a3a6b">
-        ${r.tierEnabled?`<span class="fc-tag fc-tag-1">阶梯Ⅰ ≤${(r.tierThreshold/10000).toFixed(0)}w</span><span>广告金利润 × <b style="color:var(--primary)">${r.pubRate}%</b></span>
-        <span class="fc-tag fc-tag-2">阶梯Ⅱ &gt;${(r.tierThreshold/10000).toFixed(0)}w</span><span>广告金利润 × <b style="color:var(--orange)">${r.tierHighRate}%</b></span>`
-        :`<span class="fc-tag fc-tag-1">利润 ≥ 0</span><span>广告金利润 × <b style="color:var(--primary)">${r.pubRate}%</b></span>`}
-        <span class="fc-tag fc-tag-loss">利润 &lt; 0</span><span><b style="color:var(--red)">广告金收入全额划转</b>，不分成</span>
+        ${r.tierEnabled?`<span class="fc-tier-hint">📈 阶梯依据：上线后 12 个月内累计总流水</span>
+        <span class="fc-tag fc-tag-1">累计 ≤${(r.tierThreshold/10000).toFixed(0)}w</span><span>广告金利润 × <b style="color:var(--primary)">${r.pubRate}%</b></span>
+        <span class="fc-tag fc-tag-2">累计 &gt;${(r.tierThreshold/10000).toFixed(0)}w</span><span>广告金利润 × <b style="color:var(--orange)">${r.tierHighRate}%</b></span>`
+        :`<span class="fc-tag fc-tag-1">当月利润 ≥ 0</span><span>广告金利润 × <b style="color:var(--primary)">${r.pubRate}%</b></span>`}
+        <span class="fc-tag fc-tag-loss">当月利润 &lt; 0</span><span><b style="color:var(--red)">广告金收入全额划转</b>，不分成</span>
       </div>
       <div class="fc-tail" style="background:#e6f0ff;color:var(--muted)">仅查看，不折现</div>
     </div>
