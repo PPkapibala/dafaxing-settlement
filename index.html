@@ -2116,7 +2116,7 @@ function pgCpRules(){
   <div class="filter"><select class="select" onchange="window._cpRuleStatusFilter=this.value;renderPage()"><option value="all">全部状态</option><option value="草稿">草稿</option><option value="审批中">审批中</option><option value="生效中">生效中</option><option value="已到期">已到期</option><option value="已驳回">已驳回</option></select></div>
   ${tbl(['规则ID','游戏','CP','生效期间','CP 占比%','CP 承担云服务成本','状态','BPM审批单号','操作'],data.map(r=>{
     const bpmCell=r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>';
-    const ops=`<button class="link" onclick="openCpRuleDetail('${r.id}')">查看</button>${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitCpRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyCpRule('${r.id}')">复制</button>`:''}`;
+    const ops=`<button class="link" onclick="openCpRuleDetail('${r.id}')">查看</button>${canEditRule()&&r.status==='草稿'?`<button class="link" style="color:var(--orange)" onclick="editCpRule('${r.id}')">编辑</button>`:''}${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitCpRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyCpRule('${r.id}')">复制</button>`:''}`;
     return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.cp}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700;color:var(--green)">${r.cpRemainShare}%</td><td>${r.cpServerCostShare?'<span style="color:var(--green)">承担</span>':'<span style="color:var(--muted)">不承担</span>'}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${bpmCell}</td><td>${ops}</td></tr>`;
   }),{pageKey:'cpRules'})}`;
 }
@@ -2143,15 +2143,23 @@ function openCpRuleDetail(id){
 }
 function openCpRuleForm(prefill){
   const p=prefill||{};
-  openModal('新建 CP 分成规则',`<div class="notice">创建前请确认已存在对应的「游戏-CP」关系；CP 合同按游戏级签订，一个游戏只能有一条生效中的 CP 规则。</div>
+  const isEdit=!!p.editId;
+  const title=isEdit?`编辑 CP 分成规则 · ${p.editId}`:'新建 CP 分成规则';
+  const saveBtn=isEdit
+    ?`<button class="btn g" onclick="saveCpRuleDraft('${p.editId}')">存草稿</button>`
+    :`<button class="btn g" onclick="alert('保存为草稿')">存草稿</button>`;
+  const submitBtn=isEdit
+    ?`<button class="btn p" onclick="saveCpRuleDraft('${p.editId}');submitCpRule('${p.editId}')">提交审批</button>`
+    :`<button class="btn p" onclick="alert('提交审批 → BPM流程发起，规则状态变为「审批中」');closeModal()">提交审批</button>`;
+  openModal(title,`<div class="notice">创建前请确认已存在对应的「游戏-CP」关系；CP 合同按游戏级签订，一个游戏只能有一条生效中的 CP 规则。</div>
   <div class="fgrid">
-    <div class="field"><label>游戏 <span class="req">*</span></label><select id="cf_game" class="select" style="width:100%" onchange="cfSync()"><option value="">-- 选择游戏 --</option>${games.map(g=>`<option value="${g.id}" ${p.gameName===g.name?'selected':''}>${g.name}</option>`).join('')}</select></div>
+    <div class="field"><label>游戏 <span class="req">*</span></label><select id="cf_game" class="select" style="width:100%" onchange="cfSync()" ${isEdit?'disabled':''}><option value="">-- 选择游戏 --</option>${games.map(g=>`<option value="${g.id}" ${p.gameName===g.name?'selected':''}>${g.name}</option>`).join('')}</select>${isEdit?'<div class="hint" style="color:var(--muted)">编辑模式下游戏不可更改</div>':''}</div>
     <div class="field"><label>CP <span class="req">*</span></label>
       <select id="cf_cp" class="select" style="width:100%" disabled><option value="">请先选择游戏</option></select>
-      <div id="cf_cp_hint" class="hint"></div>
+      <div id="cf_cp_hint" class="hint">${isEdit?'<span style="color:var(--muted)">编辑模式下 CP 不可更改</span>':''}</div>
     </div>
-    <div class="field"><label>生效开始日期 <span class="req">*</span></label><input class="input" type="date" style="width:100%" value="${p.start||'2026-05-01'}"/></div>
-    <div class="field"><label>生效结束日期 <span class="req">*</span></label><input class="input" type="date" style="width:100%" value="${p.end||'2026-12-31'}"/></div>
+    <div class="field"><label>生效开始日期 <span class="req">*</span></label><input id="cf_start" class="input" type="date" style="width:100%" value="${p.start||'2026-05-01'}"/></div>
+    <div class="field"><label>生效结束日期 <span class="req">*</span></label><input id="cf_end" class="input" type="date" style="width:100%" value="${p.end||'2026-12-31'}"/></div>
     <div class="field"><label>结算类型</label><select class="select" style="width:100%" disabled><option>IAA利润分成</option></select></div>
     <div class="field"><label>结算周期</label><select class="select" style="width:100%" disabled><option>按自然月</option></select></div>
     <div class="field" style="grid-column:1/-1;background:#fafdf7;border:1px solid #c6e6d6;border-radius:6px;padding:10px 12px">
@@ -2180,8 +2188,17 @@ function openCpRuleForm(prefill){
       <div id="cf_v_preview" style="font-family:monospace;font-size:13px;color:#0d4a2e;background:#fff;border:1px dashed #b6d7c4;border-radius:6px;padding:8px 12px"></div>
     </div>
     <div class="field" style="grid-column:1/-1"><label>备注</label><textarea class="input" style="width:100%;height:60px;resize:vertical"></textarea></div>
-  </div>`,`<button class="btn g" onclick="closeModal()">取消</button><button class="btn g" onclick="alert('保存为草稿')">存草稿</button><button class="btn p" onclick="alert('提交审批 → BPM流程发起，规则状态变为「审批中」');closeModal()">提交审批</button>`);
-  setTimeout(()=>{cfSync();cfFormulaPreview();document.getElementById('cf_share')?.addEventListener('input',cfFormulaPreview);},0);
+  </div>`,`<button class="btn g" onclick="closeModal()">取消</button>${saveBtn}${submitBtn}`);
+  setTimeout(()=>{
+    cfSync();
+    cfFormulaPreview();
+    if(p.cpName){
+      const sel=document.getElementById('cf_cp');
+      if(sel){[...sel.options].forEach(o=>{if(o.text===p.cpName)o.selected=true;});}
+      if(isEdit&&sel)sel.disabled=true;
+    }
+    document.getElementById('cf_share')?.addEventListener('input',cfFormulaPreview);
+  },0);
 }
 function cfFormulaPreview(){
   const share=document.getElementById('cf_share')?.value||'__';
@@ -2222,6 +2239,26 @@ function copyCpRule(id){
   const r=cpRules.find(x=>x.id===id);
   if(!r){alert('规则不存在');return;}
   openCpRuleForm({gameName:r.game,cpRemainShare:r.cpRemainShare,cpServerCostShare:r.cpServerCostShare});
+}
+function editCpRule(id){
+  const r=cpRules.find(x=>x.id===id);
+  if(!r){alert('规则不存在');return;}
+  if(r.status!=='草稿'){alert('只有草稿状态的规则可以编辑');return;}
+  openCpRuleForm({editId:id,gameName:r.game,cpName:r.cp,start:r.start,end:r.end,cpRemainShare:r.cpRemainShare,cpServerCostShare:r.cpServerCostShare});
+}
+function saveCpRuleDraft(id){
+  const r=cpRules.find(x=>x.id===id);
+  if(!r){alert('规则不存在');return;}
+  const share=parseInt(document.getElementById('cf_share')?.value||'0');
+  const serverShare=document.getElementById('cf_serverShare')?.checked!==false;
+  const start=document.getElementById('cf_start')?.value||r.start;
+  const end=document.getElementById('cf_end')?.value||r.end;
+  r.cpRemainShare=share;
+  r.cpServerCostShare=serverShare;
+  r.start=start;
+  r.end=end;
+  closeModal();
+  renderPage();
 }
 function openPubRuleDetail(id){
   const r=pubRules.find(x=>x.id===id);
