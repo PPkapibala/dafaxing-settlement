@@ -2226,7 +2226,7 @@ function copyCpRule(id){
 function openPubRuleDetail(id){
   const r=pubRules.find(x=>x.id===id);
   const tierBlock=r.tierEnabled
-    ?`<span class="v" style="font-weight:700">已启用 · 月流水 <b style="color:var(--orange)">> ${(r.tierThreshold/10000).toFixed(0)}w</b> 时切换为 <b style="color:var(--orange)">${r.tierHighRate}%</b></span>`
+    ?`<span class="v" style="font-weight:700">已启用 · 上线后12个月内累计流水 <b style="color:var(--orange)">> ${(r.tierThreshold/10000).toFixed(0)}w</b> 时切换为 <b style="color:var(--orange)">${r.tierHighRate}%</b></span>`
     :`<span class="v" style="color:var(--muted)">未启用（按基础比例 ${r.pubRate}% 计算）</span>`;
   const allApps=listAppIdsForRule(r);
   const chosen=(r.appIds&&r.appIds.length)?allApps.filter(a=>r.appIds.includes(a.id)):allApps;
