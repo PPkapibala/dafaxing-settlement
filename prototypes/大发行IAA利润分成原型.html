@@ -2458,7 +2458,7 @@ function resolveRuleAppIds(r){
 // 检测新规则与现有规则的冲突；excludeId 为编辑时排除自身
 // 返回 null 表示无冲突，否则返回冲突描述字符串
 function checkPubRuleConflict({appIds, start, end, excludeId}){
-  const SKIP=['已到期','已驳回'];
+  const SKIP=['已驳回'];
   const newIds=new Set(appIds);
   const conflicts=[];
   for(const r of pubRules){
