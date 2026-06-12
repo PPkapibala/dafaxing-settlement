@@ -2096,7 +2096,7 @@ function pgPubRules(){
     const namesLine=visible.map(a=>a.appName).join(' · ');
     const moreSpan=remain>0?` <span style="color:var(--primary);cursor:help" title="${fullList}">…+${remain} 个</span>`:'';
     const appCell=`<span style="${badgeStyle};border-radius:8px;padding:1px 7px;font-size:11px;font-weight:700">${badgeText}</span><div style="font-size:10.5px;color:var(--muted);margin-top:3px;max-width:220px;line-height:1.5" title="${fullList}">${namesLine||'<span style="color:var(--weak)">—</span>'}${moreSpan}</div>`;
-    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${appCell}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openPubRuleDetail('${r.id}')">查看</button>${canEditRule()&&r.status==='草稿'?`<button class="link" style="color:var(--orange)" onclick="editPubRule('${r.id}')">编辑</button>`:''}${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
+    return `<tr ${r.status==='已驳回'?'style="opacity:.7"':''}><td style="font-family:monospace;font-size:12px">${r.id}</td><td>《${r.game}》</td><td>${r.platform}</td><td>${r.pub}</td><td>${appCell}</td><td>${r.start} ~ ${r.end}</td><td style="font-weight:700">${tierTxt}</td><td>${ts(r.status)}</td><td style="font-family:monospace;font-size:12px">${r.bpm&&r.bpm!=='—'?`<span title="点击复制单号" style="cursor:pointer;color:var(--primary)" onclick="copyText('${r.bpm}')">${r.bpm}</span>`:'<span style="color:var(--weak)">—</span>'}</td><td><button class="link" onclick="openPubRuleDetail('${r.id}')">查看</button>${canEditRule()&&(r.status==='草稿'||r.status==='已驳回')?`<button class="link" style="color:var(--orange)" onclick="editPubRule('${r.id}')">编辑</button>`:''}${canEditRule()&&r.status==='草稿'?`<button class="link" onclick="submitRule('${r.id}')">提交审批</button>`:''}${canEditRule()?`<button class="link" onclick="copyRule('${r.id}')">复制</button>`:''}</td></tr>`;
   });
   return `<div class="ph"><div><div class="pt">联运商分成规则</div><div class="pd">每条规则绑定「游戏＋平台＋联运商」，可指定生效的平台应用 AppID（默认覆盖该联运商下全部 AppID）；同一条规则内所有 AppID 共用同一份比例与阶梯。CP 端分成规则请到「<button class="link" style="color:var(--primary);font-size:12.5px" onclick="go('cpRules')">CP分成规则</button>」中配置。</div></div><div class="acts">${canEditRule()?'<button class="btn p" onclick="openPubRuleForm()">＋ 新建规则</button>':''}</div></div>
   <div class="filter"><select class="select"><option>全部平台</option><option>微信小游戏</option><option>抖音小游戏</option></select><select class="select"><option>全部状态</option><option>草稿</option><option>审批中</option><option>生效中</option><option>已到期</option><option>已驳回</option></select></div>
@@ -2315,10 +2315,10 @@ function openPubRuleForm(prefill){
   const title=isEdit?`编辑联运商分成规则 · ${p.editId}`:'新建联运商分成规则';
   const saveBtn=isEdit
     ?`<button class="btn g" onclick="savePubRuleDraft('${p.editId}')">存草稿</button>`
-    :`<button class="btn g" onclick="alert('保存为草稿')">存草稿</button>`;
+    :`<button class="btn g" onclick="savePubRuleNew()">存草稿</button>`;
   const submitBtn=isEdit
     ?`<button class="btn p" onclick="savePubRuleDraft('${p.editId}');submitRule('${p.editId}')">提交审批</button>`
-    :`<button class="btn p" onclick="alert('提交审批 → BPM流程发起，规则状态变为「审批中」');closeModal()">提交审批</button>`;
+    :`<button class="btn p" onclick="savePubRuleNew(true)">提交审批</button>`;
   const tierChecked=p.tierEnabled?'checked':'';
   const tierBoxDisplay=p.tierEnabled?'grid':'none';
   openModal(title,`<div class="notice">创建前请确认已存在对应的「联运商-游戏-平台」映射关系，否则请先在游戏管理中配置。</div>
@@ -2434,12 +2434,58 @@ function rfUpdateAppCount(){
   }
   if(counter)counter.textContent=total?`已选 ${checked} / ${total}`:'';
 }
+// 新建规则保存（存草稿 or 提交审批）
+function savePubRuleNew(submit){
+  const start=document.getElementById('rf_start')?.value;
+  const end=document.getElementById('rf_end')?.value;
+  const appIds=rfReadSelectedAppIds();
+  if(!appIds.length){alert('请至少选择一个平台应用');return;}
+  if(!start||!end){alert('请填写生效期间');return;}
+  const conflict=checkPubRuleConflict({appIds,start,end,excludeId:null});
+  if(conflict){alert(conflict);return;}
+  if(submit){
+    alert('提交审批 → BPM流程发起，规则状态变为「审批中」');
+  } else {
+    alert('已保存为草稿');
+  }
+  closeModal();
+}
+// 将规则的 appIds（空=全选）展开为实际 AppID 字符串数组
+function resolveRuleAppIds(r){
+  if(r.appIds&&r.appIds.length)return r.appIds;
+  return listAppIdsForRule(r).map(a=>a.id);
+}
+// 检测新规则与现有规则的冲突；excludeId 为编辑时排除自身
+// 返回 null 表示无冲突，否则返回冲突描述字符串
+function checkPubRuleConflict({appIds, start, end, excludeId}){
+  const SKIP=['已到期','已驳回'];
+  const newIds=new Set(appIds);
+  const conflicts=[];
+  for(const r of pubRules){
+    if(r.id===excludeId)continue;
+    if(SKIP.includes(r.status))continue;
+    // 日期重叠
+    if(start>r.end||r.start>end)continue;
+    // AppID 重叠
+    const existing=resolveRuleAppIds(r);
+    const overlap=existing.filter(id=>newIds.has(id));
+    if(overlap.length){
+      conflicts.push(`${r.id}（${r.game} · ${r.pub} · ${r.status}）`);
+    }
+  }
+  if(!conflicts.length)return null;
+  return `以下规则与当前规则存在时间与应用冲突，不允许保存：\n\n${conflicts.map((c,i)=>`${i+1}. ${c}`).join('\n')}\n\n请先修改生效期间或应用范围，或处理已有规则后再保存。`;
+}
+// 从表单读取当前选中的 AppID 列表
+function rfReadSelectedAppIds(){
+  return Array.from(document.querySelectorAll('.rf_app_cb:checked')).map(c=>c.value);
+}
 function submitRule(id){alert(`原型展示：规则 ${id} 已提交 BPM 审批，状态更新为「审批中」。`)}
 function copyRule(id){const r=pubRules.find(x=>x.id===id);alert(`原型展示：复制规则 ${id}，各字段可重新编辑后提交。`)}
 function editPubRule(id){
   const r=pubRules.find(x=>x.id===id);
   if(!r){alert('规则不存在');return;}
-  if(r.status!=='草稿'){alert('只有草稿状态的规则可以编辑');return;}
+  if(r.status!=='草稿'&&r.status!=='已驳回'){alert('只有草稿或已驳回状态的规则可以编辑');return;}
   openPubRuleForm({editId:id,gameName:r.game,platform:r.platform,pubName:r.pub,start:r.start,end:r.end,pubRate:r.pubRate,tierEnabled:r.tierEnabled,tierThreshold:r.tierThreshold,tierHighRate:r.tierHighRate});
 }
 function savePubRuleDraft(id){
@@ -2451,12 +2497,17 @@ function savePubRuleDraft(id){
   const tierHigh=parseInt(document.getElementById('rf_tier_high')?.value||'0');
   const start=document.getElementById('rf_start')?.value||r.start;
   const end=document.getElementById('rf_end')?.value||r.end;
+  const appIds=rfReadSelectedAppIds();
+  const conflict=checkPubRuleConflict({appIds,start,end,excludeId:id});
+  if(conflict){alert(conflict);return;}
   r.pubRate=rate;
   r.tierEnabled=tierEnabled;
   r.tierThreshold=tierThresholdW*10000;
   r.tierHighRate=tierHigh;
   r.start=start;
   r.end=end;
+  if(r.appIds!==undefined)r.appIds=appIds;
+  if(r.status==='已驳回')r.status='草稿';
   closeModal();
   renderPage();
 }
